@@ -215,15 +215,15 @@ Goal: provide developer workflow without requiring dashboard clicks, using the s
 - [x] Add `go-go-host deployments show <deployment>` as Glazed command.
 - [x] Add `go-go-host deployments activate <deployment>` as Glazed command.
 - [x] Add `go-go-host rollback --site <slug> --to <deployment>` as Glazed command.
-- [ ] Add `go-go-host agents list --org` as Glazed command.
-- [ ] Add `go-go-host audit list --org ... --site ... --actor ...` as Glazed command with table/json output.
+- [x] Add `go-go-host agents list --org` as Glazed command.
+- [x] Add `go-go-host audit list --org ... --site ... --actor ...` as Glazed command with table/json output.
 - [x] Ensure implemented commands define `CommandDescription`, typed settings struct, `glazed` tags, `cmds.WithFlags`, Glazed output section, and command settings section.
 - [x] Ensure implemented commands decode with `vals.DecodeSectionInto(schema.DefaultSlug, settings)`.
 - [x] Ensure implemented list/detail/mutation commands emit stable rows via `types.NewRow` and `gp.AddRow`.
 - [ ] Add `cmds.WithLong` examples for every command.
 - [x] Add embedded help pages for common workflows: login, create site, deploy, rollback, agent setup.
 - [x] Add clear error handling for authz denial and validation failures.
-- [ ] Add CLI smoke test against httptest server using `--output json` assertions.
+- [x] Add CLI smoke test against httptest server using `--output json` assertions.
 
 Exit criteria:
 

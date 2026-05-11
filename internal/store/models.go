@@ -67,6 +67,28 @@ type RuntimeStatus struct {
 	UpdatedAt     time.Time
 }
 
+type Agent struct {
+	ID              string
+	OrgID           string
+	Name            string
+	Status          string
+	CreatedByUserID string
+	CreatedAt       time.Time
+	LastSeenAt      time.Time
+}
+
+type AgentSiteGrant struct {
+	AgentID         string
+	SiteID          string
+	CanDeploy       bool
+	CanRollback     bool
+	AllowedChannels []string
+	AllowedPaths    []string
+	ExpiresAt       time.Time
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+}
+
 type AuditEvent struct {
 	ID           string
 	OrgID        string
@@ -89,4 +111,7 @@ const (
 	SiteStatusProvisioning = "provisioning"
 	SiteStatusActive       = "active"
 	SiteStatusSuspended    = "suspended"
+
+	AgentStatusActive  = "active"
+	AgentStatusRevoked = "revoked"
 )

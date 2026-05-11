@@ -23,11 +23,36 @@ func (s *Store) InsertAuditEvent(ctx context.Context, event AuditEvent) (*AuditE
 	return auditFromDB(row), nil
 }
 
+type AuditFilter struct {
+	OrgID      string
+	ResourceID string
+	ActorType  string
+	ActorID    string
+	Action     string
+	Limit      int
+}
+
 func (s *Store) ListAuditEventsForOrg(ctx context.Context, orgID string, limit int) ([]AuditEvent, error) {
 	if limit <= 0 || limit > 500 {
 		limit = 100
 	}
 	rows, err := s.q.ListAuditEventsForOrg(ctx, storedb.ListAuditEventsForOrgParams{OrgID: orgID, Limit: int32(limit)})
+	if err != nil {
+		return nil, err
+	}
+	events := make([]AuditEvent, 0, len(rows))
+	for _, row := range rows {
+		events = append(events, *auditFromDB(row))
+	}
+	return events, nil
+}
+
+func (s *Store) ListAuditEvents(ctx context.Context, filter AuditFilter) ([]AuditEvent, error) {
+	limit := filter.Limit
+	if limit <= 0 || limit > 500 {
+		limit = 100
+	}
+	rows, err := s.q.ListAuditEventsFiltered(ctx, storedb.ListAuditEventsFilteredParams{OrgID: filter.OrgID, Column2: filter.ResourceID, Column3: filter.ActorType, Column4: filter.ActorID, Column5: filter.Action, Limit: int32(limit)})
 	if err != nil {
 		return nil, err
 	}

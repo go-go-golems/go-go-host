@@ -1716,3 +1716,78 @@ The CLI now has enough commands for an end-to-end developer workflow, but discov
 
 - Review files under `cmd/go-go-host/doc/*.md`.
 - Validate with `go test ./...` and `go-go-host help deploy-workflow` once the binary is built.
+
+## Step 22: Added CLI smoke tests plus audit and agent APIs/commands
+
+I added smoke coverage for the CLI HTTP helpers, then implemented the initial audit and agent API surface with matching Glazed CLI commands.
+
+### Prompt Context
+
+**User prompt (verbatim):** "go ahead with smoke tests, then implement the audit/agent APIs and their CLI commands"
+
+**Assistant interpretation:** First add CLI smoke tests for the existing workflow, then add the missing backend APIs and CLI commands for audit and agents.
+
+**Inferred user intent:** Close the remaining Phase 6 gaps that were blocked on missing APIs.
+
+**Commit (code):** N/A — this entry was written before committing this slice.
+
+### What I did
+
+- Added CLI HTTP smoke tests using `httptest`:
+  - JSON auth request helper.
+  - Multipart bundle upload helper.
+  - Error-body propagation for failed API responses.
+- Added sqlc agent queries and regenerated store code.
+- Added audit filtered query support.
+- Added store models/methods for agents and agent site grants.
+- Added control services for agents and audit.
+- Added HTTP APIs:
+  - `GET /api/v1/orgs/{org_id}/agents`
+  - `POST /api/v1/orgs/{org_id}/agents`
+  - `POST /api/v1/orgs/{org_id}/agents/{agent_id}/revoke`
+  - `GET /api/v1/orgs/{org_id}/audit`
+- Added integration test covering agent create/list and audit filtering.
+- Added CLI commands:
+  - `go-go-host agents list`
+  - `go-go-host agents create`
+  - `go-go-host audit list`
+- Updated Phase 6 checklist entries for agents, audit, and CLI smoke tests.
+
+### Why
+
+The CLI checklist still had explicit agent and audit commands, but the server did not expose enough API to support them. This slice adds the minimal useful control-plane API and CLI workflow while preserving the larger future agent enrollment/deploy-run work for later phases.
+
+### What worked
+
+- `go test ./...` passes.
+- Compose-backed Postgres integration tests pass for store/control/httpapi.
+- The agent creation API emits an audit event that is visible through the audit list API.
+
+### What didn't work
+
+- sqlc generated positional names (`Column2`, etc.) for the first filtered audit query because the SQL used raw positional parameters. I adapted the store wrapper to those generated names rather than spending time on a cosmetic query rewrite.
+
+### What I learned
+
+- The existing schema had enough agent tables to support a useful initial list/create/revoke API without a migration.
+- Audit list filtering can stay simple for v1: org-scoped access plus resource/actor/action filters covers the immediate CLI need.
+
+### What was tricky to build
+
+- Avoiding over-scoping agents: the current API intentionally creates and lists agent records only. Full enrollment keys, grants, and deploy-run token issuance should remain a later focused phase.
+
+### What warrants a second pair of eyes
+
+- Review agent API authorization. Currently org owners and developers can create/revoke agents, while viewers can list.
+- Review audit filters and whether the CLI should expose `--site-id` as an alias for resource filtering once resource typing is more consistent.
+
+### What should be done in the future
+
+- Add full agent enrollment keys and grant editor APIs.
+- Add deploy-run APIs that use agent grants for path/channel restrictions.
+- Add command-level smoke tests that execute Cobra/Glazed output modes end-to-end, beyond HTTP helper smoke tests.
+
+### Code review instructions
+
+- Review `internal/control/agents.go`, `internal/httpapi/agents_audit.go`, `cmd/go-go-host/cmds/agents.go`, and `cmd/go-go-host/cmds/audit.go`.
+- Validate with `go test ./...` and the compose-backed integration command.

@@ -220,3 +220,12 @@ Added embedded Glazed CLI help pages for login/config, create-site, deploy, roll
 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/cmd/go-go-host/doc/deploy-workflow.md — Deployment workflow help page
 
+
+## 2026-05-11
+
+Added CLI smoke tests plus initial agent/audit APIs and Glazed commands for agents list/create and audit list.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/agents_audit.go — Agent and audit API handlers
+

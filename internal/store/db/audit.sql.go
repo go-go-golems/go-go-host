@@ -62,6 +62,66 @@ func (q *Queries) InsertAuditEvent(ctx context.Context, arg InsertAuditEventPara
 	return i, err
 }
 
+const listAuditEventsFiltered = `-- name: ListAuditEventsFiltered :many
+SELECT id, org_id, actor_type, actor_id, action, resource_type, resource_id, ip_address, user_agent, metadata_json, created_at
+FROM audit_log
+WHERE org_id = $1
+  AND ($2 = '' OR resource_id = $2)
+  AND ($3 = '' OR actor_type = $3)
+  AND ($4 = '' OR actor_id = $4)
+  AND ($5 = '' OR action = $5)
+ORDER BY created_at DESC
+LIMIT $6
+`
+
+type ListAuditEventsFilteredParams struct {
+	OrgID   string      `json:"org_id"`
+	Column2 interface{} `json:"column_2"`
+	Column3 interface{} `json:"column_3"`
+	Column4 interface{} `json:"column_4"`
+	Column5 interface{} `json:"column_5"`
+	Limit   int32       `json:"limit"`
+}
+
+func (q *Queries) ListAuditEventsFiltered(ctx context.Context, arg ListAuditEventsFilteredParams) ([]AuditLog, error) {
+	rows, err := q.db.Query(ctx, listAuditEventsFiltered,
+		arg.OrgID,
+		arg.Column2,
+		arg.Column3,
+		arg.Column4,
+		arg.Column5,
+		arg.Limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AuditLog{}
+	for rows.Next() {
+		var i AuditLog
+		if err := rows.Scan(
+			&i.ID,
+			&i.OrgID,
+			&i.ActorType,
+			&i.ActorID,
+			&i.Action,
+			&i.ResourceType,
+			&i.ResourceID,
+			&i.IpAddress,
+			&i.UserAgent,
+			&i.MetadataJson,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listAuditEventsForOrg = `-- name: ListAuditEventsForOrg :many
 SELECT id, org_id, actor_type, actor_id, action, resource_type, resource_id, ip_address, user_agent, metadata_json, created_at
 FROM audit_log
