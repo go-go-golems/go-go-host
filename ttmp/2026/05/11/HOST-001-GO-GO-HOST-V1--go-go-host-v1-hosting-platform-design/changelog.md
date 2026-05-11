@@ -175,3 +175,12 @@ Started Phase 4 runtime supervisor with Host-header routing, activation swap, st
 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/runtime/supervisor.go — Runtime supervisor and host router
 
+
+## 2026-05-11
+
+Extended Phase 4 supervisor with restart specs, request/error counters, control-core wiring, site runtime status API, and admin runtime summary API.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/runtime.go — Runtime status API handlers
+

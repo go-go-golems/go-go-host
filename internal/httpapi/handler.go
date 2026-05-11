@@ -32,11 +32,15 @@ func NewHandler(core *control.Core) http.Handler {
 	api.HandleFunc("POST /api/v1/orgs", handleCreateOrg(core))
 	api.HandleFunc("GET /api/v1/orgs/{org_id}/sites", handleListSites(core))
 	api.HandleFunc("POST /api/v1/orgs/{org_id}/sites", handleCreateSite(core))
+	api.HandleFunc("GET /api/v1/sites/{site_id}/runtime", handleRuntimeStatus(core))
+	api.HandleFunc("GET /api/v1/admin/runtimes/summary", handleAdminRuntimeSummary(core))
 	authn := &oidcAuthenticator{cfg: core.Config, st: core.Store}
 	authedAPI := authMiddleware(api, authn, core.Config.DevAuth)
 	mux.Handle("/api/v1/me", authedAPI)
 	mux.Handle("/api/v1/orgs", authedAPI)
 	mux.Handle("/api/v1/orgs/", authedAPI)
+	mux.Handle("/api/v1/sites/", authedAPI)
+	mux.Handle("/api/v1/admin/", authedAPI)
 
 	return withRequestID(mux)
 }

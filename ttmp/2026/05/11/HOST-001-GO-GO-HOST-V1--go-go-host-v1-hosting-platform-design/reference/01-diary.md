@@ -1339,3 +1339,76 @@ Commands run:
 ```bash
 go fmt ./internal/runtime && go test ./internal/runtime ./...
 ```
+
+## Step 17: Added supervisor restart, counters, and runtime API endpoints
+
+I continued Phase 4 by extending the supervisor beyond basic Host-header routing. It now retains the last successful runtime spec for restart, tracks request/error counters, and is reachable through the control-plane core so HTTP API handlers can report runtime status.
+
+This step also added the first runtime-related API endpoints: org members can query a site's runtime status, and platform admins can query the global runtime summary. These endpoints are still backed by in-memory supervisor state; persisted runtime transitions remain a later Phase 4 item.
+
+### Prompt Context
+
+**User prompt (verbatim):** "go ahead"
+
+**Assistant interpretation:** Continue implementing the remaining Phase 4 supervisor/API pieces.
+
+**Inferred user intent:** Move toward a daemon-wired runtime surface that can be inspected from API/dashboard/CLI.
+
+**Commit (code):** N/A — current changes are uncommitted at this diary entry.
+
+### What I did
+
+- Added `Supervisor.Restart(ctx, siteID)` using retained successful specs.
+- Added per-site request and error counters in runtime status.
+- Added `statusResponseWriter` to observe final response status codes.
+- Added `Supervisor` to `control.Core`.
+- Added `GET /api/v1/sites/{site_id}/runtime`.
+- Added `GET /api/v1/admin/runtimes/summary` with platform-admin check.
+- Updated Phase 4 task checkboxes.
+- Ran `go test ./...`.
+
+### Why
+
+- Restart and counters are needed for operational runtime management.
+- Dashboard and CLI need runtime status endpoints before they can show useful runtime health.
+
+### What worked
+
+- `go test ./...` passes.
+- Existing supervisor tests still pass, and new restart/counter tests cover the added behavior.
+
+### What didn't work
+
+- N/A in this step.
+
+### What I learned
+
+- It is useful to keep supervisor in `control.Core` now, even before it is fully backed by deployment records. That gives HTTP handlers a stable dependency path.
+
+### What was tricky to build
+
+- Runtime status after a failed activation currently represents the last activation attempt while the previous runtime may still serve traffic. Counters remain associated by site ID, so they carry over across replacement attempts.
+
+### What warrants a second pair of eyes
+
+- Review whether admin runtime summary should be available only to `platform_admin` rows or also to org owners filtered by org.
+- Review whether request counters should reset on restart or persist per site until process restart. They currently persist per site in memory.
+
+### What should be done in the future
+
+- Persist runtime status transitions to the control DB.
+- Add request context fields and structured runtime logs.
+- Wire deployment activation to `Supervisor.Activate`.
+
+### Code review instructions
+
+- Review `internal/runtime/supervisor.go` and `internal/httpapi/runtime.go`.
+- Validate with `go test ./internal/runtime ./internal/httpapi ./...`.
+
+### Technical details
+
+Commands run:
+
+```bash
+go fmt ./... && go test ./...
+```

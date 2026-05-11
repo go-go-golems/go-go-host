@@ -22,13 +22,15 @@ const (
 )
 
 type RuntimeStatus struct {
-	SiteID       string    `json:"siteId"`
-	OrgID        string    `json:"orgId"`
-	DeploymentID string    `json:"deploymentId"`
-	Hosts        []string  `json:"hosts"`
-	Status       Status    `json:"status"`
-	StartedAt    time.Time `json:"startedAt"`
-	LastError    string    `json:"lastError,omitempty"`
+	SiteID        string    `json:"siteId"`
+	OrgID         string    `json:"orgId"`
+	DeploymentID  string    `json:"deploymentId"`
+	Hosts         []string  `json:"hosts"`
+	Status        Status    `json:"status"`
+	StartedAt     time.Time `json:"startedAt"`
+	LastError     string    `json:"lastError,omitempty"`
+	RequestsTotal uint64    `json:"requestsTotal"`
+	ErrorsTotal   uint64    `json:"errorsTotal"`
 }
 
 type Summary struct {
@@ -42,6 +44,7 @@ type Supervisor struct {
 	bySite map[string]*SiteRuntime
 	byHost map[string]*SiteRuntime
 	status map[string]RuntimeStatus
+	specs  map[string]Spec
 }
 
 func NewSupervisor() *Supervisor {
@@ -49,6 +52,7 @@ func NewSupervisor() *Supervisor {
 		bySite: map[string]*SiteRuntime{},
 		byHost: map[string]*SiteRuntime{},
 		status: map[string]RuntimeStatus{},
+		specs:  map[string]Spec{},
 	}
 }
 
@@ -83,13 +87,25 @@ func (s *Supervisor) Activate(ctx context.Context, spec Spec) error {
 	for _, host := range spec.Hosts {
 		s.byHost[normalizeHost(host)] = next
 	}
-	s.status[spec.SiteID] = RuntimeStatus{SiteID: spec.SiteID, OrgID: spec.OrgID, DeploymentID: spec.DeploymentID, Hosts: normalizeHosts(spec.Hosts), Status: StatusReady, StartedAt: next.StartedAt()}
+	previous := s.status[spec.SiteID]
+	s.status[spec.SiteID] = RuntimeStatus{SiteID: spec.SiteID, OrgID: spec.OrgID, DeploymentID: spec.DeploymentID, Hosts: normalizeHosts(spec.Hosts), Status: StatusReady, StartedAt: next.StartedAt(), RequestsTotal: previous.RequestsTotal, ErrorsTotal: previous.ErrorsTotal}
+	s.specs[spec.SiteID] = spec
 	s.mu.Unlock()
 
 	if old != nil {
 		go func() { _ = old.Close(context.Background()) }()
 	}
 	return nil
+}
+
+func (s *Supervisor) Restart(ctx context.Context, siteID string) error {
+	s.mu.RLock()
+	spec, ok := s.specs[siteID]
+	s.mu.RUnlock()
+	if !ok {
+		return ErrRuntimeNotFound
+	}
+	return s.Activate(ctx, spec)
 }
 
 func (s *Supervisor) Stop(ctx context.Context, siteID string) error {
@@ -103,6 +119,7 @@ func (s *Supervisor) Stop(ctx context.Context, siteID string) error {
 	for _, host := range rt.spec.Hosts {
 		delete(s.byHost, normalizeHost(host))
 	}
+	delete(s.specs, siteID)
 	st := s.status[siteID]
 	st.Status = StatusStopped
 	s.status[siteID] = st
@@ -146,7 +163,9 @@ func (s *Supervisor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "unknown go-go-host site", http.StatusNotFound)
 		return
 	}
-	rt.ServeHTTP(w, r)
+	rec := &statusResponseWriter{ResponseWriter: w, statusCode: http.StatusOK}
+	rt.ServeHTTP(rec, r)
+	s.recordRequest(rt.spec.SiteID, rec.statusCode)
 }
 
 var ErrRuntimeNotFound = errors.New("runtime not found")
@@ -181,5 +200,19 @@ func normalizeHost(host string) string {
 func (s *Supervisor) setStatus(siteID string, status RuntimeStatus) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	previous := s.status[siteID]
+	status.RequestsTotal = previous.RequestsTotal
+	status.ErrorsTotal = previous.ErrorsTotal
 	s.status[siteID] = status
+}
+
+func (s *Supervisor) recordRequest(siteID string, statusCode int) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	st := s.status[siteID]
+	st.RequestsTotal++
+	if statusCode >= 500 {
+		st.ErrorsTotal++
+	}
+	s.status[siteID] = st
 }
