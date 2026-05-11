@@ -124,7 +124,7 @@ Goal: move the proven runtime into `go-go-host` as a per-site runtime object wit
 - [x] Do not enable unrestricted `fs` or `exec` in hosted runtime.
 - [x] Add a scoped static asset mount for deployment assets.
 - [x] Add runtime `Close(ctx)` that closes owner/runtime and site DB.
-- [ ] Add runtime `HealthCheck(ctx)` that can execute a configured smoke route or script-load check.
+- [x] Add runtime `HealthCheck(ctx)` that can execute a configured smoke route or script-load check.
 - [x] Add runtime fixture site under `testdata/sites/hello`.
 - [x] Add unit/integration test that creates a `SiteRuntime` and serves `GET /` through its handler.
 

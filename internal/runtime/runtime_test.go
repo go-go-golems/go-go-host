@@ -44,6 +44,16 @@ func TestDatabaseConfigureDisabled(t *testing.T) {
 	}
 }
 
+func TestRuntimeHealthCheck(t *testing.T) {
+	ctx := context.Background()
+	rt := newFixtureRuntime(t, ctx)
+	defer rt.Close(ctx)
+
+	if err := rt.HealthCheck(ctx); err != nil {
+		t.Fatalf("health check failed: %v", err)
+	}
+}
+
 func TestExecAndFSUnavailableByDefault(t *testing.T) {
 	ctx := context.Background()
 	rt := newFixtureRuntime(t, ctx)

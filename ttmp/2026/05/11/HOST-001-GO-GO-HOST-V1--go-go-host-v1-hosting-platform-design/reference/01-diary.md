@@ -1198,3 +1198,70 @@ cp ../2026-05-03--goja-hosting-site/pkg/dbguard/*.go internal/sitejs/dbguard/
 rm -f internal/sitejs/web/*_test.go internal/sitejs/uidsl/*_test.go internal/sitejs/dbguard/*_test.go
 go mod tidy && go fmt ./... && go test ./...
 ```
+
+## Step 15: Completed the Phase 3 runtime health check
+
+I filled the remaining Phase 3 runtime gap by adding `SiteRuntime.HealthCheck(ctx)`. The method performs an in-process GET request against a configured health path, defaulting to `/`, and treats non-2xx/3xx responses as unhealthy.
+
+This gives the future supervisor a simple activation gate: build a new runtime, call `HealthCheck`, then swap traffic only if the new runtime is serving successfully.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 14)
+
+**Assistant interpretation:** Continue Phase 3 in a small commit-sized increment and keep the diary up to date.
+
+**Inferred user intent:** Finish the per-site runtime object before moving to supervisor/host routing.
+
+**Commit (code):** `f69b5a394de90c3867fc8d8cd4b19ef2f4b49551` — "Add hosted Goja site runtime"
+
+### What I did
+
+- Added `HealthPath` to runtime `Spec`.
+- Added `SiteRuntime.HealthCheck(ctx)`.
+- Added `TestRuntimeHealthCheck`.
+- Marked the health-check Phase 3 task complete.
+
+### Why
+
+- Phase 4 activation needs a health check before traffic is swapped to a new runtime.
+- The design explicitly calls for a smoke-route check or script-load check.
+
+### What worked
+
+- `go test ./internal/runtime ./...` passes.
+- The fixture runtime health check succeeds against `/`.
+
+### What didn't work
+
+- I briefly started a custom response recorder, then simplified to the standard library `httptest.NewRecorder`, which is clearer and already correct.
+
+### What I learned
+
+- The health check can stay fully in-process for now; no socket or daemon listener is needed to validate a `SiteRuntime` before supervisor activation.
+
+### What was tricky to build
+
+- The health-check request needs a valid URL, but host does not matter yet because this is inside one runtime handler. The future supervisor will own host-level routing.
+
+### What warrants a second pair of eyes
+
+- Review whether the default health path should remain `/` or come from deployment manifest validation in Phase 5.
+
+### What should be done in the future
+
+- Feed manifest smoke-test path into `RuntimeSpec.HealthPath`.
+- Use `HealthCheck` in `Supervisor.Activate`.
+
+### Code review instructions
+
+- Review `internal/runtime/runtime.go` around `HealthCheck`.
+- Validate with `go test ./internal/runtime`.
+
+### Technical details
+
+Commands run:
+
+```bash
+go fmt ./internal/runtime && go test ./internal/runtime ./...
+```

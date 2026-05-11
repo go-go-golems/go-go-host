@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"sort"
@@ -30,6 +31,7 @@ type Spec struct {
 	AssetsDir    string
 	DBPath       string
 	Dev          bool
+	HealthPath   string
 	Capabilities CapabilitySet
 }
 
@@ -113,6 +115,23 @@ func (s *SiteRuntime) Handler() http.Handler                            { return
 func (s *SiteRuntime) Spec() Spec                                       { return s.spec }
 func (s *SiteRuntime) StartedAt() time.Time                             { return s.started }
 func (s *SiteRuntime) DBGuard() *dbguard.Guard                          { return s.guard }
+
+func (s *SiteRuntime) HealthCheck(ctx context.Context) error {
+	path := s.spec.HealthPath
+	if path == "" {
+		path = "/"
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://site-runtime.local"+path, nil)
+	if err != nil {
+		return err
+	}
+	rec := httptest.NewRecorder()
+	s.ServeHTTP(rec, req)
+	if rec.Code < 200 || rec.Code >= 400 {
+		return fmt.Errorf("runtime health check %s returned status %d: %s", path, rec.Code, strings.TrimSpace(rec.Body.String()))
+	}
+	return nil
+}
 
 func (s *SiteRuntime) Close(ctx context.Context) error {
 	var errs []error
