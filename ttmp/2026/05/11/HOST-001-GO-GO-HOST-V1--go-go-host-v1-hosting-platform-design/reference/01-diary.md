@@ -1111,3 +1111,90 @@ GO_GO_HOST_CLI_CONFIG=$CFG go run ./cmd/go-go-host login --api-url http://127.0.
 GO_GO_HOST_CLI_CONFIG=$CFG go run ./cmd/go-go-host me --output json
 GO_GO_HOST_CLI_CONFIG=$CFG go run ./cmd/go-go-host org create --slug config-smoke-org --name 'Config Smoke Org' --output json
 ```
+
+## Step 14: Started Phase 3 by refactoring the hosted Goja runtime
+
+I started Phase 3 after committing the completed control-plane/auth/CLI foundation. This step copied the reusable `goja-site` web, UI DSL, and DB guard components into `go-go-host` and introduced `internal/runtime.SiteRuntime`, which is the per-site runtime object the supervisor will manage later.
+
+The fixture runtime now loads JavaScript from disk, registers Express-style routes, renders `ui.dsl` HTML, uses a per-site SQLite database through preconfigured `database` and `db` modules, and serves static assets under `/assets`. The tests prove the first important safety properties: the fixture renders, `database.configure()` is disabled, and unrestricted `fs`/`exec` are not available by default.
+
+### Prompt Context
+
+**User prompt (verbatim):** "continue committing at appropriate intervals, and keeping a frequent diary"
+
+**Assistant interpretation:** Commit the accumulated work before starting Phase 3, then continue implementation in smaller reviewable chunks and update the diary frequently.
+
+**Inferred user intent:** Keep the repository history usable and keep a written trail as runtime refactoring begins.
+
+**Commit (code):** `cc20654cf0e787c9d22f54bec39cec0e82ae3a03` — "Scaffold control plane with Postgres sqlc and CLI"
+
+### What I did
+
+- Committed the previous scaffold/control-plane/sqlc/auth/CLI work.
+- Copied reusable runtime support packages from `goja-site` into `internal/sitejs`:
+  - `internal/sitejs/web`
+  - `internal/sitejs/uidsl`
+  - `internal/sitejs/dbguard`
+- Added `internal/runtime/runtime.go` with `Spec`, `CapabilitySet`, and `SiteRuntime`.
+- Added a fixture hosted site under `internal/runtime/testdata/sites/hello`.
+- Added runtime tests for rendering, disabled database reconfiguration, and unavailable `fs`/`exec` modules.
+- Ran `go mod tidy`, `go fmt ./...`, and `go test ./...`.
+- Updated Phase 3 task checkboxes.
+
+### Why
+
+- The platform needs a per-site runtime object before supervisor, deployment activation, or Host-header routing can be implemented.
+- Copy/refactoring the runtime support packages keeps `go-go-host` independent enough to evolve the hosted runtime policy without changing the original prototype project.
+
+### What worked
+
+- The fixture route renders `Hello from go-go-host` through the refactored runtime.
+- The hosted database module rejects `configure()` because it is preconfigured by Go.
+- `require("exec")` and `require("fs")` fail by default.
+- `go test ./...` passes.
+
+### What didn't work
+
+- N/A after adjusting the runtime test to call Goja through the real owner with a `*goja.Runtime` callback.
+
+### What I learned
+
+- The `goja-site` runtime support packages copy cleanly because non-test files do not import the original module path.
+- The safest default runtime middleware list is very small: `path`, plus `time/timer` when enabled. Leaving out `fs` and `exec` gives us the expected hosted safety baseline.
+
+### What was tricky to build
+
+- The test for unavailable modules needed to exercise CommonJS `require()` inside the runtime owner, not by directly inspecting Go objects outside the owner. This keeps the test aligned with hosted script behavior.
+
+### What warrants a second pair of eyes
+
+- Review whether copying `internal/sitejs/*` is the preferred long-term strategy or whether these should become a shared module later.
+- Review the default capability policy before exposing user-authored deployments.
+
+### What should be done in the future
+
+- Add `HealthCheck(ctx)` for smoke route validation.
+- Add runtime supervisor and Host-header routing in Phase 4.
+- Eventually add a scoped asset/filesystem capability instead of unrestricted `fs`.
+
+### Code review instructions
+
+- Start with `internal/runtime/runtime.go`.
+- Then review copied support packages only for package-path changes and hosted-policy assumptions.
+- Validate with `cd go-go-host && go test ./internal/runtime ./...`.
+
+### Technical details
+
+Commands run:
+
+```bash
+cd go-go-host && go test ./...
+git add Makefile README.md go.mod go.sum sqlc.yaml configs deployments internal cmd ttmp
+git commit -m "Scaffold control plane with Postgres sqlc and CLI"
+mkdir -p internal/sitejs/web internal/sitejs/uidsl internal/sitejs/dbguard
+cp ../2026-05-03--goja-hosting-site/pkg/web/*.go internal/sitejs/web/
+cp ../2026-05-03--goja-hosting-site/pkg/uidsl/*.go internal/sitejs/uidsl/
+cp ../2026-05-03--goja-hosting-site/pkg/dbguard/*.go internal/sitejs/dbguard/
+rm -f internal/sitejs/web/*_test.go internal/sitejs/uidsl/*_test.go internal/sitejs/dbguard/*_test.go
+go mod tidy && go fmt ./... && go test ./...
+```

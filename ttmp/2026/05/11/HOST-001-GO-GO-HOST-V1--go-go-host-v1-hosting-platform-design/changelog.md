@@ -148,3 +148,12 @@ Added Glazed login command and local CLI config persistence for API URL, dev use
 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/cmd/go-go-host/cmds/login.go — Local CLI login/config command
 
+
+## 2026-05-11
+
+Started Phase 3 runtime refactor: copied site JS support packages, added SiteRuntime, fixture hosted site, and tests for render/configure/fs/exec behavior.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/runtime/runtime.go — Phase 3 SiteRuntime implementation
+

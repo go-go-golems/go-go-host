@@ -114,25 +114,25 @@ Exit criteria:
 
 Goal: move the proven runtime into `go-go-host` as a per-site runtime object without daemon-level HTTP ownership.
 
-- [ ] Create `internal/runtime/SiteRuntime` type with site ID, org ID, deployment ID, hosts, bundle path, DB path, capabilities, `*sql.DB`, `*dbguard.Guard`, `*engine.Runtime`, and `*web.Host`.
-- [ ] Copy/refactor script discovery and script loading from `goja-site/pkg/app/server.go`.
-- [ ] Copy/refactor `web.Host` integration or import the existing package if module boundaries allow it.
-- [ ] Ensure all Goja execution enters through runtime owner calls.
-- [ ] Wire preconfigured `database` and `db` modules with `configure()` disabled.
-- [ ] Wire `ui.dsl` and `express` registrars.
-- [ ] Wire `db.guard` using host-owned quota config.
-- [ ] Do not enable unrestricted `fs` or `exec` in hosted runtime.
-- [ ] Add a scoped static asset mount for deployment assets.
-- [ ] Add runtime `Close(ctx)` that closes owner/runtime and site DB.
+- [x] Create `internal/runtime/SiteRuntime` type with site ID, org ID, deployment ID, hosts, bundle path, DB path, capabilities, `*sql.DB`, `*dbguard.Guard`, `*engine.Runtime`, and `*web.Host`.
+- [x] Copy/refactor script discovery and script loading from `goja-site/pkg/app/server.go`.
+- [x] Copy/refactor `web.Host` integration or import the existing package if module boundaries allow it.
+- [x] Ensure all Goja execution enters through runtime owner calls.
+- [x] Wire preconfigured `database` and `db` modules with `configure()` disabled.
+- [x] Wire `ui.dsl` and `express` registrars.
+- [x] Wire `db.guard` using host-owned quota config.
+- [x] Do not enable unrestricted `fs` or `exec` in hosted runtime.
+- [x] Add a scoped static asset mount for deployment assets.
+- [x] Add runtime `Close(ctx)` that closes owner/runtime and site DB.
 - [ ] Add runtime `HealthCheck(ctx)` that can execute a configured smoke route or script-load check.
-- [ ] Add runtime fixture site under `testdata/sites/hello`.
-- [ ] Add unit/integration test that creates a `SiteRuntime` and serves `GET /` through its handler.
+- [x] Add runtime fixture site under `testdata/sites/hello`.
+- [x] Add unit/integration test that creates a `SiteRuntime` and serves `GET /` through its handler.
 
 Exit criteria:
 
-- [ ] Fixture site renders through the refactored runtime.
-- [ ] `database.configure()` fails inside hosted runtime.
-- [ ] `require("exec")` and unrestricted `require("fs")` are unavailable by default.
+- [x] Fixture site renders through the refactored runtime.
+- [x] `database.configure()` fails inside hosted runtime.
+- [x] `require("exec")` and unrestricted `require("fs")` are unavailable by default.
 
 ### Phase 4: Runtime supervisor and host router
 
