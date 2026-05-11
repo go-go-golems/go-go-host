@@ -4,7 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -90,7 +94,70 @@ func requestJSON(method, apiURL, path, devUser, bearerToken string, in, out any)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("%s %s%s: unexpected status %s", method, base, path, resp.Status)
+		data, _ := io.ReadAll(resp.Body)
+		message := strings.TrimSpace(string(data))
+		if message == "" {
+			message = resp.Status
+		}
+		return fmt.Errorf("%s %s%s: unexpected status %s: %s", method, base, path, resp.Status, message)
+	}
+	if out == nil {
+		return nil
+	}
+	if err := json.NewDecoder(resp.Body).Decode(out); err != nil {
+		return fmt.Errorf("decode response: %w", err)
+	}
+	return nil
+}
+
+func postMultipartBundleWithAuth(apiURL, path, devUser, bearerToken, bundlePath string, fields map[string]string, out any) error {
+	base := strings.TrimRight(apiURL, "/")
+	var body bytes.Buffer
+	mw := multipart.NewWriter(&body)
+	part, err := mw.CreateFormFile("bundle", filepath.Base(bundlePath))
+	if err != nil {
+		return err
+	}
+	f, err := os.Open(bundlePath)
+	if err != nil {
+		return fmt.Errorf("open bundle %s: %w", bundlePath, err)
+	}
+	if _, err := io.Copy(part, f); err != nil {
+		_ = f.Close()
+		return fmt.Errorf("read bundle %s: %w", bundlePath, err)
+	}
+	_ = f.Close()
+	for k, v := range fields {
+		if v == "" {
+			continue
+		}
+		if err := mw.WriteField(k, v); err != nil {
+			return err
+		}
+	}
+	if err := mw.Close(); err != nil {
+		return err
+	}
+	client := &http.Client{Timeout: 60 * time.Second}
+	req, err := http.NewRequest(http.MethodPost, base+path, &body)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", mw.FormDataContentType())
+	if devUser != "" {
+		req.Header.Set("X-Go-Go-Host-User", devUser)
+	}
+	if bearerToken != "" {
+		req.Header.Set("Authorization", "Bearer "+bearerToken)
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("POST %s%s: %w", base, path, err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		data, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("POST %s%s: unexpected status %s: %s", base, path, resp.Status, strings.TrimSpace(string(data)))
 	}
 	if out == nil {
 		return nil

@@ -202,3 +202,12 @@ Completed Phase 5 deployment bundle pipeline: manifest validation, archive stora
 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/deploy/bundle.go — Bundle manifest validation and immutable storage
 
+
+## 2026-05-11
+
+Started Phase 6 CLI workflow: added deploy, deployment list/show/activate, rollback, site runtime commands, aliases, multipart upload helper, and improved API error bodies.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/cmd/go-go-host/cmds/deployments.go — Glazed deployment CLI commands
+

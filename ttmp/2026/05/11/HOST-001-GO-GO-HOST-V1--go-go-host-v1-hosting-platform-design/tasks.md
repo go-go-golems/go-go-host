@@ -203,18 +203,18 @@ Goal: provide developer workflow without requiring dashboard clicks, using the s
 - [x] Add `--bearer-token` auth flag to implemented human CLI commands for non-dev auth smoke/use.
 - [x] Teach implemented CLI commands to load API URL/auth defaults from the local CLI config when flags are omitted.
 - [x] Add `go-go-host me` as Glazed command emitting current user/org membership rows.
-- [ ] Add `go-go-host orgs list` as Glazed command emitting one row per org.
+- [x] Add `go-go-host orgs list` as Glazed command emitting one row per org.
 - [x] Add `GET /api/v1/orgs` and `go-go-host org list` as Glazed command emitting one row per org membership.
 - [x] Add `go-go-host org create` as Glazed command emitting the created org row.
 - [x] Add `go-go-host site list --org-id` as Glazed command emitting one row per site.
 - [x] Add `go-go-host site create --slug ... --org-id ...` as Glazed command emitting the created site row.
-- [ ] Add `go-go-host sites runtime <site>` as Glazed command emitting runtime status fields.
-- [ ] Add `go-go-host deploy ./site --site <slug> --message ...` as Glazed command; use an argument for bundle/site directory and flags for site/message/channel.
-- [ ] Default deployment validation output to YAML or JSON because reports are nested.
-- [ ] Add `go-go-host deployments list --site <slug>` as Glazed command.
-- [ ] Add `go-go-host deployments show <deployment>` as Glazed command.
-- [ ] Add `go-go-host deployments activate <deployment>` as Glazed command.
-- [ ] Add `go-go-host rollback --site <slug> --to <deployment>` as Glazed command.
+- [x] Add `go-go-host sites runtime <site>` as Glazed command emitting runtime status fields.
+- [x] Add `go-go-host deploy ./site --site <slug> --message ...` as Glazed command; use an argument for bundle/site directory and flags for site/message/channel.
+- [x] Default deployment validation output to YAML or JSON because reports are nested.
+- [x] Add `go-go-host deployments list --site <slug>` as Glazed command.
+- [x] Add `go-go-host deployments show <deployment>` as Glazed command.
+- [x] Add `go-go-host deployments activate <deployment>` as Glazed command.
+- [x] Add `go-go-host rollback --site <slug> --to <deployment>` as Glazed command.
 - [ ] Add `go-go-host agents list --org` as Glazed command.
 - [ ] Add `go-go-host audit list --org ... --site ... --actor ...` as Glazed command with table/json output.
 - [x] Ensure implemented commands define `CommandDescription`, typed settings struct, `glazed` tags, `cmds.WithFlags`, Glazed output section, and command settings section.
@@ -222,13 +222,13 @@ Goal: provide developer workflow without requiring dashboard clicks, using the s
 - [x] Ensure implemented list/detail/mutation commands emit stable rows via `types.NewRow` and `gp.AddRow`.
 - [ ] Add `cmds.WithLong` examples for every command.
 - [ ] Add embedded help pages for common workflows: login, create site, deploy, rollback, agent setup.
-- [ ] Add clear error handling for authz denial and validation failures.
+- [x] Add clear error handling for authz denial and validation failures.
 - [ ] Add CLI smoke test against httptest server using `--output json` assertions.
 
 Exit criteria:
 
-- [ ] A developer can create a site, deploy a fixture, list deployments, and roll back from CLI.
-- [ ] `go-go-host sites list --output json` and `--output table` both work through Glazed.
+- [x] A developer can create a site, deploy a fixture, list deployments, and roll back from CLI.
+- [x] `go-go-host sites list --output json` and `--output table` both work through Glazed.
 - [ ] `go-go-host help` shows embedded command help.
 
 ### Phase 7: User dashboard foundation

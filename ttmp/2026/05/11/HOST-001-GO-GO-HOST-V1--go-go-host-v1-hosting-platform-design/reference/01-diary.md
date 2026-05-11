@@ -1582,3 +1582,79 @@ Commands run:
 go fmt ./... && go test ./...
 GO_GO_HOST_TEST_DATABASE_URL='postgres://go_go_host:go_go_host_dev@127.0.0.1:55432/go_go_host?sslmode=disable' go test ./internal/store ./internal/control ./internal/httpapi
 ```
+
+## Step 20: Added Phase 6 deployment/runtime CLI commands
+
+I continued into Phase 6 and added the first developer workflow CLI slice on top of the Phase 5 deployment APIs.
+
+### Prompt Context
+
+**User prompt (verbatim):** "continue"
+
+**Assistant interpretation:** Continue from completed Phase 5 into the next checklist items, starting Phase 6 CLI workflow support.
+
+**Inferred user intent:** Make the deployment pipeline usable from the human `go-go-host` CLI, then commit a focused slice.
+
+**Commit (code):** N/A — this entry was written before committing the CLI slice.
+
+### What I did
+
+- Added `go-go-host deploy` as a Glazed command for multipart bundle upload.
+- Added `go-go-host deployments list`.
+- Added `go-go-host deployments show`.
+- Added `go-go-host deployments activate`.
+- Added `go-go-host rollback`.
+- Added `go-go-host site runtime` and `go-go-host sites runtime` alias support.
+- Added `orgs` and `sites` aliases for the existing singular command groups.
+- Added multipart upload support to the shared CLI HTTP helper.
+- Improved CLI HTTP error handling so non-2xx responses include API validation/authz response bodies.
+- Added `WithLong` examples for the new deployment/runtime commands.
+- Updated Phase 6 checklist items for the implemented CLI deployment workflow.
+
+### Why
+
+Phase 5 made deployments possible through the API, but users still needed raw HTTP clients. This slice makes the core developer loop available through Glazed commands: create/list sites using existing commands, upload a bundle, list/show deployments, activate a deployment, inspect runtime status, and roll back.
+
+### What worked
+
+- `go test ./...` passes after adding the new CLI commands.
+- The commands reuse the existing config resolution logic for API URL, dev user, and bearer token.
+
+### What didn't work
+
+- I initially tried to merge nested validation/manifest fields into a Glazed row using a nonexistent `Row.Merge` helper. I changed the code to copy ordered-map pairs explicitly.
+
+### What I learned
+
+- Glazed rows are ordered maps, so adding extra nested fields requires explicit `Set` calls or constructing a row with all pairs up front.
+
+### What was tricky to build
+
+- Multipart upload needed a separate helper rather than forcing the existing JSON helper to handle file bodies.
+- Nested validation reports are emitted as row fields for JSON/YAML output, while table output remains best for the stable scalar deployment columns.
+
+### What warrants a second pair of eyes
+
+- Review CLI flag names before public docs harden. The current commands use `--site-id` and `--deployment-id`; older checklist wording still mentions slug/positional forms.
+- Decide whether `go-go-host deploy` should accept a directory and build a bundle locally, or keep requiring an already-created `.tar.gz`/`.zip` archive for v1.
+
+### What should be done in the future
+
+- Add CLI smoke tests against an httptest server.
+- Add embedded help workflow pages for deploy and rollback.
+- Add agent/audit CLI commands after those APIs exist.
+
+### Code review instructions
+
+- Review `cmd/go-go-host/cmds/deployments.go` and `cmd/go-go-host/cmds/support.go` first.
+- Then review `cmd/go-go-host/cmds/site.go` and `cmd/go-go-host/root.go` for command wiring.
+- Validate with `go test ./...`.
+
+### Technical details
+
+Commands run:
+
+```bash
+go fmt ./cmd/go-go-host ./cmd/go-go-host/cmds
+go test ./...
+```

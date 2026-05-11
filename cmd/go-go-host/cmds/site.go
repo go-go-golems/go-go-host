@@ -15,6 +15,7 @@ import (
 
 type SiteListCommand struct{ *glazedcmds.CommandDescription }
 type SiteCreateCommand struct{ *glazedcmds.CommandDescription }
+type SiteRuntimeCommand struct{ *glazedcmds.CommandDescription }
 
 type SiteListSettings struct {
 	APIURL      string `glazed:"api-url"`
@@ -32,6 +33,25 @@ type SiteCreateSettings struct {
 	Name        string `glazed:"name"`
 }
 
+type SiteRuntimeSettings struct {
+	APIURL      string `glazed:"api-url"`
+	DevUser     string `glazed:"dev-user"`
+	BearerToken string `glazed:"bearer-token"`
+	SiteID      string `glazed:"site-id"`
+}
+
+type runtimeStatusDTO struct {
+	SiteID        string   `json:"siteId"`
+	OrgID         string   `json:"orgId"`
+	DeploymentID  string   `json:"deploymentId"`
+	Hosts         []string `json:"hosts"`
+	Status        string   `json:"status"`
+	StartedAt     string   `json:"startedAt"`
+	LastError     string   `json:"lastError"`
+	RequestsTotal uint64   `json:"requestsTotal"`
+	ErrorsTotal   uint64   `json:"errorsTotal"`
+}
+
 type siteDTO struct {
 	ID                 string `json:"id"`
 	OrgID              string `json:"orgId"`
@@ -44,9 +64,10 @@ type siteDTO struct {
 
 var _ glazedcmds.GlazeCommand = (*SiteListCommand)(nil)
 var _ glazedcmds.GlazeCommand = (*SiteCreateCommand)(nil)
+var _ glazedcmds.GlazeCommand = (*SiteRuntimeCommand)(nil)
 
 func NewSiteCobraCommand() (*cobra.Command, error) {
-	siteCmd := &cobra.Command{Use: "site", Short: "Manage sites"}
+	siteCmd := &cobra.Command{Use: "site", Aliases: []string{"sites"}, Short: "Manage sites"}
 	listCmd, err := NewSiteListCobraCommand()
 	if err != nil {
 		return nil, err
@@ -55,7 +76,11 @@ func NewSiteCobraCommand() (*cobra.Command, error) {
 	if err != nil {
 		return nil, err
 	}
-	siteCmd.AddCommand(listCmd, createCmd)
+	runtimeCmd, err := NewSiteRuntimeCobraCommand()
+	if err != nil {
+		return nil, err
+	}
+	siteCmd.AddCommand(listCmd, createCmd, runtimeCmd)
 	return siteCmd, nil
 }
 
@@ -75,6 +100,14 @@ func NewSiteCreateCobraCommand() (*cobra.Command, error) {
 	return BuildGlazedCobraCommand(command)
 }
 
+func NewSiteRuntimeCobraCommand() (*cobra.Command, error) {
+	command, err := NewSiteRuntimeCommand()
+	if err != nil {
+		return nil, err
+	}
+	return BuildGlazedCobraCommand(command)
+}
+
 func NewSiteListCommand() (*SiteListCommand, error) {
 	glazedSection, commandSettingsSection, err := standardSections()
 	if err != nil {
@@ -84,6 +117,26 @@ func NewSiteListCommand() (*SiteListCommand, error) {
 		"list",
 		glazedcmds.WithShort("List sites in an organization"),
 		glazedcmds.WithFlags(commonSiteFlags(true)...),
+		glazedcmds.WithSections(glazedSection, commandSettingsSection),
+	)}, nil
+}
+
+func NewSiteRuntimeCommand() (*SiteRuntimeCommand, error) {
+	glazedSection, commandSettingsSection, err := standardSections()
+	if err != nil {
+		return nil, err
+	}
+	flags := append(commonSiteFlags(false), fields.New("site-id", fields.TypeString, fields.WithRequired(true), fields.WithHelp("site ID")))
+	return &SiteRuntimeCommand{CommandDescription: glazedcmds.NewCommandDescription(
+		"runtime",
+		glazedcmds.WithShort("Show runtime status for a site"),
+		glazedcmds.WithLong(`Show runtime status for a site.
+
+Examples:
+  go-go-host site runtime --site-id site_123 --dev-user alice
+  go-go-host site runtime --site-id site_123 --output json
+`),
+		glazedcmds.WithFlags(flags...),
 		glazedcmds.WithSections(glazedSection, commandSettingsSection),
 	)}, nil
 }
@@ -138,6 +191,32 @@ func (c *SiteListCommand) RunIntoGlazeProcessor(ctx context.Context, vals *value
 		}
 	}
 	return nil
+}
+
+func (c *SiteRuntimeCommand) RunIntoGlazeProcessor(ctx context.Context, vals *values.Values, gp middlewares.Processor) error {
+	settings := &SiteRuntimeSettings{}
+	if err := vals.DecodeSectionInto(schema.DefaultSlug, settings); err != nil {
+		return err
+	}
+	resolved, err := resolveCLISettings(settings.APIURL, settings.DevUser, settings.BearerToken)
+	if err != nil {
+		return err
+	}
+	var status runtimeStatusDTO
+	if err := getJSONWithAuth(resolved.APIURL, fmt.Sprintf("/api/v1/sites/%s/runtime", settings.SiteID), resolved.DevUser, resolved.BearerToken, &status); err != nil {
+		return err
+	}
+	return gp.AddRow(ctx, types.NewRow(
+		types.MRP("site_id", status.SiteID),
+		types.MRP("org_id", status.OrgID),
+		types.MRP("deployment_id", status.DeploymentID),
+		types.MRP("hosts", status.Hosts),
+		types.MRP("status", status.Status),
+		types.MRP("started_at", status.StartedAt),
+		types.MRP("last_error", status.LastError),
+		types.MRP("requests_total", status.RequestsTotal),
+		types.MRP("errors_total", status.ErrorsTotal),
+	))
 }
 
 func (c *SiteCreateCommand) RunIntoGlazeProcessor(ctx context.Context, vals *values.Values, gp middlewares.Processor) error {

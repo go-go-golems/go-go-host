@@ -46,7 +46,7 @@ var _ glazedcmds.GlazeCommand = (*OrgListCommand)(nil)
 var _ glazedcmds.GlazeCommand = (*OrgCreateCommand)(nil)
 
 func NewOrgCobraCommand() (*cobra.Command, error) {
-	orgCmd := &cobra.Command{Use: "org", Short: "Manage organizations"}
+	orgCmd := &cobra.Command{Use: "org", Aliases: []string{"orgs"}, Short: "Manage organizations"}
 	listCmd, err := NewOrgListCobraCommand()
 	if err != nil {
 		return nil, err

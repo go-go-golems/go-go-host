@@ -47,6 +47,18 @@ func newRootCommand() (*cobra.Command, error) {
 	if err != nil {
 		return nil, err
 	}
-	rootCmd.AddCommand(statusCmd, loginCmd, meCmd, orgCmd, siteCmd)
+	deployCmd, err := commands.NewDeployCobraCommand()
+	if err != nil {
+		return nil, err
+	}
+	deploymentsCmd, err := commands.NewDeploymentsCobraCommand()
+	if err != nil {
+		return nil, err
+	}
+	rollbackCmd, err := commands.NewRollbackCobraCommand()
+	if err != nil {
+		return nil, err
+	}
+	rootCmd.AddCommand(statusCmd, loginCmd, meCmd, orgCmd, siteCmd, deployCmd, deploymentsCmd, rollbackCmd)
 	return rootCmd, nil
 }
