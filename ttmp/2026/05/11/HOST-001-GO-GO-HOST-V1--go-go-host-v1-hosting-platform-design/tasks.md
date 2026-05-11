@@ -138,26 +138,26 @@ Exit criteria:
 
 Goal: serve many sites dynamically by Host header.
 
-- [ ] Create `internal/runtime/Supervisor` with maps by site ID and normalized host.
-- [ ] Implement `Activate(ctx, siteID, deploymentID)` that builds new runtime before swapping traffic.
-- [ ] Implement old-runtime graceful close after successful activation.
-- [ ] Implement `Stop(ctx, siteID)`.
+- [x] Create `internal/runtime/Supervisor` with maps by site ID and normalized host.
+- [x] Implement `Activate(ctx, siteID, deploymentID)` that builds new runtime before swapping traffic.
+- [x] Implement old-runtime graceful close after successful activation.
+- [x] Implement `Stop(ctx, siteID)`.
 - [ ] Implement `Restart(ctx, siteID)`.
-- [ ] Implement `GetByHost(host)` and `ServeHTTP` host-router adapter.
-- [ ] Add runtime status model: starting, ready, failed, stopped, draining.
+- [x] Implement `GetByHost(host)` and `ServeHTTP` host-router adapter.
+- [x] Add runtime status model: starting, ready, failed, stopped, draining.
 - [ ] Persist runtime status transitions to store.
 - [ ] On daemon startup, reconcile stale starting/ready statuses to stopped/unknown, following `vmdaemon.closeStaleSessionsOnStartup` semantics.
 - [ ] Add request context fields: request ID, org ID, site ID, deployment ID, host.
 - [ ] Add request/error counters per runtime.
 - [ ] Add `GET /api/v1/sites/{site_id}/runtime`.
 - [ ] Add admin `GET /api/v1/admin/runtimes/summary`.
-- [ ] Add tests for unknown host returning 404.
-- [ ] Add tests that host A cannot route to site B.
-- [ ] Add tests that failed activation does not replace currently serving runtime.
+- [x] Add tests for unknown host returning 404.
+- [x] Add tests that host A cannot route to site B.
+- [x] Add tests that failed activation does not replace currently serving runtime.
 
 Exit criteria:
 
-- [ ] Two fixture sites can be active simultaneously and route by Host header.
+- [x] Two fixture sites can be active simultaneously and route by Host header.
 - [ ] Runtime summary reports active site runtimes.
 
 ### Phase 5: Deployment bundle pipeline

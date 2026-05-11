@@ -73,17 +73,7 @@ func TestExecAndFSUnavailableByDefault(t *testing.T) {
 
 func newFixtureRuntime(t *testing.T, ctx context.Context) *SiteRuntime {
 	t.Helper()
-	rt, err := NewSiteRuntime(ctx, Spec{
-		SiteID:       "site_test",
-		OrgID:        "org_test",
-		DeploymentID: "dep_test",
-		Hosts:        []string{"hello.localhost"},
-		ScriptsDir:   "testdata/sites/hello/scripts",
-		AssetsDir:    "testdata/sites/hello/assets",
-		DBPath:       t.TempDir() + "/app.sqlite",
-		Dev:          true,
-		Capabilities: DefaultCapabilities(),
-	})
+	rt, err := NewSiteRuntime(ctx, fixtureSpec(t, "site_test", "hello.localhost"))
 	if err != nil {
 		t.Fatalf("create runtime: %v", err)
 	}

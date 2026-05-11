@@ -1265,3 +1265,77 @@ Commands run:
 ```bash
 go fmt ./internal/runtime && go test ./internal/runtime ./...
 ```
+
+## Step 16: Started Phase 4 with runtime supervisor and Host-header routing
+
+I started Phase 4 by adding an in-memory runtime supervisor. It owns maps by site ID and normalized host, activates runtimes by building and health-checking a new `SiteRuntime` before swapping traffic, and exposes an `http.Handler` that dispatches public requests by Host header.
+
+The tests cover the important activation invariants: two fixture sites can serve concurrently by host, unknown hosts return 404, failed activation does not replace the currently serving runtime, and stopped runtimes are removed from routing.
+
+### Prompt Context
+
+**User prompt (verbatim):** "continue"
+
+**Assistant interpretation:** Move from Phase 3 runtime object into Phase 4 supervisor/host routing and continue updating tasks and diary.
+
+**Inferred user intent:** Build toward the first real hosted-site smoke loop.
+
+**Commit (code):** N/A — current supervisor changes are uncommitted at this diary entry.
+
+### What I did
+
+- Added `internal/runtime/supervisor.go`.
+- Added `internal/runtime/supervisor_test.go`.
+- Added runtime status model: `starting`, `ready`, `failed`, `stopped`, `draining`.
+- Added host normalization and supervisor summary.
+- Implemented `Activate`, `Stop`, `GetByHost`, `Status`, `Summary`, and `ServeHTTP`.
+- Updated runtime fixture helper reuse between runtime and supervisor tests.
+- Updated Phase 4 task checkboxes.
+
+### Why
+
+- The product needs a dynamic Host-header router before deployments can activate live sites.
+- Activation must build and health-check a new runtime before swapping, so bad deployments cannot take down a good runtime.
+
+### What worked
+
+- `go test ./internal/runtime ./...` passes.
+- Two fixture sites route independently by Host header.
+- A bad activation records failed status but leaves the previous runtime serving.
+
+### What didn't work
+
+- N/A in this step.
+
+### What I learned
+
+- The supervisor can remain store-independent for this step. Persistence of status transitions can be layered in after the in-memory invariants are correct.
+
+### What was tricky to build
+
+- Failed activation status and currently serving runtime are separate concepts: after a failed activation, the site should report the failed attempt but continue serving the previous runtime. Tests now encode that invariant.
+
+### What warrants a second pair of eyes
+
+- Review whether `Status(siteID)` should report the current serving runtime status or the last activation attempt. It currently reports the last activation attempt, which is useful for deployment diagnostics but may need separate fields later.
+
+### What should be done in the future
+
+- Add `Restart(ctx, siteID)` by retaining the last successful `Spec`.
+- Persist runtime status transitions to the control DB.
+- Add public request context and counters.
+- Wire supervisor into the daemon after deployment records exist.
+
+### Code review instructions
+
+- Review `internal/runtime/supervisor.go` for activation swap ordering.
+- Review `internal/runtime/supervisor_test.go` for host routing and failure invariants.
+- Validate with `go test ./internal/runtime`.
+
+### Technical details
+
+Commands run:
+
+```bash
+go fmt ./internal/runtime && go test ./internal/runtime ./...
+```

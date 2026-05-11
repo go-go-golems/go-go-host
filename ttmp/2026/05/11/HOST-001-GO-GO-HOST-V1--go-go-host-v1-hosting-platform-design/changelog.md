@@ -166,3 +166,12 @@ Completed Phase 3 runtime health check and test, preparing SiteRuntime for super
 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/runtime/runtime.go — HealthCheck implementation
 
+
+## 2026-05-11
+
+Started Phase 4 runtime supervisor with Host-header routing, activation swap, stop, status summary, and failure-preserves-current-runtime tests.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/runtime/supervisor.go — Runtime supervisor and host router
+
