@@ -11,6 +11,10 @@ topics:
       description: Topic for storybook work.
     - slug: vm-runtime
       description: Topic for vm-runtime work.
+    - slug: dashboard
+      description: User-facing web dashboard surfaces and workflows.
+    - slug: frontend
+      description: Frontend application code, components, routing, and browser UI.
 docTypes:
     - slug: index
       description: Ticket index document.
