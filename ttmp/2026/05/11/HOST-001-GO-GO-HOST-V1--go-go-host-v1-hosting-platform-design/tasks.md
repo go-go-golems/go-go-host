@@ -164,33 +164,33 @@ Exit criteria:
 
 Goal: upload, validate, store, activate, and roll back immutable deployments.
 
-- [ ] Define `go-go-host.json` manifest schema.
-- [ ] Implement archive reader for tar.gz and/or zip.
-- [ ] Implement path normalization and reject absolute paths, `..`, empty paths, symlinks if unsafe, and hidden forbidden metadata.
-- [ ] Implement file count and total size checks from site quota.
-- [ ] Implement manifest parser and schema validator.
-- [ ] Implement capability request parser.
-- [ ] Intersect requested capabilities with site policy and record effective capabilities.
-- [ ] Implement deploy-run path/channel checks based on Wish Git `AllowsPath`/glob model.
-- [ ] Implement immutable bundle storage under data dir.
-- [ ] Implement unpacking to `data/sites/<site-id>/deployments/<deployment-id>`.
-- [ ] Implement dry-run runtime load during validation.
-- [ ] Implement optional smoke route check.
-- [ ] Insert deployment row with status `uploaded`, `validated`, `rejected`, `active`, or `superseded`.
-- [ ] Implement `POST /api/v1/sites/{site_id}/deployments` for human multipart upload.
-- [ ] Implement `GET /api/v1/sites/{site_id}/deployments`.
-- [ ] Implement `GET /api/v1/deployments/{deployment_id}`.
-- [ ] Implement `POST /api/v1/deployments/{deployment_id}/activate`.
-- [ ] Implement rollback as activation of previous validated deployment.
-- [ ] Audit upload, validation failure, activation, rollback.
-- [ ] Add tests for bad paths, missing manifest, oversized bundle, forbidden capability, dry-run script error.
-- [ ] Add integration test: upload hello bundle, activate, request by Host header.
+- [x] Define `go-go-host.json` manifest schema.
+- [x] Implement archive reader for tar.gz and/or zip.
+- [x] Implement path normalization and reject absolute paths, `..`, empty paths, symlinks if unsafe, and hidden forbidden metadata.
+- [x] Implement file count and total size checks from site quota.
+- [x] Implement manifest parser and schema validator.
+- [x] Implement capability request parser.
+- [x] Intersect requested capabilities with site policy and record effective capabilities.
+- [x] Implement deploy-run path/channel checks based on Wish Git `AllowsPath`/glob model.
+- [x] Implement immutable bundle storage under data dir.
+- [x] Implement unpacking to `data/sites/<site-id>/deployments/<deployment-id>`.
+- [x] Implement dry-run runtime load during validation.
+- [x] Implement optional smoke route check.
+- [x] Insert deployment row with status `uploaded`, `validated`, `rejected`, `active`, or `superseded`.
+- [x] Implement `POST /api/v1/sites/{site_id}/deployments` for human multipart upload.
+- [x] Implement `GET /api/v1/sites/{site_id}/deployments`.
+- [x] Implement `GET /api/v1/deployments/{deployment_id}`.
+- [x] Implement `POST /api/v1/deployments/{deployment_id}/activate`.
+- [x] Implement rollback as activation of previous validated deployment.
+- [x] Audit upload, validation failure, activation, rollback.
+- [x] Add tests for bad paths, missing manifest, oversized bundle, forbidden capability, dry-run script error.
+- [x] Add integration test: upload hello bundle, activate, request by Host header.
 
 Exit criteria:
 
-- [ ] A user can deploy and activate a bundle via API.
-- [ ] Invalid bundles fail with human-readable validation reports.
-- [ ] Rollback switches active deployment without mutating deployment records.
+- [x] A user can deploy and activate a bundle via API.
+- [x] Invalid bundles fail with human-readable validation reports.
+- [x] Rollback switches active deployment without mutating deployment records.
 
 ### Phase 6: Human CLI using Glazed commands
 

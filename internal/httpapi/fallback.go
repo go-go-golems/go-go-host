@@ -1,6 +1,9 @@
 package httpapi
 
-import "net/http"
+import (
+	"net/http"
+	"strings"
+)
 
 type fallbackHandler struct {
 	primary  http.Handler
@@ -17,8 +20,22 @@ func withFallback(primary, fallback http.Handler) http.Handler {
 func (h fallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	rec := &fallbackRecorder{ResponseWriter: w, statusCode: http.StatusOK}
 	h.primary.ServeHTTP(rec, r)
-	if rec.statusCode == http.StatusNotFound && !rec.wroteBody {
+	if rec.statusCode == http.StatusNotFound && shouldFallbackToHostedSite(r.URL.Path) {
 		h.fallback.ServeHTTP(w, r)
+	}
+}
+
+func shouldFallbackToHostedSite(path string) bool {
+	for _, prefix := range []string{"/api/", "/app/", "/admin/"} {
+		if strings.HasPrefix(path, prefix) {
+			return false
+		}
+	}
+	switch path {
+	case "/api", "/app", "/admin", "/healthz", "/readyz":
+		return false
+	default:
+		return true
 	}
 }
 

@@ -33,6 +33,11 @@ func NewHandler(core *control.Core) http.Handler {
 	api.HandleFunc("GET /api/v1/orgs/{org_id}/sites", handleListSites(core))
 	api.HandleFunc("POST /api/v1/orgs/{org_id}/sites", handleCreateSite(core))
 	api.HandleFunc("GET /api/v1/sites/{site_id}/runtime", handleRuntimeStatus(core))
+	api.HandleFunc("POST /api/v1/sites/{site_id}/deployments", handleUploadDeployment(core))
+	api.HandleFunc("GET /api/v1/sites/{site_id}/deployments", handleListDeployments(core))
+	api.HandleFunc("POST /api/v1/sites/{site_id}/rollback", handleRollbackDeployment(core))
+	api.HandleFunc("GET /api/v1/deployments/{deployment_id}", handleGetDeployment(core))
+	api.HandleFunc("POST /api/v1/deployments/{deployment_id}/activate", handleActivateDeployment(core))
 	api.HandleFunc("GET /api/v1/admin/runtimes/summary", handleAdminRuntimeSummary(core))
 	authn := &oidcAuthenticator{cfg: core.Config, st: core.Store}
 	authedAPI := authMiddleware(api, authn, core.Config.DevAuth)
@@ -40,6 +45,7 @@ func NewHandler(core *control.Core) http.Handler {
 	mux.Handle("/api/v1/orgs", authedAPI)
 	mux.Handle("/api/v1/orgs/", authedAPI)
 	mux.Handle("/api/v1/sites/", authedAPI)
+	mux.Handle("/api/v1/deployments/", authedAPI)
 	mux.Handle("/api/v1/admin/", authedAPI)
 
 	return withRequestID(withFallback(mux, core.Supervisor))

@@ -33,6 +33,7 @@ func newIntegrationHandler(t *testing.T) http.Handler {
 	cfg := config.Default()
 	cfg.BaseDomain = "example.test"
 	cfg.DevAuth = true
+	cfg.DataDir = t.TempDir()
 	return NewHandler(control.NewCoreWithStore(cfg, st))
 }
 

@@ -13,8 +13,9 @@ type Core struct {
 	Store      *store.Store
 	Supervisor *hostruntime.Supervisor
 
-	Orgs  *OrgService
-	Sites *SiteService
+	Orgs        *OrgService
+	Sites       *SiteService
+	Deployments *DeploymentService
 }
 
 func NewCore(cfg config.Config) *Core {
@@ -25,5 +26,6 @@ func NewCoreWithStore(cfg config.Config, st *store.Store) *Core {
 	c := &Core{Config: cfg, Store: st, Supervisor: hostruntime.NewSupervisor(hostruntime.WithStatusRecorder(runtimeStatusRecorder{store: st}))}
 	c.Orgs = &OrgService{store: st}
 	c.Sites = &SiteService{store: st, baseDomain: cfg.BaseDomain}
+	c.Deployments = &DeploymentService{store: st, supervisor: c.Supervisor, dataDir: cfg.DataDir}
 	return c
 }

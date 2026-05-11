@@ -1492,3 +1492,93 @@ sqlc generate
 go fmt ./... && go test ./...
 GO_GO_HOST_TEST_DATABASE_URL='postgres://go_go_host:go_go_host_dev@127.0.0.1:55432/go_go_host?sslmode=disable' go test ./internal/store ./internal/control ./internal/httpapi
 ```
+
+## Step 19: Implemented Phase 5 deployment bundle pipeline
+
+I implemented the first full deployment pipeline slice: bundle validation, immutable storage/unpack, deployment records, upload/list/detail/activate/rollback APIs, dry-run runtime validation, and an end-to-end deploy-and-serve integration test.
+
+### Prompt Context
+
+**User prompt (verbatim):** "do phase 5, keep a diary, commit at appropriat eintervals"
+
+**Assistant interpretation:** Complete Phase 5, keep the ticket diary current, validate the work, and commit a coherent implementation slice.
+
+**Inferred user intent:** Move from a manually activatable runtime supervisor to an API-driven bundle deployment workflow.
+
+**Commit (code):** N/A — this entry was written before committing the Phase 5 slice.
+
+### What I did
+
+- Added `internal/deploy` bundle validation and storage helpers.
+- Defined the initial `go-go-host.json` manifest shape.
+- Implemented tar.gz and zip archive readers.
+- Rejected unsafe paths: absolute paths, parent traversal, unsafe components, symlinks/hardlinks, and hidden metadata components.
+- Added quota-oriented file/byte validation.
+- Parsed requested capabilities and rejected capabilities outside the site policy.
+- Added deploy path/channel policy checks for the current bundle validator.
+- Stored bundle archives under the configured data directory and unpacked deployments under `data/sites/<site-id>/deployments/<deployment-id>`.
+- Added dry-run runtime load and optional smoke route validation before a deployment becomes `validated`.
+- Added deployment store queries/methods for create/list/get/status/activation/previous deployment.
+- Added `DeploymentService` for upload, list, get, activate, and rollback.
+- Added API endpoints:
+  - `POST /api/v1/sites/{site_id}/deployments`
+  - `GET /api/v1/sites/{site_id}/deployments`
+  - `GET /api/v1/deployments/{deployment_id}`
+  - `POST /api/v1/deployments/{deployment_id}/activate`
+  - `POST /api/v1/sites/{site_id}/rollback`
+- Added tests for invalid paths, missing manifest, oversized bundle, forbidden capabilities, and an integration deploy/activate/serve flow.
+- Updated the Phase 5 checklist to complete.
+
+### Why
+
+Phase 5 is the handoff point from runtime mechanics to a deployable product workflow. The control plane now has enough deployment records and validation behavior for a user to upload an immutable site bundle, activate it, and serve it by Host header.
+
+### What worked
+
+- `go test ./...` passes.
+- Compose-backed Postgres integration tests pass for store/control/httpapi.
+- The integration test uploads a hello bundle, activates it, and requests the deployed site through the public Host-header fallback path.
+
+### What didn't work
+
+- The first integration bundle used a prototype `require('web')` style that is not the current runtime API, so dry-run validation correctly rejected it with `Invalid module`. I changed the bundle fixture to use the copied runtime's supported `require('express')` API.
+- The public fallback router originally avoided fallback when the stdlib mux wrote a 404 body. Public `/` requests therefore produced an empty response instead of reaching the supervisor. I tightened the fallback rule to forward 404s for non-control paths while preserving `/api`, `/app`, `/admin`, and health routes.
+
+### What I learned
+
+- Dry-run runtime validation is useful immediately: it caught an invalid script before the deployment could be activated.
+- Deployment activation should remain a separate explicit step after upload/validation, because it gives clients a clear validation report before traffic changes.
+
+### What was tricky to build
+
+- Deployment creation needs a stable deployment ID before archive/unpack paths are known. I currently create an uploaded placeholder row, validate/store the bundle, then update the row with artifacts and validation status.
+- The current rollback implementation activates the previous validated/superseded deployment rather than mutating bundle contents.
+
+### What warrants a second pair of eyes
+
+- Review whether creating a placeholder deployment before validation is the desired long-term transaction shape.
+- Review whether request-counter persistence should be batched before serious traffic.
+- Review whether `go-go-host.json` should support richer routes, build metadata, and explicit capability configuration.
+
+### What should be done in the future
+
+- Add CLI commands for deploy/list/show/activate/rollback in Phase 6.
+- Add dashboard surfaces for validation reports in Phase 7.
+- Add deployment artifact garbage collection and stricter bundle content type sniffing.
+- Add a richer site capability policy table rather than the current safe default capability map.
+
+### Code review instructions
+
+- Start with `internal/deploy/bundle.go` for validation behavior.
+- Then review `internal/control/deployments.go` for service orchestration.
+- Then review `internal/httpapi/deployments.go` and `internal/httpapi/deployments_integration_test.go` for the API contract and smoke path.
+- Validate with `go test ./...` and the compose-backed Postgres integration test command.
+
+### Technical details
+
+Commands run:
+
+```bash
+go fmt ./... && go test ./...
+GO_GO_HOST_TEST_DATABASE_URL='postgres://go_go_host:go_go_host_dev@127.0.0.1:55432/go_go_host?sslmode=disable' go test ./internal/store ./internal/control ./internal/httpapi
+```

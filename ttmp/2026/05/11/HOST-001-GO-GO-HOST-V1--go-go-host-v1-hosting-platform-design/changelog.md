@@ -193,3 +193,12 @@ Finished Phase 4 runtime supervisor: persisted runtime status, startup reconcili
 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/store/runtime_status.go — Runtime status persistence and reconciliation
 
+
+## 2026-05-11
+
+Completed Phase 5 deployment bundle pipeline: manifest validation, archive storage/unpack, dry-run runtime validation, deployment APIs, activation/rollback, and deploy-to-host integration test.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/deploy/bundle.go — Bundle manifest validation and immutable storage
+
