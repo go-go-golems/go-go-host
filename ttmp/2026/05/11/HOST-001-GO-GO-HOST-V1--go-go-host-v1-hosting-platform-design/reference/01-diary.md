@@ -1791,3 +1791,70 @@ The CLI checklist still had explicit agent and audit commands, but the server di
 
 - Review `internal/control/agents.go`, `internal/httpapi/agents_audit.go`, `cmd/go-go-host/cmds/agents.go`, and `cmd/go-go-host/cmds/audit.go`.
 - Validate with `go test ./...` and the compose-backed integration command.
+
+## Step 23: Wrote Phase 7 dashboard affordances and component-system design
+
+I created a new Phase 7 dashboard design document for the `/app` user/org developer dashboard. The document is written as an intern-facing implementation guide and includes product affordances, backend evidence, page descriptions, ASCII screenshots, component taxonomy, Storybook/MSW requirements, RTK Query endpoint sketches, testing strategy, and phased implementation guidance.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Ok, for phase 7, we want a new design document which lists all the affordances the site should provide, and then a set of page descriptions with ascii screenshots, and then a list of the widgets for the component system (atomm/molecules/organisms, building on top of go-go-os-core ) with one directory per widget, with a storybook stories page as well. We always want to have storybook stories (using msw / fake store when relevant), for the pages too. Create  a detailed analysis / design / implementation guide that is for a new intern, explaining all the parts of the system needed to understand what it is, with prose paragraphs and bullet point sand pseudocode and diagrams and api references and file references. It should be very clear and technical. Store in the ticket and the nupload to remarkable."
+
+**Assistant interpretation:** Produce documentation rather than code: create a new ticket design doc for Phase 7, make it comprehensive and implementation-ready, update ticket bookkeeping, and upload the bundle to reMarkable.
+
+**Inferred user intent:** Align the dashboard build before implementation so future frontend work has clear affordances, page contracts, component boundaries, and Storybook expectations.
+
+**Commit (code):** N/A — documentation-only work is uncommitted at this entry.
+
+### What I did
+
+- Added a new design document under the existing HOST-001 ticket:
+  - `design-doc/02-phase-7-user-dashboard-affordances-page-designs-and-component-system-guide.md`
+- Grounded the design in current backend files and APIs.
+- Listed dashboard affordances for global shell, orgs, sites, deployments, runtime, agents, audit, usage, and members.
+- Defined `/app` route structure.
+- Wrote page descriptions with ASCII screenshots.
+- Defined atoms, molecules, organisms, and pages with one directory per widget.
+- Required Storybook stories for every widget and page.
+- Specified MSW/fake-store Storybook setup.
+- Sketched RTK Query API endpoints and TypeScript types.
+- Added implementation phases and testing strategy.
+- Marked the Phase 7 design-guide checklist item complete.
+
+### Why
+
+The backend and CLI now expose enough functionality to start the dashboard, but the frontend needs a shared blueprint before implementation. The design document turns the user's requirements into page-level and component-level contracts.
+
+### What worked
+
+- The existing ticket structure made it easy to add a second design doc.
+- The current backend routes and schema provide enough evidence to define API references and UI behavior.
+
+### What didn't work
+
+- N/A.
+
+### What I learned
+
+- The current `/app` and `/admin` routes are explicitly placeholders, which cleanly separates Phase 7 user dashboard work from future platform admin console work.
+
+### What was tricky to build
+
+- The design needed to include future-looking components such as quota and agent grants without pretending those APIs are complete. I called those out as API-pending or preview states.
+
+### What warrants a second pair of eyes
+
+- Review the route naming and whether dashboard URLs should use org/site IDs only or introduce slug lookup APIs later.
+- Review the component taxonomy before implementation to avoid over- or under-splitting widgets.
+
+### What should be done in the future
+
+- Implement Phase 7 scaffold under `web/admin`.
+- Verify exact `@go-go-golems/os-core` package exports before coding theme imports.
+- Add Storybook CI once scaffold exists.
+
+### Code review instructions
+
+- Start with the new Phase 7 design doc.
+- Compare API references against `internal/httpapi/handler.go`, `internal/httpapi/deployments.go`, `internal/httpapi/runtime.go`, and `internal/httpapi/agents_audit.go`.
+- Confirm that every requested page/widget/storybook requirement is represented before implementation begins.

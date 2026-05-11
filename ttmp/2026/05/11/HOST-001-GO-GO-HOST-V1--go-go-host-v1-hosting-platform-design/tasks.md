@@ -235,6 +235,7 @@ Exit criteria:
 
 Goal: build the normal org/user product dashboard with React, RTK Query, Storybook, and `@go-go-golems/os-core`.
 
+- [x] Create Phase 7 dashboard affordances, page designs, ASCII wireframes, component taxonomy, Storybook/MSW, and intern implementation guide.
 - [ ] Create `web/admin/package.json` with Vite, React, TypeScript, RTK Query, Storybook, and `@go-go-golems/os-core`.
 - [ ] Import `@go-go-golems/os-core/theme` and selected desktop theme in `main.tsx`.
 - [ ] Add `.storybook/preview.tsx` with same theme imports.
