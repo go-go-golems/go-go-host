@@ -54,6 +54,19 @@ type SiteQuota struct {
 	UpdatedAt        time.Time
 }
 
+type RuntimeStatus struct {
+	SiteID        string
+	OrgID         string
+	DeploymentID  string
+	Hosts         []string
+	Status        string
+	StartedAt     time.Time
+	LastError     string
+	RequestsTotal int64
+	ErrorsTotal   int64
+	UpdatedAt     time.Time
+}
+
 type AuditEvent struct {
 	ID           string
 	OrgID        string

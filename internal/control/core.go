@@ -22,7 +22,7 @@ func NewCore(cfg config.Config) *Core {
 }
 
 func NewCoreWithStore(cfg config.Config, st *store.Store) *Core {
-	c := &Core{Config: cfg, Store: st, Supervisor: hostruntime.NewSupervisor()}
+	c := &Core{Config: cfg, Store: st, Supervisor: hostruntime.NewSupervisor(hostruntime.WithStatusRecorder(runtimeStatusRecorder{store: st}))}
 	c.Orgs = &OrgService{store: st}
 	c.Sites = &SiteService{store: st, baseDomain: cfg.BaseDomain}
 	return c

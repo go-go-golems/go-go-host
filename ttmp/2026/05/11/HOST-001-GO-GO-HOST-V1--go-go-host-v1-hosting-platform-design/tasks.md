@@ -145,9 +145,9 @@ Goal: serve many sites dynamically by Host header.
 - [x] Implement `Restart(ctx, siteID)`.
 - [x] Implement `GetByHost(host)` and `ServeHTTP` host-router adapter.
 - [x] Add runtime status model: starting, ready, failed, stopped, draining.
-- [ ] Persist runtime status transitions to store.
-- [ ] On daemon startup, reconcile stale starting/ready statuses to stopped/unknown, following `vmdaemon.closeStaleSessionsOnStartup` semantics.
-- [ ] Add request context fields: request ID, org ID, site ID, deployment ID, host.
+- [x] Persist runtime status transitions to store.
+- [x] On daemon startup, reconcile stale starting/ready statuses to stopped/unknown, following `vmdaemon.closeStaleSessionsOnStartup` semantics.
+- [x] Add request context fields: request ID, org ID, site ID, deployment ID, host.
 - [x] Add request/error counters per runtime.
 - [x] Add `GET /api/v1/sites/{site_id}/runtime`.
 - [x] Add admin `GET /api/v1/admin/runtimes/summary`.
@@ -158,7 +158,7 @@ Goal: serve many sites dynamically by Host header.
 Exit criteria:
 
 - [x] Two fixture sites can be active simultaneously and route by Host header.
-- [ ] Runtime summary reports active site runtimes.
+- [x] Runtime summary reports active site runtimes.
 
 ### Phase 5: Deployment bundle pipeline
 

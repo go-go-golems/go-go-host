@@ -18,6 +18,10 @@ app.get('/', (req, res) => {
   );
 });
 
+app.get('/platform', (req, res) => {
+  return res.json(req.platform);
+});
+
 app.get('/config-test', (req, res) => {
   try {
     db.configure('sqlite3', ':memory:');

@@ -184,3 +184,12 @@ Extended Phase 4 supervisor with restart specs, request/error counters, control-
 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/runtime.go — Runtime status API handlers
 
+
+## 2026-05-11
+
+Finished Phase 4 runtime supervisor: persisted runtime status, startup reconciliation, request platform context, public fallback routing, and integration tests.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/store/runtime_status.go — Runtime status persistence and reconciliation
+

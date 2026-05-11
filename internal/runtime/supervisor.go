@@ -9,6 +9,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/go-go-golems/go-go-host/internal/sitejs/web"
 )
 
 type Status string
@@ -39,21 +41,36 @@ type Summary struct {
 	Runtimes    []RuntimeStatus `json:"runtimes"`
 }
 
-type Supervisor struct {
-	mu     sync.RWMutex
-	bySite map[string]*SiteRuntime
-	byHost map[string]*SiteRuntime
-	status map[string]RuntimeStatus
-	specs  map[string]Spec
+type StatusRecorder interface {
+	RecordRuntimeStatus(context.Context, RuntimeStatus) error
 }
 
-func NewSupervisor() *Supervisor {
-	return &Supervisor{
+type Supervisor struct {
+	mu       sync.RWMutex
+	bySite   map[string]*SiteRuntime
+	byHost   map[string]*SiteRuntime
+	status   map[string]RuntimeStatus
+	specs    map[string]Spec
+	recorder StatusRecorder
+}
+
+type Option func(*Supervisor)
+
+func WithStatusRecorder(recorder StatusRecorder) Option {
+	return func(s *Supervisor) { s.recorder = recorder }
+}
+
+func NewSupervisor(options ...Option) *Supervisor {
+	s := &Supervisor{
 		bySite: map[string]*SiteRuntime{},
 		byHost: map[string]*SiteRuntime{},
 		status: map[string]RuntimeStatus{},
 		specs:  map[string]Spec{},
 	}
+	for _, option := range options {
+		option(s)
+	}
+	return s
 }
 
 func (s *Supervisor) Activate(ctx context.Context, spec Spec) error {
@@ -63,15 +80,15 @@ func (s *Supervisor) Activate(ctx context.Context, spec Spec) error {
 	if len(spec.Hosts) == 0 {
 		return fmt.Errorf("at least one host is required")
 	}
-	s.setStatus(spec.SiteID, RuntimeStatus{SiteID: spec.SiteID, OrgID: spec.OrgID, DeploymentID: spec.DeploymentID, Hosts: normalizeHosts(spec.Hosts), Status: StatusStarting})
+	s.setStatus(ctx, spec.SiteID, RuntimeStatus{SiteID: spec.SiteID, OrgID: spec.OrgID, DeploymentID: spec.DeploymentID, Hosts: normalizeHosts(spec.Hosts), Status: StatusStarting})
 	next, err := NewSiteRuntime(ctx, spec)
 	if err != nil {
-		s.setStatus(spec.SiteID, RuntimeStatus{SiteID: spec.SiteID, OrgID: spec.OrgID, DeploymentID: spec.DeploymentID, Hosts: normalizeHosts(spec.Hosts), Status: StatusFailed, LastError: err.Error()})
+		s.setStatus(ctx, spec.SiteID, RuntimeStatus{SiteID: spec.SiteID, OrgID: spec.OrgID, DeploymentID: spec.DeploymentID, Hosts: normalizeHosts(spec.Hosts), Status: StatusFailed, LastError: err.Error()})
 		return err
 	}
 	if err := next.HealthCheck(ctx); err != nil {
 		_ = next.Close(ctx)
-		s.setStatus(spec.SiteID, RuntimeStatus{SiteID: spec.SiteID, OrgID: spec.OrgID, DeploymentID: spec.DeploymentID, Hosts: normalizeHosts(spec.Hosts), Status: StatusFailed, LastError: err.Error()})
+		s.setStatus(ctx, spec.SiteID, RuntimeStatus{SiteID: spec.SiteID, OrgID: spec.OrgID, DeploymentID: spec.DeploymentID, Hosts: normalizeHosts(spec.Hosts), Status: StatusFailed, LastError: err.Error()})
 		return err
 	}
 
@@ -88,9 +105,11 @@ func (s *Supervisor) Activate(ctx context.Context, spec Spec) error {
 		s.byHost[normalizeHost(host)] = next
 	}
 	previous := s.status[spec.SiteID]
-	s.status[spec.SiteID] = RuntimeStatus{SiteID: spec.SiteID, OrgID: spec.OrgID, DeploymentID: spec.DeploymentID, Hosts: normalizeHosts(spec.Hosts), Status: StatusReady, StartedAt: next.StartedAt(), RequestsTotal: previous.RequestsTotal, ErrorsTotal: previous.ErrorsTotal}
+	readyStatus := RuntimeStatus{SiteID: spec.SiteID, OrgID: spec.OrgID, DeploymentID: spec.DeploymentID, Hosts: normalizeHosts(spec.Hosts), Status: StatusReady, StartedAt: next.StartedAt(), RequestsTotal: previous.RequestsTotal, ErrorsTotal: previous.ErrorsTotal}
+	s.status[spec.SiteID] = readyStatus
 	s.specs[spec.SiteID] = spec
 	s.mu.Unlock()
+	s.persistStatus(ctx, readyStatus)
 
 	if old != nil {
 		go func() { _ = old.Close(context.Background()) }()
@@ -124,6 +143,7 @@ func (s *Supervisor) Stop(ctx context.Context, siteID string) error {
 	st.Status = StatusStopped
 	s.status[siteID] = st
 	s.mu.Unlock()
+	s.persistStatus(ctx, st)
 	return rt.Close(ctx)
 }
 
@@ -164,6 +184,7 @@ func (s *Supervisor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	rec := &statusResponseWriter{ResponseWriter: w, statusCode: http.StatusOK}
+	r = web.WithPlatformContext(r, web.PlatformContext{RequestID: r.Header.Get("X-Request-Id"), OrgID: rt.spec.OrgID, SiteID: rt.spec.SiteID, DeploymentID: rt.spec.DeploymentID, Host: normalizeHost(r.Host)})
 	rt.ServeHTTP(rec, r)
 	s.recordRequest(rt.spec.SiteID, rec.statusCode)
 }
@@ -197,22 +218,31 @@ func normalizeHost(host string) string {
 	return host
 }
 
-func (s *Supervisor) setStatus(siteID string, status RuntimeStatus) {
+func (s *Supervisor) setStatus(ctx context.Context, siteID string, status RuntimeStatus) {
 	s.mu.Lock()
-	defer s.mu.Unlock()
 	previous := s.status[siteID]
 	status.RequestsTotal = previous.RequestsTotal
 	status.ErrorsTotal = previous.ErrorsTotal
 	s.status[siteID] = status
+	s.mu.Unlock()
+	s.persistStatus(ctx, status)
 }
 
 func (s *Supervisor) recordRequest(siteID string, statusCode int) {
 	s.mu.Lock()
-	defer s.mu.Unlock()
 	st := s.status[siteID]
 	st.RequestsTotal++
 	if statusCode >= 500 {
 		st.ErrorsTotal++
 	}
 	s.status[siteID] = st
+	s.mu.Unlock()
+	go s.persistStatus(context.Background(), st)
+}
+
+func (s *Supervisor) persistStatus(ctx context.Context, status RuntimeStatus) {
+	if s.recorder == nil || status.SiteID == "" {
+		return
+	}
+	_ = s.recorder.RecordRuntimeStatus(ctx, status)
 }

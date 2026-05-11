@@ -110,6 +110,19 @@ type PlatformAdmin struct {
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
+type RuntimeStatus struct {
+	SiteID        string             `json:"site_id"`
+	OrgID         string             `json:"org_id"`
+	DeploymentID  string             `json:"deployment_id"`
+	Hosts         []string           `json:"hosts"`
+	Status        string             `json:"status"`
+	StartedAt     pgtype.Timestamptz `json:"started_at"`
+	LastError     string             `json:"last_error"`
+	RequestsTotal int64              `json:"requests_total"`
+	ErrorsTotal   int64              `json:"errors_total"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+}
+
 type SchemaMigration struct {
 	Name      string             `json:"name"`
 	AppliedAt pgtype.Timestamptz `json:"applied_at"`

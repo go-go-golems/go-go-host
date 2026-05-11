@@ -42,7 +42,7 @@ func NewHandler(core *control.Core) http.Handler {
 	mux.Handle("/api/v1/sites/", authedAPI)
 	mux.Handle("/api/v1/admin/", authedAPI)
 
-	return withRequestID(mux)
+	return withRequestID(withFallback(mux, core.Supervisor))
 }
 
 func handleHealth(w http.ResponseWriter, _ *http.Request) {

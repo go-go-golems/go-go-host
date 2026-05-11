@@ -1412,3 +1412,83 @@ Commands run:
 ```bash
 go fmt ./... && go test ./...
 ```
+
+## Step 18: Finished Phase 4 persistence, reconciliation, and daemon fallback routing
+
+I completed the remaining Phase 4 runtime-supervisor tasks. Runtime status transitions are now persisted to the control DB through a supervisor recorder, daemon startup reconciles stale runtime statuses to stopped, public requests receive platform context fields before entering JavaScript, and the main HTTP handler falls back to the supervisor for public hosted-site traffic.
+
+This does not yet provide deployment-driven activation, but the runtime and supervisor layer is now complete enough for the next phase to create deployment records and call `Supervisor.Activate`.
+
+### Prompt Context
+
+**User prompt (verbatim):** "do full phase 4, don't stop before you are done. Commit at appropriate intervals and keep a diary"
+
+**Assistant interpretation:** Complete all remaining Phase 4 tasks, commit in coherent chunks, and keep the ticket diary updated.
+
+**Inferred user intent:** Finish the runtime supervisor layer before moving to deployment pipeline work.
+
+**Commit (code):** N/A — current persistence/fallback changes are uncommitted at this diary entry.
+
+### What I did
+
+- Added `runtime_status` migration and sqlc queries.
+- Regenerated sqlc code.
+- Added store methods for runtime status upsert/list/get and stale reconciliation.
+- Added a control-layer runtime status recorder and passed it into the supervisor.
+- Persisted supervisor status transitions and request/error counter updates.
+- Added daemon startup stale-runtime reconciliation.
+- Added platform context support in copied `web` package and injected request ID/org/site/deployment/host before hosted JavaScript runs.
+- Added HTTP fallback routing from API mux to supervisor for public site traffic.
+- Added tests for runtime status persistence/reconciliation and HTTP fallback routing.
+- Updated Phase 4 checklist to complete.
+
+### Why
+
+- Phase 4 requires supervisor state to be visible and recoverable at the control-plane level.
+- Public hosted-site traffic must reach the supervisor after API/app/admin routes are considered.
+- JavaScript handlers need safe platform context for debugging and request correlation.
+
+### What worked
+
+- `go test ./...` passes.
+- Compose-backed Postgres integration tests pass for store/control/httpapi.
+- HTTP fallback routing test proves public Host-header traffic can reach an active supervisor runtime.
+
+### What didn't work
+
+- N/A after iterative implementation.
+
+### What I learned
+
+- Keeping runtime persistence behind a small `StatusRecorder` interface avoids coupling `internal/runtime` directly to the control-plane store package.
+- Fallback routing can be implemented without changing the public API mux shape, but future production routing may want a more explicit top-level router.
+
+### What was tricky to build
+
+- Request counters are updated after serving a response, while status persistence is asynchronous for request counts. This avoids blocking public traffic on control DB writes but means counters are eventually consistent.
+
+### What warrants a second pair of eyes
+
+- Review fallback routing semantics: API 404s with bodies should not be converted into hosted-site requests, while unknown public paths should fall through to supervisor.
+- Review whether runtime counter persistence should be batched rather than written after every request.
+
+### What should be done in the future
+
+- Phase 5 should create deployment records and activate them via `Supervisor.Activate`.
+- Add structured logs for public requests with platform context.
+- Consider batching runtime metrics writes.
+
+### Code review instructions
+
+- Review `internal/runtime/supervisor.go`, `internal/store/runtime_status.go`, `internal/httpapi/fallback.go`, and `internal/sitejs/web/platform.go`.
+- Validate with `go test ./...` and compose-backed integration tests.
+
+### Technical details
+
+Commands run:
+
+```bash
+sqlc generate
+go fmt ./... && go test ./...
+GO_GO_HOST_TEST_DATABASE_URL='postgres://go_go_host:go_go_host_dev@127.0.0.1:55432/go_go_host?sslmode=disable' go test ./internal/store ./internal/control ./internal/httpapi
+```

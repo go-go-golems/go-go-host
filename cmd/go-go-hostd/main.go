@@ -57,6 +57,9 @@ func run(ctx context.Context, cfg config.Config) error {
 	if err := st.ApplyMigrations(ctx); err != nil {
 		return err
 	}
+	if err := st.ReconcileStaleRuntimeStatuses(ctx); err != nil {
+		return err
+	}
 
 	core := control.NewCoreWithStore(cfg, st)
 	server := &http.Server{

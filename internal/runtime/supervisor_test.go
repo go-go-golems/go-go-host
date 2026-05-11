@@ -75,6 +75,28 @@ func TestSupervisorFailedActivationDoesNotReplaceCurrentRuntime(t *testing.T) {
 	}
 }
 
+func TestSupervisorAddsPlatformRequestContext(t *testing.T) {
+	ctx := context.Background()
+	sup := NewSupervisor()
+	if err := sup.Activate(ctx, fixtureSpec(t, "site_a", "a.localhost")); err != nil {
+		t.Fatalf("activate: %v", err)
+	}
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "http://a.localhost/platform", nil)
+	req.Host = "a.localhost"
+	req.Header.Set("X-Request-Id", "req_test")
+	sup.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d body %s", rec.Code, rec.Body.String())
+	}
+	body := rec.Body.String()
+	for _, expected := range []string{`"requestId":"req_test"`, `"siteId":"site_a"`, `"deploymentId":"dep_site_a"`, `"host":"a.localhost"`} {
+		if !strings.Contains(body, expected) {
+			t.Fatalf("expected %s in platform body %s", expected, body)
+		}
+	}
+}
+
 func TestSupervisorCountsRequests(t *testing.T) {
 	ctx := context.Background()
 	sup := NewSupervisor()

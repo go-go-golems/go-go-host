@@ -14,32 +14,34 @@ import (
 type Renderer func(*goja.Runtime, goja.Value) (string, error)
 
 type RequestDTO struct {
-	Method  string
-	URL     string
-	Path    string
-	Query   map[string]any
-	Params  map[string]string
-	Headers map[string]string
-	Cookies map[string]string
-	Session *SessionDTO
-	IP      string
-	Body    any
-	RawBody string
+	Method   string
+	URL      string
+	Path     string
+	Query    map[string]any
+	Params   map[string]string
+	Headers  map[string]string
+	Cookies  map[string]string
+	Session  *SessionDTO
+	IP       string
+	Body     any
+	RawBody  string
+	Platform map[string]any
 }
 
 func (r *RequestDTO) Map() map[string]any {
 	return map[string]any{
-		"method":  r.Method,
-		"url":     r.URL,
-		"path":    r.Path,
-		"query":   r.Query,
-		"params":  r.Params,
-		"headers": r.Headers,
-		"cookies": r.Cookies,
-		"session": r.Session.Map(),
-		"ip":      r.IP,
-		"body":    r.Body,
-		"rawBody": r.RawBody,
+		"method":   r.Method,
+		"url":      r.URL,
+		"path":     r.Path,
+		"query":    r.Query,
+		"params":   r.Params,
+		"headers":  r.Headers,
+		"cookies":  r.Cookies,
+		"session":  r.Session.Map(),
+		"ip":       r.IP,
+		"body":     r.Body,
+		"rawBody":  r.RawBody,
+		"platform": r.Platform,
 	}
 }
 
@@ -68,7 +70,15 @@ func NewRequestDTO(r *http.Request, params map[string]string, session *SessionDT
 	if err != nil {
 		ip = r.RemoteAddr
 	}
-	return &RequestDTO{Method: r.Method, URL: r.URL.String(), Path: r.URL.Path, Query: query, Params: params, Headers: headers, Cookies: cookies, Session: session, IP: ip, Body: body, RawBody: raw}, nil
+	platform := map[string]any{}
+	if p, ok := PlatformFromContext(r.Context()); ok {
+		platform["requestId"] = p.RequestID
+		platform["orgId"] = p.OrgID
+		platform["siteId"] = p.SiteID
+		platform["deploymentId"] = p.DeploymentID
+		platform["host"] = p.Host
+	}
+	return &RequestDTO{Method: r.Method, URL: r.URL.String(), Path: r.URL.Path, Query: query, Params: params, Headers: headers, Cookies: cookies, Session: session, IP: ip, Body: body, RawBody: raw, Platform: platform}, nil
 }
 
 type Response struct {
