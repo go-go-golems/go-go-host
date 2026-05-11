@@ -1,0 +1,391 @@
+# Tasks
+
+## Completed research/documentation tasks
+
+- [x] Create docmgr ticket for go-go-host v1 hosting platform design.
+- [x] Read the PARC Goja Sites Hosting Service proposal.
+- [x] Re-read the updated proposal after it introduced two dashboards: user dashboard and platform admin console.
+- [x] Inspect relevant runtime source in `2026-05-03--goja-hosting-site`.
+- [x] Inspect relevant agent-auth and run-token source in `2026-05-03--agent-enroll`.
+- [x] Inspect Agent Enroll dashboard source for user-dashboard workflows.
+- [x] Inspect relevant `go-go-goja` modules for hosted capability decisions.
+- [x] Inspect `vm-system` for runtime management patterns.
+- [x] Inspect the `@go-go-golems/os-core` React/RTK Query/Storybook example.
+- [x] Revisit and update design after local `2026-05-01--wish-git` checkout became available.
+- [x] Write intern-oriented design and implementation guide.
+- [x] Write chronological investigation diary.
+- [x] Validate the ticket with `docmgr doctor`.
+- [x] Upload the document bundle to reMarkable and verify upload success from `remarquee` output.
+
+## Implementation task plan
+
+### Phase 0: Repository scaffold, conventions, and runnable skeleton
+
+Goal: make `go-go-host` a runnable, testable Go repository before product features begin.
+
+- [x] Replace placeholder `go-go-host/cmd/XXX/main.go` with `cmd/go-go-hostd/main.go`.
+- [x] Add `cmd/go-go-host/main.go` for human CLI commands.
+- [x] Add `cmd/go-go-host-agent/main.go` for headless agent CLI commands.
+- [x] Add Glazed dependencies and use `github.com/go-go-golems/glazed/pkg/...` import paths.
+- [x] Wire `go-go-host` root with Glazed logging section, embedded help system, and Cobra root setup.
+- [x] Wire `go-go-host-agent` root with Glazed logging section, embedded help system, and Cobra root setup.
+- [x] Add `cmd/go-go-host/doc` and `cmd/go-go-host-agent/doc` embedded help-doc packages.
+- [x] Establish CLI folder convention: `cmd/<binary>/cmds/<group>/<verb>.go` where groups mirror command paths.
+- [x] Add `internal/config` with daemon config: listen address, public base URL, base domain, data dir, control DB DSN, OIDC settings, dev auth flag, log level.
+- [x] Add `internal/logging` or shared logger initialization with request ID fields.
+- [x] Add `internal/httpapi` with `GET /healthz`, `GET /readyz`, and `GET /api/v1/version`.
+- [x] Add `internal/control` with an empty `Core` object and constructor.
+- [x] Add `internal/store` with store interface stubs and migration runner placeholder.
+- [x] Add `internal/webadmin` placeholder static handler for future embedded dashboard.
+- [x] Add `Makefile` targets: `build`, `test`, `lint` if available, `run-dev`, `generate-web`.
+- [x] Add README section defining v1 goals, non-goals, and safe capability model.
+- [x] Add a local dev config file under `configs/dev.yaml` or `configs/dev.json`.
+- [x] Add first smoke test that starts daemon handler in-process and checks `/healthz`.
+
+Exit criteria:
+
+- [x] `go test ./...` passes.
+- [x] `go run ./cmd/go-go-hostd --config configs/dev.yaml` starts and serves health endpoints.
+
+### Phase 1: Control-plane database, migrations, and core services
+
+Goal: create the durable product model before runtime activation.
+
+- [x] Decide initial DB mode: Postgres-first sqlc control-plane CRUD, with Postgres/Keycloak dev compose for Phase 1/2 infrastructure.
+- [x] Add `sqlc.yaml` for Postgres/pgx query generation.
+- [x] Add `internal/store/queries/*.sql` for typed sqlc CRUD/query methods.
+- [x] Generate `internal/store/db` sqlc package.
+- [x] Refactor store methods to call generated sqlc queries instead of hand-written `database/sql` scans.
+- [x] Add Postgres integration-test path gated by `GO_GO_HOST_TEST_DATABASE_URL`.
+- [x] Add migration table equivalent to Wish Git's `schema_migrations` pattern.
+- [x] Add `users` table keyed by `(issuer, subject)`.
+- [x] Add `orgs` table with unique slug.
+- [x] Add `memberships` table with roles: `org_owner`, `org_developer`, `org_viewer`.
+- [x] Add `platform_admins` or global role mechanism.
+- [x] Add `sites` table with org ID, slug, display name, primary host, status, and active deployment ID.
+- [x] Add `site_domains` table.
+- [x] Add `site_quotas` table.
+- [x] Add `site_capabilities` table for host-granted capabilities.
+- [x] Add `deployments` table with immutable version, status, bundle ref, manifest JSON, validation JSON, actor fields, timestamps.
+- [x] Add `deploy_runs` table with actor, site, allowed actions/channels/paths, token hash, expiry, status.
+- [x] Add `agents` table.
+- [x] Add `agent_keys` table.
+- [x] Add `agent_site_grants` table.
+- [x] Add `agent_nonces` table with `(agent_id, nonce)` uniqueness.
+- [x] Add `audit_log` table with actor, resource, action, metadata, IP, user agent, timestamp.
+- [x] Add dev Docker Compose with Postgres and Keycloak for Phase 1/2 local infrastructure.
+- [x] Implement `UserStore.UpsertFromOIDC`.
+- [x] Implement `OrgStore` create/list/get membership helpers.
+- [x] Implement `SiteStore` create/list/get/update status/active deployment.
+- [x] Implement `AuditStore.Insert`.
+- [x] Implement `control.OrgService` and `control.SiteService` with authorization checks.
+- [x] Add tests for org membership authorization.
+- [x] Add tests proving user from org A cannot read or mutate org B site.
+
+Exit criteria:
+
+- [x] Migrations apply from empty database.
+- [x] Tests can create user, org, membership, site, quota, capability, and audit rows.
+- [x] Authorization tests cover allowed owner/developer/viewer behavior and cross-org denial.
+
+### Phase 2: Authentication and session foundation
+
+Goal: make human API calls identity-aware while keeping product authorization local.
+
+- [x] Add dev auth middleware that accepts a configured test user header/token for local development.
+- [x] Add OIDC/JWKS token validator based on existing Wish Git / Agent Enroll patterns.
+- [x] Add bearer token support for dashboard/API requests when `devAuth` is false.
+- [x] Implement `GET /api/v1/me` returning user, org memberships, and platform admin flag.
+- [ ] Implement logout/session-clear endpoint if cookie sessions are used.
+- [ ] Implement `RequireSession`, `RequireOrgRole`, `RequireSitePermission`, `RequirePlatformAdmin` server-side helpers.
+- [ ] Add audit event for first user provisioning.
+- [ ] Add tests for invalid issuer/audience/signature rejection.
+- [x] Add test for missing bearer token rejection in OIDC mode.
+- [x] Add tests for local user provisioning by `(issuer, subject)`.
+- [x] Add initial dev-auth org/site API smoke endpoints for dashboard bring-up: `POST /api/v1/orgs`, `GET/POST /api/v1/orgs/{org_id}/sites`.
+- [x] Wire `go-go-hostd` to open the Postgres store and apply migrations at startup.
+
+Exit criteria:
+
+- [x] Dashboard and CLI can call `/api/v1/me` in dev mode.
+- [x] Product permissions are checked from local DB rows, not IdP roles.
+
+### Phase 3: Runtime copy/refactor from goja-site
+
+Goal: move the proven runtime into `go-go-host` as a per-site runtime object without daemon-level HTTP ownership.
+
+- [ ] Create `internal/runtime/SiteRuntime` type with site ID, org ID, deployment ID, hosts, bundle path, DB path, capabilities, `*sql.DB`, `*dbguard.Guard`, `*engine.Runtime`, and `*web.Host`.
+- [ ] Copy/refactor script discovery and script loading from `goja-site/pkg/app/server.go`.
+- [ ] Copy/refactor `web.Host` integration or import the existing package if module boundaries allow it.
+- [ ] Ensure all Goja execution enters through runtime owner calls.
+- [ ] Wire preconfigured `database` and `db` modules with `configure()` disabled.
+- [ ] Wire `ui.dsl` and `express` registrars.
+- [ ] Wire `db.guard` using host-owned quota config.
+- [ ] Do not enable unrestricted `fs` or `exec` in hosted runtime.
+- [ ] Add a scoped static asset mount for deployment assets.
+- [ ] Add runtime `Close(ctx)` that closes owner/runtime and site DB.
+- [ ] Add runtime `HealthCheck(ctx)` that can execute a configured smoke route or script-load check.
+- [ ] Add runtime fixture site under `testdata/sites/hello`.
+- [ ] Add unit/integration test that creates a `SiteRuntime` and serves `GET /` through its handler.
+
+Exit criteria:
+
+- [ ] Fixture site renders through the refactored runtime.
+- [ ] `database.configure()` fails inside hosted runtime.
+- [ ] `require("exec")` and unrestricted `require("fs")` are unavailable by default.
+
+### Phase 4: Runtime supervisor and host router
+
+Goal: serve many sites dynamically by Host header.
+
+- [ ] Create `internal/runtime/Supervisor` with maps by site ID and normalized host.
+- [ ] Implement `Activate(ctx, siteID, deploymentID)` that builds new runtime before swapping traffic.
+- [ ] Implement old-runtime graceful close after successful activation.
+- [ ] Implement `Stop(ctx, siteID)`.
+- [ ] Implement `Restart(ctx, siteID)`.
+- [ ] Implement `GetByHost(host)` and `ServeHTTP` host-router adapter.
+- [ ] Add runtime status model: starting, ready, failed, stopped, draining.
+- [ ] Persist runtime status transitions to store.
+- [ ] On daemon startup, reconcile stale starting/ready statuses to stopped/unknown, following `vmdaemon.closeStaleSessionsOnStartup` semantics.
+- [ ] Add request context fields: request ID, org ID, site ID, deployment ID, host.
+- [ ] Add request/error counters per runtime.
+- [ ] Add `GET /api/v1/sites/{site_id}/runtime`.
+- [ ] Add admin `GET /api/v1/admin/runtimes/summary`.
+- [ ] Add tests for unknown host returning 404.
+- [ ] Add tests that host A cannot route to site B.
+- [ ] Add tests that failed activation does not replace currently serving runtime.
+
+Exit criteria:
+
+- [ ] Two fixture sites can be active simultaneously and route by Host header.
+- [ ] Runtime summary reports active site runtimes.
+
+### Phase 5: Deployment bundle pipeline
+
+Goal: upload, validate, store, activate, and roll back immutable deployments.
+
+- [ ] Define `go-go-host.json` manifest schema.
+- [ ] Implement archive reader for tar.gz and/or zip.
+- [ ] Implement path normalization and reject absolute paths, `..`, empty paths, symlinks if unsafe, and hidden forbidden metadata.
+- [ ] Implement file count and total size checks from site quota.
+- [ ] Implement manifest parser and schema validator.
+- [ ] Implement capability request parser.
+- [ ] Intersect requested capabilities with site policy and record effective capabilities.
+- [ ] Implement deploy-run path/channel checks based on Wish Git `AllowsPath`/glob model.
+- [ ] Implement immutable bundle storage under data dir.
+- [ ] Implement unpacking to `data/sites/<site-id>/deployments/<deployment-id>`.
+- [ ] Implement dry-run runtime load during validation.
+- [ ] Implement optional smoke route check.
+- [ ] Insert deployment row with status `uploaded`, `validated`, `rejected`, `active`, or `superseded`.
+- [ ] Implement `POST /api/v1/sites/{site_id}/deployments` for human multipart upload.
+- [ ] Implement `GET /api/v1/sites/{site_id}/deployments`.
+- [ ] Implement `GET /api/v1/deployments/{deployment_id}`.
+- [ ] Implement `POST /api/v1/deployments/{deployment_id}/activate`.
+- [ ] Implement rollback as activation of previous validated deployment.
+- [ ] Audit upload, validation failure, activation, rollback.
+- [ ] Add tests for bad paths, missing manifest, oversized bundle, forbidden capability, dry-run script error.
+- [ ] Add integration test: upload hello bundle, activate, request by Host header.
+
+Exit criteria:
+
+- [ ] A user can deploy and activate a bundle via API.
+- [ ] Invalid bundles fail with human-readable validation reports.
+- [ ] Rollback switches active deployment without mutating deployment records.
+
+### Phase 6: Human CLI using Glazed commands
+
+Goal: provide developer workflow without requiring dashboard clicks, using the standard Glazed command structure rather than ad-hoc Cobra handlers.
+
+- [x] Implement a shared CLI API client helper for base URL, dev-auth header, JSON GET/POST, and error handling.
+- [x] Implement shared Glazed command builder helpers for common sections: API config, auth config, output defaults.
+- [x] Add `go-go-host login` as a Glazed command or Cobra wrapper if browser OAuth requires custom flow; still expose parsed settings consistently.
+- [x] Add local token/session config file.
+- [x] Add `--bearer-token` auth flag to implemented human CLI commands for non-dev auth smoke/use.
+- [x] Teach implemented CLI commands to load API URL/auth defaults from the local CLI config when flags are omitted.
+- [x] Add `go-go-host me` as Glazed command emitting current user/org membership rows.
+- [ ] Add `go-go-host orgs list` as Glazed command emitting one row per org.
+- [x] Add `GET /api/v1/orgs` and `go-go-host org list` as Glazed command emitting one row per org membership.
+- [x] Add `go-go-host org create` as Glazed command emitting the created org row.
+- [x] Add `go-go-host site list --org-id` as Glazed command emitting one row per site.
+- [x] Add `go-go-host site create --slug ... --org-id ...` as Glazed command emitting the created site row.
+- [ ] Add `go-go-host sites runtime <site>` as Glazed command emitting runtime status fields.
+- [ ] Add `go-go-host deploy ./site --site <slug> --message ...` as Glazed command; use an argument for bundle/site directory and flags for site/message/channel.
+- [ ] Default deployment validation output to YAML or JSON because reports are nested.
+- [ ] Add `go-go-host deployments list --site <slug>` as Glazed command.
+- [ ] Add `go-go-host deployments show <deployment>` as Glazed command.
+- [ ] Add `go-go-host deployments activate <deployment>` as Glazed command.
+- [ ] Add `go-go-host rollback --site <slug> --to <deployment>` as Glazed command.
+- [ ] Add `go-go-host agents list --org` as Glazed command.
+- [ ] Add `go-go-host audit list --org ... --site ... --actor ...` as Glazed command with table/json output.
+- [x] Ensure implemented commands define `CommandDescription`, typed settings struct, `glazed` tags, `cmds.WithFlags`, Glazed output section, and command settings section.
+- [x] Ensure implemented commands decode with `vals.DecodeSectionInto(schema.DefaultSlug, settings)`.
+- [x] Ensure implemented list/detail/mutation commands emit stable rows via `types.NewRow` and `gp.AddRow`.
+- [ ] Add `cmds.WithLong` examples for every command.
+- [ ] Add embedded help pages for common workflows: login, create site, deploy, rollback, agent setup.
+- [ ] Add clear error handling for authz denial and validation failures.
+- [ ] Add CLI smoke test against httptest server using `--output json` assertions.
+
+Exit criteria:
+
+- [ ] A developer can create a site, deploy a fixture, list deployments, and roll back from CLI.
+- [ ] `go-go-host sites list --output json` and `--output table` both work through Glazed.
+- [ ] `go-go-host help` shows embedded command help.
+
+### Phase 7: User dashboard foundation
+
+Goal: build the normal org/user product dashboard with React, RTK Query, Storybook, and `@go-go-golems/os-core`.
+
+- [ ] Create `web/admin/package.json` with Vite, React, TypeScript, RTK Query, Storybook, and `@go-go-golems/os-core`.
+- [ ] Import `@go-go-golems/os-core/theme` and selected desktop theme in `main.tsx`.
+- [ ] Add `.storybook/preview.tsx` with same theme imports.
+- [ ] Add `src/app/store.ts` with RTK Query reducer and middleware.
+- [ ] Add `src/services/goGoHostApi.ts` with typed endpoints and tags.
+- [ ] Add auth/session bootstrap based on `/api/v1/me`.
+- [ ] Add route guards: `RequireSession`, `RequireOrgAccess`, `RequireSiteAccess`.
+- [ ] Add user dashboard shell with org switcher and nav.
+- [ ] Add `SitesPage` list.
+- [ ] Add `CreateSite` form.
+- [ ] Add `SiteDetailPage` overview with host, active deployment, runtime badge, usage summary.
+- [ ] Add `DeploymentsPage` and `DeploymentDetailPage` with validation report.
+- [ ] Add upload deployment UI.
+- [ ] Add activate and rollback buttons with confirmation.
+- [ ] Add `AgentsPage` adapted from Agent Enroll.
+- [ ] Add `BotTokensPage` with one-time reveal and copyable enroll/deploy commands.
+- [ ] Add `AgentGrantEditor` for allowed sites/channels/paths and expiry.
+- [ ] Add `UsagePage` for request/storage/deployment quota display.
+- [ ] Add user-scoped `AuditPage`.
+- [ ] Add `MembersPage` for owners to invite/change roles if in v1 scope.
+- [ ] Add Storybook stories for RuntimeBadge, DeploymentTimeline, QuotaPanel, SecretRevealBox, CommandCopyBox, AgentGrantEditor.
+- [ ] Add Playwright smoke test for dashboard login in dev mode and site list rendering.
+
+Exit criteria:
+
+- [ ] User dashboard can create/list sites and show real deployment/runtime data.
+- [ ] Storybook builds successfully.
+
+### Phase 8: Platform admin console
+
+Goal: provide installation-wide operator controls separate from user dashboard.
+
+- [ ] Add server-side `platform_admin` role/permission checks.
+- [ ] Add `/api/v1/admin/*` route group.
+- [ ] Add admin overview endpoint: org count, user count, site count, active runtimes, failed deployments, quota alarms.
+- [ ] Add admin users list/detail endpoints.
+- [ ] Add admin orgs list/detail endpoints.
+- [ ] Add admin sites list/detail endpoints across all orgs.
+- [ ] Add admin runtimes list/summary/restart/stop endpoints.
+- [ ] Add admin deployments list with filters by status/org/site/actor.
+- [ ] Add admin agents list and revoke endpoints.
+- [ ] Add admin quota policy endpoints: defaults and per-site override.
+- [ ] Add admin domain policy endpoints for base domains and verification status.
+- [ ] Add admin global audit endpoint.
+- [ ] Add `/admin` route group in SPA gated by `RequirePlatformAdmin`.
+- [ ] Add `AdminOverviewPage`.
+- [ ] Add `AdminUsersPage` and `AdminOrgsPage`.
+- [ ] Add `AdminSitesPage`.
+- [ ] Add `AdminRuntimesPage` with restart/stop controls.
+- [ ] Add `AdminQuotasPage`.
+- [ ] Add `AdminAgentsPage`.
+- [ ] Add `AdminAuditPage`.
+- [ ] Add Storybook stories for AdminRuntimeTable, AdminQuotaPolicyEditor, AdminAuditFilters.
+- [ ] Add tests that non-admin users get 403 for `/api/v1/admin/*`.
+
+Exit criteria:
+
+- [ ] Platform admin can inspect all tenants and runtimes.
+- [ ] Non-admin users cannot access admin APIs or admin routes.
+
+### Phase 9: Agent enrollment and signed deploy runs
+
+Goal: support headless deploy agents without human credentials.
+
+- [ ] Implement agent creation by org owner/developer.
+- [ ] Implement one-time bot/enrollment token generation with token hash storage.
+- [ ] Implement agent enrollment endpoint that exchanges token for registered agent key.
+- [ ] Implement `go-go-host-agent keygen` as a Glazed command that emits key path, public key fingerprint, and status.
+- [ ] Implement `go-go-host-agent enroll --token ...` as a Glazed command that emits agent ID, key ID, org/site scope, and status.
+- [ ] Implement `go-go-host-agent deploy ./site --site <slug>` as a Glazed command with stable validation/deployment output.
+- [ ] Implement `go-go-host-agent status` as a Glazed command for current agent identity and grants.
+- [ ] Implement Ed25519 signed request verification using canonical string from Agent Enroll.
+- [ ] Enforce timestamp skew and nonce replay prevention.
+- [ ] Implement `agent_site_grants` CRUD.
+- [ ] Implement `POST /api/v1/agent/deploy-runs` signed endpoint.
+- [ ] Create deploy run with allowed actions/channels/paths, expiry, status, upload token hash.
+- [ ] Implement upload endpoint bound to deploy run and token.
+- [ ] Reject expired, completed, revoked, wrong-site, wrong-channel, wrong-path runs.
+- [ ] Ensure agent commands share the same root Glazed logging/help setup as `go-go-host`.
+- [ ] Add embedded help pages for keygen, enroll, deploy, status, and troubleshooting signature errors.
+- [ ] Audit agent enroll, key add/revoke, grant update, deploy-run create, upload, validation, activation.
+- [ ] Add tests for bad signature, old timestamp, future timestamp, replayed nonce, revoked key, unauthorized site.
+
+Exit criteria:
+
+- [ ] Agent can deploy to allowed site.
+- [ ] Same agent is denied for ungranted site/path/channel.
+- [ ] Replayed signed request is denied.
+
+### Phase 10: Capability hardening, quotas, and observability
+
+Goal: make hosted execution boundaries visible and enforceable.
+
+- [ ] Define default capability set: `express`, `ui.dsl`, scoped `database/db`, `time/timer`, static assets.
+- [ ] Implement capability policy table defaults and per-site overrides.
+- [ ] Implement manifest requested-vs-effective capability report.
+- [ ] Ensure unrestricted `fs` is not available by default.
+- [ ] Ensure `exec` is never available in hosted v1.
+- [ ] Add optional scoped asset read capability if scripts need asset introspection.
+- [ ] Add request timeout enforcement around handler calls where possible.
+- [ ] Add DB guard configuration from site quota.
+- [ ] Add DB stats endpoint.
+- [ ] Add usage collector for request count, error count, DB size, bundle bytes, deployment count.
+- [ ] Add dashboard quota warnings.
+- [ ] Add structured logs with request ID/site ID/deployment ID.
+- [ ] Add runtime event table or log stream for start/stop/fail/activate events.
+- [ ] Add tests for DB hard-limit write failure.
+- [ ] Add tests for forbidden capability rejection.
+
+Exit criteria:
+
+- [ ] Capabilities are explicit in deployment validation and runtime construction.
+- [ ] Users and admins can see quota state and runtime errors.
+
+### Phase 11: Domains, configuration, and site settings
+
+Goal: make site configuration separate from code deployment.
+
+- [ ] Implement site config endpoint for non-secret settings.
+- [ ] Implement base-domain host assignment.
+- [ ] Implement custom domain table and verification-token generation.
+- [ ] Implement domain verification check placeholder/manual flow.
+- [ ] Add dashboard domain page.
+- [ ] Add admin domain policy page.
+- [ ] Add capability settings page for site owners/admins.
+- [ ] Add environment/secrets design placeholder; do not expose process env wholesale.
+- [ ] Audit domain add/remove/verify and capability changes.
+
+Exit criteria:
+
+- [ ] Site code deployment and site configuration are separate API surfaces.
+- [ ] Base-domain hosts work; custom-domain status is represented even if TLS automation is deferred.
+
+### Phase 12: Backup, export, pruning, and production hardening
+
+Goal: make the service operable after MVP.
+
+- [ ] Add per-site SQLite backup/export command.
+- [ ] Add deployment bundle export command.
+- [ ] Add org/site metadata export.
+- [ ] Add deployment pruning policy by age/count/status.
+- [ ] Add audit retention policy.
+- [ ] Add runtime crash/restart runbook.
+- [ ] Add production config example.
+- [ ] Add Dockerfile or deployment recipe if needed.
+- [ ] Add `/readyz` checks for DB and data dir writability.
+- [ ] Add load/concurrency smoke tests.
+- [ ] Add security review checklist for new host capabilities.
+- [ ] Add final Playwright E2E: login, create site, deploy, visit public host, create agent token, agent deploy, rollback, inspect audit.
+
+Exit criteria:
+
+- [ ] Operator can back up, inspect, prune, and recover core platform state.
+- [ ] End-to-end happy path and security-boundary tests pass.

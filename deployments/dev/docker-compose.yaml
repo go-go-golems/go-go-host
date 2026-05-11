@@ -1,0 +1,54 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: go-go-host-postgres
+    environment:
+      POSTGRES_DB: go_go_host
+      POSTGRES_USER: go_go_host
+      POSTGRES_PASSWORD: go_go_host_dev
+    ports:
+      - "55432:5432"
+    volumes:
+      - go-go-host-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U go_go_host -d go_go_host"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: go-go-host-keycloak
+    command: ["start-dev"]
+    environment:
+      KC_DB: postgres
+      KC_DB_URL_HOST: postgres
+      KC_DB_URL_DATABASE: keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak_dev
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "18080:8080"
+    depends_on:
+      keycloak-postgres:
+        condition: service_healthy
+
+  keycloak-postgres:
+    image: postgres:16-alpine
+    container_name: go-go-host-keycloak-postgres
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak_dev
+    volumes:
+      - go-go-host-keycloak-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  go-go-host-postgres-data:
+  go-go-host-keycloak-postgres-data:

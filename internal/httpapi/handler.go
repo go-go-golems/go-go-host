@@ -1,0 +1,75 @@
+package httpapi
+
+import (
+	"encoding/json"
+	"net/http"
+	"time"
+
+	"github.com/go-go-golems/go-go-host/internal/control"
+	"github.com/go-go-golems/go-go-host/internal/webadmin"
+)
+
+const Version = "0.1.0-dev"
+
+func NewHandler(core *control.Core) http.Handler {
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /healthz", handleHealth)
+	mux.HandleFunc("GET /readyz", handleReady)
+	mux.HandleFunc("GET /api/v1/version", handleVersion)
+	mux.Handle("/app/", http.StripPrefix("/app", webadmin.NewPlaceholderHandler()))
+	mux.Handle("/admin/", http.StripPrefix("/admin", webadmin.NewPlaceholderHandler()))
+	mux.HandleFunc("GET /api/v1/config", func(w http.ResponseWriter, _ *http.Request) {
+		writeJSON(w, http.StatusOK, map[string]any{
+			"baseDomain":    core.Config.BaseDomain,
+			"publicBaseUrl": core.Config.PublicBaseURL,
+			"devAuth":       core.Config.DevAuth,
+		})
+	})
+
+	api := http.NewServeMux()
+	api.HandleFunc("GET /api/v1/me", handleMe(core))
+	api.HandleFunc("GET /api/v1/orgs", handleListOrgs(core))
+	api.HandleFunc("POST /api/v1/orgs", handleCreateOrg(core))
+	api.HandleFunc("GET /api/v1/orgs/{org_id}/sites", handleListSites(core))
+	api.HandleFunc("POST /api/v1/orgs/{org_id}/sites", handleCreateSite(core))
+	authn := &oidcAuthenticator{cfg: core.Config, st: core.Store}
+	authedAPI := authMiddleware(api, authn, core.Config.DevAuth)
+	mux.Handle("/api/v1/me", authedAPI)
+	mux.Handle("/api/v1/orgs", authedAPI)
+	mux.Handle("/api/v1/orgs/", authedAPI)
+
+	return withRequestID(mux)
+}
+
+func handleHealth(w http.ResponseWriter, _ *http.Request) {
+	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+}
+
+func handleReady(w http.ResponseWriter, _ *http.Request) {
+	writeJSON(w, http.StatusOK, map[string]string{"status": "ready"})
+}
+
+func handleVersion(w http.ResponseWriter, _ *http.Request) {
+	writeJSON(w, http.StatusOK, map[string]string{"version": Version})
+}
+
+func withRequestID(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestID := r.Header.Get("X-Request-Id")
+		if requestID == "" {
+			requestID = time.Now().UTC().Format("20060102T150405.000000000Z")
+		}
+		w.Header().Set("X-Request-Id", requestID)
+		next.ServeHTTP(w, r)
+	})
+}
+
+func writeJSON(w http.ResponseWriter, status int, value any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(value)
+}
+
+func writeError(w http.ResponseWriter, status int, message string) {
+	writeJSON(w, status, map[string]any{"error": message})
+}
