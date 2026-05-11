@@ -221,7 +221,7 @@ Goal: provide developer workflow without requiring dashboard clicks, using the s
 - [x] Ensure implemented commands decode with `vals.DecodeSectionInto(schema.DefaultSlug, settings)`.
 - [x] Ensure implemented list/detail/mutation commands emit stable rows via `types.NewRow` and `gp.AddRow`.
 - [ ] Add `cmds.WithLong` examples for every command.
-- [ ] Add embedded help pages for common workflows: login, create site, deploy, rollback, agent setup.
+- [x] Add embedded help pages for common workflows: login, create site, deploy, rollback, agent setup.
 - [x] Add clear error handling for authz denial and validation failures.
 - [ ] Add CLI smoke test against httptest server using `--output json` assertions.
 

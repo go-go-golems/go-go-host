@@ -1658,3 +1658,61 @@ Commands run:
 go fmt ./cmd/go-go-host ./cmd/go-go-host/cmds
 go test ./...
 ```
+
+## Step 21: Added embedded CLI workflow help pages
+
+I added embedded Glazed help pages for the first user-facing CLI workflows: login/config, organization/site creation, deployment, rollback, and the current agent setup preview.
+
+### Prompt Context
+
+**User prompt (verbatim):** "continue"
+
+**Assistant interpretation:** Continue Phase 6 after the initial deployment CLI command slice and address the embedded help workflow checklist item.
+
+**Inferred user intent:** Keep moving through the developer CLI experience instead of stopping after command wiring.
+
+**Commit (code):** N/A — this entry was written before committing the help-page slice.
+
+### What I did
+
+- Added `login-and-config.md`.
+- Added `create-site-workflow.md`.
+- Added `deploy-workflow.md`.
+- Added `rollback-workflow.md`.
+- Added `agent-setup.md` as a preview/status page for the future agent workflow.
+- Marked the embedded help workflow checklist item complete.
+
+### Why
+
+The CLI now has enough commands for an end-to-end developer workflow, but discoverability matters. Embedded help pages make the workflow available through `go-go-host help` without requiring external docs.
+
+### What worked
+
+- The existing `go:embed *.md` and help system wiring already picked up additional Markdown pages.
+- `go test ./...` passes with the new embedded docs.
+
+### What didn't work
+
+- N/A.
+
+### What I learned
+
+- The current root command was already using the standard Glazed help-system integration, so adding workflow docs only required Markdown files with proper frontmatter.
+
+### What was tricky to build
+
+- The agent workflow page needed to be explicit that the agent CLI/API is still a preview, so users do not expect non-existent `agents list` behavior yet.
+
+### What warrants a second pair of eyes
+
+- Review command names in the docs before public release. The current v1 commands prefer IDs (`--site-id`, `--deployment-id`) over slug-based positional shortcuts.
+
+### What should be done in the future
+
+- Add real agent and audit help pages when those APIs and commands exist.
+- Add a CLI smoke test that verifies help-page lookup and JSON output for common commands.
+
+### Code review instructions
+
+- Review files under `cmd/go-go-host/doc/*.md`.
+- Validate with `go test ./...` and `go-go-host help deploy-workflow` once the binary is built.

@@ -211,3 +211,12 @@ Started Phase 6 CLI workflow: added deploy, deployment list/show/activate, rollb
 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/cmd/go-go-host/cmds/deployments.go — Glazed deployment CLI commands
 
+
+## 2026-05-11
+
+Added embedded Glazed CLI help pages for login/config, create-site, deploy, rollback, and agent setup preview workflows.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/cmd/go-go-host/doc/deploy-workflow.md — Deployment workflow help page
+
