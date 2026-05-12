@@ -28,8 +28,10 @@
 [data-widget="hypercard"].theme-macos1 .dashboard-panel {
   position: relative;
   display: grid;
+  grid-auto-rows: max-content;
+  align-content: start;
   gap: 1rem;
-  min-height: 28rem;
+  min-height: 0;
   padding: 2.35rem 1rem 1rem;
   background: var(--hc-window-body-bg, var(--hc-color-bg));
   color: var(--hc-color-fg);

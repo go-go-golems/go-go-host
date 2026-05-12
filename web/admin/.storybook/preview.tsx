@@ -6,7 +6,14 @@ import { initialize, mswLoader } from 'msw-storybook-addon';
 import { MockAppProviders } from '../src/app/providers/MockAppProviders';
 import { handlers } from '../src/services/msw/handlers';
 
-initialize();
+initialize({
+  onUnhandledRequest(request, print) {
+    const url = new URL(request.url);
+    if (url.pathname.startsWith('/api/')) {
+      print.warning();
+    }
+  },
+});
 
 const preview: Preview = {
   decorators: [

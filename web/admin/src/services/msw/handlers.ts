@@ -65,6 +65,9 @@ export const handlers = [
     if (!body.name) return HttpResponse.json({ error: 'name is required' }, { status: 400 });
     return HttpResponse.json({ id: `agt_${body.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}`, orgId: String(params.orgId), name: body.name, status: 'active', createdByUserId: 'usr_123', createdAt: new Date('2026-05-11T23:30:00Z').toISOString() }, { status: 201 });
   }),
+  http.post('/api/v1/orgs/:orgId/agents/:agentId/enrollment-token', () => HttpResponse.json({ enrollmentToken: 'enroll_mock_rotation_token' })),
+  http.get('/api/v1/orgs/:orgId/agents/:agentId/keys', ({ params }) => HttpResponse.json(fixtures.agentKeys.filter((key) => key.agentId === params.agentId))),
+  http.post('/api/v1/orgs/:orgId/agents/:agentId/keys/:keyId/revoke', ({ params }) => HttpResponse.json({ status: 'revoked', keyId: String(params.keyId) })),
   http.post('/api/v1/orgs/:orgId/agents/:agentId/revoke', ({ params }) => HttpResponse.json({ status: 'revoked', agentId: String(params.agentId) })),
   http.get('/api/v1/orgs/:orgId/audit', ({ request }) => {
     const url = new URL(request.url);

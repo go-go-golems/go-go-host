@@ -1,4 +1,4 @@
-import type { AdminAgent, AdminCapability, AdminDeployment, AdminDomain, AdminOrg, AdminQuota, AdminRuntimeSummary, AdminSite, AdminUser, Agent, AuditEvent, Deployment, MeResponse, RuntimeStatus, Site, SiteCapability, SiteConfigItem, SiteDomain, SiteEnvironmentPlaceholder } from '../types';
+import type { AdminAgent, AdminCapability, AdminDeployment, AdminDomain, AdminOrg, AdminQuota, AdminRuntimeSummary, AdminSite, AdminUser, Agent, AgentKey, AuditEvent, Deployment, MeResponse, RuntimeStatus, Site, SiteCapability, SiteConfigItem, SiteDomain, SiteEnvironmentPlaceholder } from '../types';
 
 export const fixtures = {
   me: {
@@ -19,6 +19,10 @@ export const fixtures = {
     { id: 'dep_2', siteId: 'site_123', version: 2, status: 'rejected', bundleRef: 'bundles/site_123/dep_2.tar.gz', unpackedPath: 'sites/site_123/deployments/dep_2', manifestJson: '{}', validationJson: '{"valid":false,"files":2,"bytes":500,"errors":["missing go-go-host.json manifest"]}', createdByType: 'user', createdById: 'usr_123', createdAt: '2026-05-11T20:10:00Z' },
   ] satisfies Deployment[],
   agents: [{ id: 'agt_123', orgId: 'org_123', name: 'ci-bot', status: 'active', createdByUserId: 'usr_123', createdAt: '2026-05-11T22:30:00Z' }] satisfies Agent[],
+  agentKeys: [
+    { id: 'ak_123', agentId: 'agt_123', fingerprint: 'SHA256:abcdef0123456789', status: 'active', createdAt: '2026-05-11T22:35:00Z', lastUsedAt: '2026-05-11T23:10:00Z' },
+    { id: 'ak_old', agentId: 'agt_123', fingerprint: 'SHA256:deadbeef00000000', status: 'revoked', createdAt: '2026-05-11T21:35:00Z', revokedAt: '2026-05-11T22:05:00Z' },
+  ] satisfies AgentKey[],
   audit: [{ id: 'aud_123', orgId: 'org_123', actorType: 'user', actorId: 'usr_123', action: 'deployment.activate', resourceType: 'deployment', resourceId: 'dep_4', ipAddress: '', userAgent: '', metadataJson: '{}', createdAt: '2026-05-11T22:20:00Z' }] satisfies AuditEvent[],
   siteConfig: [
     { key: 'theme.title', value: { text: 'Hello Site' }, updatedAt: '2026-05-11T22:00:00Z' },

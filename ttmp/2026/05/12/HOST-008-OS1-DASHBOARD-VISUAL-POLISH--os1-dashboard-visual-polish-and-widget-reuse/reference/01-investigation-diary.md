@@ -130,3 +130,42 @@ This screenshot is not the final desired landing page, but it proves the directi
 3. Consider adding `@go-go-golems/os-widgets` if we want richer prebuilt surfaces, but keep the dashboard mostly on `@go-go-golems/os-core` primitives for app chrome.
 4. Capture authenticated local/full-page screenshots after wiring MSW or a local backend so the final visual test covers the real Sites page, not only `AppShell` Storybook.
 5. Deploy a new dashboard image and recapture `https://hosting.yolo.scapegoat.dev/app` after rollout.
+
+## 2026-05-12 — Full-page Storybook screenshot and grid whitespace fix
+
+User asked to inspect a full page before moving further and correctly noticed a large blank band between the Sites page title and the Sites table.
+
+Captured the first full-page Storybook Sites view:
+
+```text
+sources/screenshots/host-008-sitespage-full-after-local.png
+```
+
+Root cause: `.dashboard-panel` had been converted to `display: grid` and also had a large `min-height: 28rem`. CSS Grid's default alignment stretches auto tracks to fill available block space, so the header row expanded vertically and pushed the table downward. This looked like arbitrary whitespace between the title and table.
+
+Fix applied in `web/admin/src/app/macos1-bridge.css`:
+
+```css
+.dashboard-panel {
+  display: grid;
+  grid-auto-rows: max-content;
+  align-content: start;
+  min-height: 0;
+}
+```
+
+Captured the corrected full-page screenshot:
+
+```text
+sources/screenshots/host-008-sitespage-full-gap-fixed.png
+```
+
+Also confirmed the MSW warning noise was not only missing API handlers: `msw-storybook-addon` was warning about Storybook/Vite static module and CSS requests. Updated `.storybook/preview.tsx` so only unhandled `/api/...` requests warn. Added missing agent key/enrollment MSW routes for the Agents page:
+
+```text
+POST /api/v1/orgs/:orgId/agents/:agentId/enrollment-token
+GET  /api/v1/orgs/:orgId/agents/:agentId/keys
+POST /api/v1/orgs/:orgId/agents/:agentId/keys/:keyId/revoke
+```
+
+Validation: `pnpm build` passed after the CSS/MSW changes. The only remaining browser console error in the Storybook full-page screenshot was `favicon.ico` 404, not an API/MSW route issue.
