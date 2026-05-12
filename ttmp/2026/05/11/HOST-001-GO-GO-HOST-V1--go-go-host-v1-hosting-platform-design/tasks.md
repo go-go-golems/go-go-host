@@ -423,20 +423,20 @@ Exit criteria:
 
 Goal: make the service operable after MVP.
 
-- [ ] Add per-site SQLite backup/export command.
-- [ ] Add deployment bundle export command.
-- [ ] Add org/site metadata export.
-- [ ] Add deployment pruning policy by age/count/status.
-- [ ] Add audit retention policy.
-- [ ] Add runtime crash/restart runbook.
-- [ ] Add production config example.
-- [ ] Add Dockerfile or deployment recipe if needed.
-- [ ] Add `/readyz` checks for DB and data dir writability.
-- [ ] Add load/concurrency smoke tests.
-- [ ] Add security review checklist for new host capabilities.
-- [ ] Add final Playwright E2E: login, create site, deploy, visit public host, create agent token, agent deploy, rollback, inspect audit.
+- [x] Add per-site SQLite backup/export command.
+- [x] Add deployment bundle export command.
+- [x] Add org/site metadata export.
+- [x] Add deployment pruning policy by age/count/status.
+- [x] Add audit retention policy.
+- [x] Add runtime crash/restart runbook.
+- [x] Add production config example.
+- [x] Add Dockerfile or deployment recipe if needed.
+- [x] Add `/readyz` checks for DB and data dir writability.
+- [x] Add load/concurrency smoke tests.
+- [x] Add security review checklist for new host capabilities.
+- [x] Add final Playwright E2E: login, create site, deploy, visit public host, create agent token, agent deploy, rollback, inspect audit.
 
 Exit criteria:
 
-- [ ] Operator can back up, inspect, prune, and recover core platform state.
-- [ ] End-to-end happy path and security-boundary tests pass.
+- [x] Operator can back up, inspect, prune, and recover core platform state.
+- [x] End-to-end happy path and security-boundary tests pass.
