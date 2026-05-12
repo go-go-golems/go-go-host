@@ -21,6 +21,17 @@ func TestValidateAndStoreRejectsBadPaths(t *testing.T) {
 	}
 }
 
+func TestValidateAndStoreAcceptsDotSlashManifest(t *testing.T) {
+	bundle := writeTestTarGz(t, map[string]string{"./go-go-host.json": `{"scriptsDir":"scripts","entrypoint":"scripts/app.js","smokePath":"/"}`, "./scripts/app.js": "console.log('hi')"})
+	prepared, err := ValidateAndStore(context.Background(), bundle, filepath.Join(t.TempDir(), "bundle.tgz"), filepath.Join(t.TempDir(), "unpack"), Options{MaxBytes: 1024 * 1024})
+	if err != nil {
+		t.Fatalf("validate: %v", err)
+	}
+	if !prepared.Report.Valid {
+		t.Fatalf("expected valid report, got %#v", prepared.Report)
+	}
+}
+
 func TestValidateAndStoreRejectsMissingManifest(t *testing.T) {
 	bundle := writeTestTarGz(t, map[string]string{"scripts/app.js": "console.log('hi')"})
 	prepared, err := ValidateAndStore(context.Background(), bundle, filepath.Join(t.TempDir(), "bundle.tgz"), filepath.Join(t.TempDir(), "unpack"), Options{MaxBytes: 1024 * 1024})

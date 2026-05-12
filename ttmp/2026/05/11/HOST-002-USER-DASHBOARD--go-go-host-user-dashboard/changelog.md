@@ -95,3 +95,12 @@ Updated devctl to run the full local dashboard test stack: Postgres, go-go-hostd
 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/plugins/go-go-host-devctl.py — Full dashboard devctl launch plan
 
+
+## 2026-05-11
+
+Fixed deployment bundle validation for tar archives whose entries are prefixed with ./, allowing tar -C bundle-dir -czf bundle.tar.gz . to find go-go-host.json.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/deploy/bundle.go — Normalize archive entry names before manifest detection
+

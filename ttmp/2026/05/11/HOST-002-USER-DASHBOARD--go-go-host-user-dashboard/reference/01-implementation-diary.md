@@ -679,3 +679,42 @@ curl -fsS http://127.0.0.1:8080/healthz
 curl -fsS -H 'X-Go-Go-Host-User: alice' http://127.0.0.1:8080/api/v1/me
 curl -fsSI http://127.0.0.1:5173/app
 ```
+
+## Step 11: Fixed tar bundles created with `tar -C dir -czf bundle .`
+
+The user uploaded `/tmp/go-go-host-test-bundle.tar.gz` and the dashboard showed a validation report with `missing go-go-host.json manifest`, even though the bundle was created from a directory containing the manifest.
+
+### Prompt Context
+
+**User prompt (verbatim):** "I uploaded /tmp/go-go-host-test-bundle.tar.gz and I got: { \"bytes\": 708, \"files\": 3, \"valid\": false, \"errors\": [ \"missing go-go-host.json manifest\" ] }"
+
+**Assistant interpretation:** Investigate the deployment validator because the provided bundle recipe should have produced a valid manifest.
+
+### Root cause
+
+The suggested bundle command was:
+
+```bash
+tar -C /tmp/go-go-host-test-bundle -czf /tmp/go-go-host-test-bundle.tar.gz .
+```
+
+That creates tar entries such as `./go-go-host.json` and `./scripts/app.js`. The validator accepted the paths after cleaning them, but it looked for the manifest using the raw archive name exactly equal to `go-go-host.json`. Therefore `./go-go-host.json` was counted as a file but not recognized as the manifest.
+
+### Fix
+
+- Added `normalizeArchiveName()` in `internal/deploy/bundle.go`.
+- `readTarGz()` and `readZip()` now normalize file names with `filepath.Clean`/slash conversion when building archive entries.
+- Added `TestValidateAndStoreAcceptsDotSlashManifest` to prove `./go-go-host.json` is accepted.
+
+### Validation
+
+Commands run:
+
+```bash
+go test ./internal/deploy ./internal/control ./internal/httpapi
+make web-build
+devctl restart go-go-hostd
+devctl status --tail-lines 8
+```
+
+The daemon has been restarted, so the same uploaded bundle should now validate correctly.

@@ -243,7 +243,7 @@ func readTarGz(path string) ([]archiveFile, error) {
 		if err != nil {
 			return nil, err
 		}
-		out = append(out, archiveFile{Name: filepath.ToSlash(h.Name), Data: data})
+		out = append(out, archiveFile{Name: normalizeArchiveName(h.Name), Data: data})
 	}
 	return out, nil
 }
@@ -271,9 +271,13 @@ func readZip(path string) ([]archiveFile, error) {
 		if readErr != nil {
 			return nil, readErr
 		}
-		out = append(out, archiveFile{Name: filepath.ToSlash(f.Name), Data: data})
+		out = append(out, archiveFile{Name: normalizeArchiveName(f.Name), Data: data})
 	}
 	return out, nil
+}
+
+func normalizeArchiveName(path string) string {
+	return filepath.ToSlash(filepath.Clean(filepath.ToSlash(path)))
 }
 
 func validatePath(path string) error {
