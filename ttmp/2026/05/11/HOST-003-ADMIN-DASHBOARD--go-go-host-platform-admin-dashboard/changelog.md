@@ -49,3 +49,15 @@ Added dev platform-admin subject seeding, backend admin inventory access tests, 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/admin_inventory_integration_test.go — admin inventory authorization coverage
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/auth.go — dev auth auto-seeds configured platform admins
 
+
+## 2026-05-11
+
+Added global admin agents and audit endpoints/pages, including sqlc queries, RTK Query hooks, MSW fixtures, Storybook stories, embedded build, and Playwright verification.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/admin_inventory.go — admin agents and audit handlers
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/store/queries/admin.sql — global agents and audit queries
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/AdminAgentsPage/AdminAgentsPage.tsx — global agents page
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/AdminAuditPage/AdminAuditPage.tsx — global audit page
+

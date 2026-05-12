@@ -20,6 +20,8 @@ import { AdminOrgsPage } from '../pages/AdminOrgsPage';
 import { AdminUsersPage } from '../pages/AdminUsersPage';
 import { AdminSitesPage } from '../pages/AdminSitesPage';
 import { AdminDeploymentsPage } from '../pages/AdminDeploymentsPage';
+import { AdminAgentsPage } from '../pages/AdminAgentsPage';
+import { AdminAuditPage } from '../pages/AdminAuditPage';
 
 export const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/app" replace /> },
@@ -32,6 +34,8 @@ export const router = createBrowserRouter([
     { path: 'users', element: <AdminUsersPage /> },
     { path: 'sites', element: <AdminSitesPage /> },
     { path: 'deployments', element: <AdminDeploymentsPage /> },
+    { path: 'agents', element: <AdminAgentsPage /> },
+    { path: 'audit', element: <AdminAuditPage /> },
     { path: '*', element: <AdminOverviewPage /> },
   ] },
   { path: '/app/orgs/:orgId', element: <RequireSession><RequireOrgAccess><OrgLayout /></RequireOrgAccess></RequireSession>, children: [

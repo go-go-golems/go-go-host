@@ -13,6 +13,16 @@ export const handlers = [
     const status = url.searchParams.get('status');
     return HttpResponse.json(status ? fixtures.adminDeployments.filter((d) => d.status === status) : fixtures.adminDeployments);
   }),
+  http.get('/api/v1/admin/agents', ({ request }) => {
+    const url = new URL(request.url);
+    const status = url.searchParams.get('status');
+    return HttpResponse.json(status ? fixtures.adminAgents.filter((a) => a.status === status) : fixtures.adminAgents);
+  }),
+  http.get('/api/v1/admin/audit', ({ request }) => {
+    const url = new URL(request.url);
+    const action = url.searchParams.get('action');
+    return HttpResponse.json(action ? fixtures.audit.filter((event) => event.action.includes(action)) : fixtures.audit);
+  }),
   http.post('/api/v1/orgs', async ({ request }) => {
     const body = await request.json() as { slug?: string; name?: string };
     if (!body.slug || !body.name) return HttpResponse.json({ error: 'slug and name are required' }, { status: 400 });

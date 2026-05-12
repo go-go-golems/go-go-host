@@ -17,6 +17,7 @@ export interface AdminOrg { id: string; slug: string; name: string; createdAt: s
 export interface AdminUser { id: string; email: string; displayName: string; createdAt: string; lastLoginAt?: string; platformAdmin: boolean; orgCount: number; }
 export interface AdminSite { id: string; orgId: string; orgSlug: string; orgName: string; slug: string; name: string; primaryHost: string; status: string; activeDeploymentId: string; createdAt: string; runtimeStatus: RuntimeState; requestsTotal: number; errorsTotal: number; lastError?: string; }
 export interface AdminDeployment { id: string; siteId: string; siteSlug: string; primaryHost: string; orgId: string; orgSlug: string; orgName: string; version: number; status: DeploymentStatus; bundleRef: string; unpackedPath: string; manifestJson: string; validationJson: string; createdByType: string; createdById: string; createdAt: string; activatedAt?: string; }
+export interface AdminAgent { id: string; orgId: string; orgSlug: string; orgName: string; name: string; status: 'active' | 'revoked'; createdByUserId: string; createdAt: string; lastSeenAt?: string; grantCount: number; }
 export interface Agent { id: string; orgId: string; name: string; status: 'active' | 'revoked'; createdByUserId: string; createdAt: string; lastSeenAt?: string; }
 export interface CreateAgentRequest { orgId: string; name: string; }
 export interface RevokeAgentRequest { orgId: string; agentId: string; }

@@ -45,6 +45,19 @@ type adminSiteDTO struct {
 	LastError          string `json:"lastError,omitempty"`
 }
 
+type adminAgentDTO struct {
+	ID              string `json:"id"`
+	OrgID           string `json:"orgId"`
+	OrgSlug         string `json:"orgSlug"`
+	OrgName         string `json:"orgName"`
+	Name            string `json:"name"`
+	Status          string `json:"status"`
+	CreatedByUserID string `json:"createdByUserId"`
+	CreatedAt       string `json:"createdAt"`
+	LastSeenAt      string `json:"lastSeenAt,omitempty"`
+	GrantCount      int64  `json:"grantCount"`
+}
+
 type adminDeploymentDTO struct {
 	ID             string `json:"id"`
 	SiteID         string `json:"siteId"`
@@ -132,6 +145,43 @@ func handleAdminListSites(core *control.Core) http.HandlerFunc {
 		out := make([]adminSiteDTO, 0, len(sites))
 		for _, site := range sites {
 			out = append(out, adminSiteDTO{ID: site.ID, OrgID: site.OrgID, OrgSlug: site.OrgSlug, OrgName: site.OrgName, Slug: site.Slug, Name: site.Name, PrimaryHost: site.PrimaryHost, Status: site.Status, ActiveDeploymentID: site.ActiveDeploymentID, CreatedAt: site.CreatedAt, RuntimeStatus: site.RuntimeStatus, RequestsTotal: site.RequestsTotal, ErrorsTotal: site.ErrorsTotal, LastError: site.LastError})
+		}
+		writeJSON(w, http.StatusOK, out)
+	}
+}
+
+func handleAdminListAgents(core *control.Core) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if _, ok := requirePlatformAdmin(core, w, r); !ok {
+			return
+		}
+		agents, err := core.Store.ListAdminAgents(r.Context(), store.AdminAgentFilter{OrgID: r.URL.Query().Get("orgId"), Status: r.URL.Query().Get("status")})
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		out := make([]adminAgentDTO, 0, len(agents))
+		for _, agent := range agents {
+			out = append(out, adminAgentDTO{ID: agent.ID, OrgID: agent.OrgID, OrgSlug: agent.OrgSlug, OrgName: agent.OrgName, Name: agent.Name, Status: agent.Status, CreatedByUserID: agent.CreatedByUserID, CreatedAt: agent.CreatedAt, LastSeenAt: agent.LastSeenAt, GrantCount: agent.GrantCount})
+		}
+		writeJSON(w, http.StatusOK, out)
+	}
+}
+
+func handleAdminListAudit(core *control.Core) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if _, ok := requirePlatformAdmin(core, w, r); !ok {
+			return
+		}
+		limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+		events, err := core.Store.ListAdminAuditEvents(r.Context(), store.AuditFilter{OrgID: r.URL.Query().Get("orgId"), ResourceID: r.URL.Query().Get("resourceId"), ActorType: r.URL.Query().Get("actorType"), ActorID: r.URL.Query().Get("actorId"), Action: r.URL.Query().Get("action"), Limit: limit})
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		out := make([]auditDTO, 0, len(events))
+		for _, event := range events {
+			out = append(out, auditToDTO(event))
 		}
 		writeJSON(w, http.StatusOK, out)
 	}

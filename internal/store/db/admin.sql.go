@@ -11,6 +11,136 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const listAdminAgents = `-- name: ListAdminAgents :many
+SELECT
+  a.id,
+  a.org_id,
+  o.slug AS org_slug,
+  o.name AS org_name,
+  a.name,
+  a.status,
+  a.created_by_user_id,
+  a.created_at,
+  a.last_seen_at,
+  COUNT(DISTINCT g.site_id)::bigint AS grant_count
+FROM agents a
+JOIN orgs o ON o.id = a.org_id
+LEFT JOIN agent_site_grants g ON g.agent_id = a.id
+WHERE ($1::text IS NULL OR a.org_id = $1::text)
+  AND ($2::text IS NULL OR a.status = $2::text)
+GROUP BY a.id, a.org_id, o.slug, o.name, a.name, a.status, a.created_by_user_id, a.created_at, a.last_seen_at
+ORDER BY o.slug, a.name
+`
+
+type ListAdminAgentsParams struct {
+	OrgID  pgtype.Text `json:"org_id"`
+	Status pgtype.Text `json:"status"`
+}
+
+type ListAdminAgentsRow struct {
+	ID              string             `json:"id"`
+	OrgID           string             `json:"org_id"`
+	OrgSlug         string             `json:"org_slug"`
+	OrgName         string             `json:"org_name"`
+	Name            string             `json:"name"`
+	Status          string             `json:"status"`
+	CreatedByUserID string             `json:"created_by_user_id"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	LastSeenAt      pgtype.Timestamptz `json:"last_seen_at"`
+	GrantCount      int64              `json:"grant_count"`
+}
+
+func (q *Queries) ListAdminAgents(ctx context.Context, arg ListAdminAgentsParams) ([]ListAdminAgentsRow, error) {
+	rows, err := q.db.Query(ctx, listAdminAgents, arg.OrgID, arg.Status)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListAdminAgentsRow{}
+	for rows.Next() {
+		var i ListAdminAgentsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.OrgID,
+			&i.OrgSlug,
+			&i.OrgName,
+			&i.Name,
+			&i.Status,
+			&i.CreatedByUserID,
+			&i.CreatedAt,
+			&i.LastSeenAt,
+			&i.GrantCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listAdminAuditEvents = `-- name: ListAdminAuditEvents :many
+SELECT id, org_id, actor_type, actor_id, action, resource_type, resource_id, ip_address, user_agent, metadata_json, created_at
+FROM audit_log
+WHERE ($1::text IS NULL OR org_id = $1::text)
+  AND ($2::text IS NULL OR resource_id = $2::text)
+  AND ($3::text IS NULL OR actor_type = $3::text)
+  AND ($4::text IS NULL OR actor_id = $4::text)
+  AND ($5::text IS NULL OR action = $5::text)
+ORDER BY created_at DESC
+LIMIT $6::int
+`
+
+type ListAdminAuditEventsParams struct {
+	OrgID      pgtype.Text `json:"org_id"`
+	ResourceID pgtype.Text `json:"resource_id"`
+	ActorType  pgtype.Text `json:"actor_type"`
+	ActorID    pgtype.Text `json:"actor_id"`
+	Action     pgtype.Text `json:"action"`
+	Limit      int32       `json:"limit"`
+}
+
+func (q *Queries) ListAdminAuditEvents(ctx context.Context, arg ListAdminAuditEventsParams) ([]AuditLog, error) {
+	rows, err := q.db.Query(ctx, listAdminAuditEvents,
+		arg.OrgID,
+		arg.ResourceID,
+		arg.ActorType,
+		arg.ActorID,
+		arg.Action,
+		arg.Limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AuditLog{}
+	for rows.Next() {
+		var i AuditLog
+		if err := rows.Scan(
+			&i.ID,
+			&i.OrgID,
+			&i.ActorType,
+			&i.ActorID,
+			&i.Action,
+			&i.ResourceType,
+			&i.ResourceID,
+			&i.IpAddress,
+			&i.UserAgent,
+			&i.MetadataJson,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listAdminDeployments = `-- name: ListAdminDeployments :many
 SELECT
   d.id,

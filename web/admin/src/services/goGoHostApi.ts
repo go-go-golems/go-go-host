@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type { AdminDeployment, AdminOrg, AdminRuntimeSummary, AdminSite, AdminUser, Agent, AuditEvent, ConfigResponse, CreateAgentRequest, CreateOrgRequest, CreateSiteRequest, Deployment, MeResponse, Org, RevokeAgentRequest, RuntimeStatus, Site, UploadDeploymentResponse } from './types';
+import type { AdminAgent, AdminDeployment, AdminOrg, AdminRuntimeSummary, AdminSite, AdminUser, Agent, AuditEvent, ConfigResponse, CreateAgentRequest, CreateOrgRequest, CreateSiteRequest, Deployment, MeResponse, Org, RevokeAgentRequest, RuntimeStatus, Site, UploadDeploymentResponse } from './types';
 
 export interface UploadDeploymentRequest { siteId: string; file: File; message?: string; channel?: string; }
 
@@ -27,6 +27,14 @@ export const goGoHostApi = createApi({
     listAdminDeployments: build.query<AdminDeployment[], { orgId?: string; siteId?: string; status?: string; limit?: number } | void>({
       query: (params) => ({ url: '/admin/deployments', params: params ?? undefined }),
       providesTags: [{ type: 'AdminInventory', id: 'DEPLOYMENTS' }],
+    }),
+    listAdminAgents: build.query<AdminAgent[], { orgId?: string; status?: string } | void>({
+      query: (params) => ({ url: '/admin/agents', params: params ?? undefined }),
+      providesTags: [{ type: 'AdminInventory', id: 'AGENTS' }],
+    }),
+    listAdminAudit: build.query<AuditEvent[], { orgId?: string; action?: string; actorType?: string; actorId?: string; resourceId?: string; limit?: number } | void>({
+      query: (params) => ({ url: '/admin/audit', params: params ?? undefined }),
+      providesTags: [{ type: 'AdminInventory', id: 'AUDIT' }],
     }),
     listDeployments: build.query<Deployment[], string>({ query: (siteId) => `/sites/${siteId}/deployments`, providesTags: (_r, _e, siteId) => [{ type: 'Deployment', id: `SITE:${siteId}` }] }),
     getDeployment: build.query<Deployment, string>({ query: (deploymentId) => `/deployments/${deploymentId}`, providesTags: (_r, _e, deploymentId) => [{ type: 'Deployment', id: deploymentId }] }),
@@ -71,4 +79,4 @@ export const goGoHostApi = createApi({
   }),
 });
 
-export const { useGetConfigQuery, useGetMeQuery, useCreateOrgMutation, useListSitesQuery, useCreateSiteMutation, useGetRuntimeQuery, useGetAdminRuntimeSummaryQuery, useListAdminOrgsQuery, useListAdminUsersQuery, useListAdminSitesQuery, useListAdminDeploymentsQuery, useListDeploymentsQuery, useGetDeploymentQuery, useUploadDeploymentMutation, useActivateDeploymentMutation, useRollbackDeploymentMutation, useListAgentsQuery, useCreateAgentMutation, useRevokeAgentMutation, useListAuditQuery } = goGoHostApi;
+export const { useGetConfigQuery, useGetMeQuery, useCreateOrgMutation, useListSitesQuery, useCreateSiteMutation, useGetRuntimeQuery, useGetAdminRuntimeSummaryQuery, useListAdminOrgsQuery, useListAdminUsersQuery, useListAdminSitesQuery, useListAdminDeploymentsQuery, useListAdminAgentsQuery, useListAdminAuditQuery, useListDeploymentsQuery, useGetDeploymentQuery, useUploadDeploymentMutation, useActivateDeploymentMutation, useRollbackDeploymentMutation, useListAgentsQuery, useCreateAgentMutation, useRevokeAgentMutation, useListAuditQuery } = goGoHostApi;

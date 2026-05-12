@@ -76,3 +76,34 @@ WHERE (sqlc.narg('org_id')::text IS NULL OR s.org_id = sqlc.narg('org_id')::text
   AND (sqlc.narg('status')::text IS NULL OR d.status = sqlc.narg('status')::text)
 ORDER BY d.created_at DESC
 LIMIT sqlc.arg('limit')::int;
+
+-- name: ListAdminAgents :many
+SELECT
+  a.id,
+  a.org_id,
+  o.slug AS org_slug,
+  o.name AS org_name,
+  a.name,
+  a.status,
+  a.created_by_user_id,
+  a.created_at,
+  a.last_seen_at,
+  COUNT(DISTINCT g.site_id)::bigint AS grant_count
+FROM agents a
+JOIN orgs o ON o.id = a.org_id
+LEFT JOIN agent_site_grants g ON g.agent_id = a.id
+WHERE (sqlc.narg('org_id')::text IS NULL OR a.org_id = sqlc.narg('org_id')::text)
+  AND (sqlc.narg('status')::text IS NULL OR a.status = sqlc.narg('status')::text)
+GROUP BY a.id, a.org_id, o.slug, o.name, a.name, a.status, a.created_by_user_id, a.created_at, a.last_seen_at
+ORDER BY o.slug, a.name;
+
+-- name: ListAdminAuditEvents :many
+SELECT id, org_id, actor_type, actor_id, action, resource_type, resource_id, ip_address, user_agent, metadata_json, created_at
+FROM audit_log
+WHERE (sqlc.narg('org_id')::text IS NULL OR org_id = sqlc.narg('org_id')::text)
+  AND (sqlc.narg('resource_id')::text IS NULL OR resource_id = sqlc.narg('resource_id')::text)
+  AND (sqlc.narg('actor_type')::text IS NULL OR actor_type = sqlc.narg('actor_type')::text)
+  AND (sqlc.narg('actor_id')::text IS NULL OR actor_id = sqlc.narg('actor_id')::text)
+  AND (sqlc.narg('action')::text IS NULL OR action = sqlc.narg('action')::text)
+ORDER BY created_at DESC
+LIMIT sqlc.arg('limit')::int;

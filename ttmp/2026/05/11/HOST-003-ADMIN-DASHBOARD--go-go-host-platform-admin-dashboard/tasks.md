@@ -33,8 +33,8 @@
 - [x] Add admin-only API endpoint for all orgs with counts and creation timestamps.
 - [x] Add admin-only API endpoint for all sites with org, host, status, active deployment, and runtime status.
 - [x] Add admin-only API endpoint for all deployments with org/site filters, deployment status filters, and limit.
-- [ ] Add admin-only API endpoint for global agents with org/site/grant context.
-- [ ] Add admin-only global audit endpoint with filters for actor, org, resource, action, and time range.
+- [x] Add admin-only API endpoint for global agents with org/site/grant context.
+- [x] Add admin-only global audit endpoint with filters for actor, org, resource, action, and time range.
 - [x] Add backend tests proving platform admins can query all tenants.
 - [x] Add backend tests proving normal users receive 403 for every `/api/v1/admin/*` inventory endpoint.
 
@@ -50,7 +50,7 @@
 
 - [x] Add `AdminDeploymentsPage` with status/org/site/actor filters.
 - [ ] Add `AdminDeploymentDetailPage` for manifest, validation report, activation timeline, actor, and bundle metadata.
-- [ ] Add `AdminAuditPage` for global audit with URL-backed filters.
+- [x] Add `AdminAuditPage` for global audit with URL-backed filters.
 - [ ] Add Storybook interaction stories for filtering and bad JSON metadata.
 - [ ] Link runtime deployment IDs to the admin deployment detail route.
 
@@ -73,11 +73,11 @@
 
 ## Phase 8 — Admin agents and enrollment oversight
 
-- [ ] Add `AdminAgentsPage` with global agent list and revoke affordance.
+- [x] Add `AdminAgentsPage` with global agent list and revoke affordance.
 - [ ] Add enrollment-key visibility once backend enrollment exists.
 - [ ] Add grants inspection once `agent_site_grants` exists.
 - [ ] Add audit trail links from each agent row.
-- [ ] Add Storybook stories for active/revoked/stale agents.
+- [x] Add Storybook stories for active/revoked/stale agents.
 
 ## Phase 9 — Visual polish, accessibility, and responsiveness
 

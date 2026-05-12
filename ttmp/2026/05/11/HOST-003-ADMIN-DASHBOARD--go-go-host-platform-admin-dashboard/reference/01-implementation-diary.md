@@ -240,3 +240,75 @@ Screenshots:
 ### Notes
 
 This is dev-auth-only behavior. Production OIDC users still need explicit `platform_admins` rows or a later admin bootstrap workflow.
+
+## Step 5: Global admin agents and audit
+
+I added the next operator inventory surfaces: global agents and global audit.
+
+### What changed
+
+Backend/store:
+
+- Extended `internal/store/queries/admin.sql` with:
+  - `ListAdminAgents`,
+  - `ListAdminAuditEvents`.
+- Regenerated sqlc output.
+- Added store wrappers:
+  - `ListAdminAgents`,
+  - `ListAdminAuditEvents`.
+- Added platform-admin-gated endpoints:
+  - `GET /api/v1/admin/agents`,
+  - `GET /api/v1/admin/audit`.
+
+Frontend:
+
+- Added `AdminAgent` TypeScript contract.
+- Added RTK Query endpoints:
+  - `useListAdminAgentsQuery`,
+  - `useListAdminAuditQuery`.
+- Added MSW fixtures/handlers for global agents and global audit.
+- Added pages/routes:
+  - `/admin/agents`,
+  - `/admin/audit`.
+- Added Storybook stories for both pages.
+
+### Validation
+
+Commands run:
+
+```bash
+sqlc generate
+make web-build
+go test ./...
+make storybook-build
+go run ./cmd/build-web
+devctl restart go-go-hostd
+curl -fsS http://127.0.0.1:8080/api/v1/admin/audit | jq 'length'
+curl -fsS http://127.0.0.1:8080/api/v1/admin/agents | jq 'length'
+```
+
+Results:
+
+- Web build passed.
+- Go tests passed.
+- Storybook build passed.
+- Dagger embedded build passed.
+- Embedded daemon returned global audit and agent rows for the seeded dev platform admin.
+
+### Browser verification
+
+Playwright checked embedded pages:
+
+- `http://127.0.0.1:8080/admin/audit`
+- `http://127.0.0.1:8080/admin/agents`
+
+Screenshots:
+
+- `embedded-admin-audit.png`
+- `embedded-admin-agents.png`
+
+### Follow-ups
+
+- Add global agent revoke controls with confirmation once admin operation safety controls are in place.
+- Add deployment detail under `/admin/deployments/:deploymentId` next.
+- Add richer audit filters for actor ID/resource ID/time range.

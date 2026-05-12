@@ -1,4 +1,4 @@
-import type { AdminDeployment, AdminOrg, AdminRuntimeSummary, AdminSite, AdminUser, Agent, AuditEvent, Deployment, MeResponse, RuntimeStatus, Site } from '../types';
+import type { AdminAgent, AdminDeployment, AdminOrg, AdminRuntimeSummary, AdminSite, AdminUser, Agent, AuditEvent, Deployment, MeResponse, RuntimeStatus, Site } from '../types';
 
 export const fixtures = {
   me: {
@@ -41,6 +41,10 @@ export const fixtures = {
     { id: 'site_123', orgId: 'org_123', orgSlug: 'demo', orgName: 'Demo Org', slug: 'hello', name: 'Hello Site', primaryHost: 'hello.localhost', status: 'active', activeDeploymentId: 'dep_4', createdAt: '2026-05-11T20:10:00Z', runtimeStatus: 'ready', requestsTotal: 1234, errorsTotal: 2 },
     { id: 'site_456', orgId: 'org_123', orgSlug: 'demo', orgName: 'Demo Org', slug: 'docs', name: 'Docs Site', primaryHost: 'docs.localhost', status: 'active', activeDeploymentId: 'dep_bad', createdAt: '2026-05-11T20:15:00Z', runtimeStatus: 'failed', requestsTotal: 15, errorsTotal: 7, lastError: 'dry-run smoke check failed' },
   ] satisfies AdminSite[],
+  adminAgents: [
+    { id: 'agt_123', orgId: 'org_123', orgSlug: 'demo', orgName: 'Demo Org', name: 'ci-bot', status: 'active', createdByUserId: 'usr_123', createdAt: '2026-05-11T22:30:00Z', grantCount: 2 },
+    { id: 'agt_456', orgId: 'org_123', orgSlug: 'demo', orgName: 'Demo Org', name: 'old-bot', status: 'revoked', createdByUserId: 'usr_admin', createdAt: '2026-05-11T21:30:00Z', lastSeenAt: '2026-05-11T22:00:00Z', grantCount: 0 },
+  ] satisfies AdminAgent[],
   adminDeployments: [
     { id: 'dep_4', siteId: 'site_123', siteSlug: 'hello', primaryHost: 'hello.localhost', orgId: 'org_123', orgSlug: 'demo', orgName: 'Demo Org', version: 4, status: 'active', bundleRef: 'bundles/site_123/dep_4.tar.gz', unpackedPath: 'sites/site_123/deployments/dep_4', manifestJson: '{}', validationJson: '{"valid":true}', createdByType: 'user', createdById: 'usr_123', createdAt: '2026-05-11T22:10:00Z', activatedAt: '2026-05-11T22:20:00Z' },
     { id: 'dep_bad', siteId: 'site_456', siteSlug: 'docs', primaryHost: 'docs.localhost', orgId: 'org_123', orgSlug: 'demo', orgName: 'Demo Org', version: 2, status: 'rejected', bundleRef: 'bundles/site_456/dep_bad.tar.gz', unpackedPath: '', manifestJson: '{}', validationJson: '{"valid":false,"errors":["smoke failed"]}', createdByType: 'user', createdById: 'usr_123', createdAt: '2026-05-11T22:15:00Z' },
