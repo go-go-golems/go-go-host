@@ -222,7 +222,7 @@ func (s *AgentService) CreateDeployRun(ctx context.Context, input CreateDeployRu
 	if !grant.ExpiresAt.IsZero() && grant.ExpiresAt.Before(expires) {
 		expires = grant.ExpiresAt
 	}
-	run, err := s.store.CreateDeployRun(ctx, store.CreateDeployRunInput{AgentID: input.AgentID, SiteID: input.SiteID, AllowedActions: []string{defaultString(input.Action, "deploy")}, AllowedChannels: []string{defaultString(input.Channel, "default")}, AllowedPaths: []string{defaultString(input.Path, "")}, UploadTokenHash: tokenHash, ExpiresAt: expires})
+	run, err := s.store.CreateDeployRun(ctx, store.CreateDeployRunInput{AgentID: input.AgentID, SiteID: input.SiteID, AllowedActions: []string{defaultString(input.Action, "deploy")}, AllowedChannels: []string{defaultString(input.Channel, "default")}, AllowedPaths: grant.AllowedPaths, UploadTokenHash: tokenHash, ExpiresAt: expires})
 	if err != nil {
 		return nil, err
 	}
