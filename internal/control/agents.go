@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/go-go-golems/go-go-host/internal/store"
 )
@@ -32,6 +33,31 @@ func (s *AgentService) List(ctx context.Context, actorUserID, orgID string) ([]s
 		return nil, err
 	}
 	return s.store.ListAgentsByOrg(ctx, orgID)
+}
+
+func (s *AgentService) CreateEnrollmentTokenForAgent(ctx context.Context, actorUserID, orgID, agentID string, expiresAt time.Time) (string, error) {
+	if err := ensureDeployRole(ctx, s.store, actorUserID, orgID); err != nil {
+		return "", err
+	}
+	agent, err := s.store.GetAgent(ctx, agentID)
+	if err != nil {
+		return "", err
+	}
+	if agent.OrgID != orgID || agent.Status != store.AgentStatusActive {
+		return "", ErrPermissionDenied
+	}
+	if expiresAt.IsZero() {
+		expiresAt = time.Now().UTC().Add(24 * time.Hour)
+	}
+	token, tokenHash, err := newSecret("enroll")
+	if err != nil {
+		return "", err
+	}
+	if err := s.store.CreateAgentEnrollmentToken(ctx, tokenHash, agent.ID, orgID, expiresAt); err != nil {
+		return "", err
+	}
+	_, _ = s.store.InsertAuditEvent(ctx, store.AuditEvent{OrgID: orgID, ActorType: "user", ActorID: actorUserID, Action: "agent.enrollment_token.create", ResourceType: "agent", ResourceID: agent.ID})
+	return token, nil
 }
 
 func (s *AgentService) ListKeys(ctx context.Context, actorUserID, orgID, agentID string) ([]store.AgentKey, error) {

@@ -39,6 +39,10 @@ type revokeAgentKeyRequest struct {
 	Reason string `json:"reason"`
 }
 
+type createAgentEnrollmentTokenResponse struct {
+	EnrollmentToken string `json:"enrollmentToken"`
+}
+
 type agentKeyDTO struct {
 	ID          string `json:"id"`
 	AgentID     string `json:"agentId"`
@@ -158,6 +162,22 @@ func handleCreateAgent(core *control.Core) http.HandlerFunc {
 			return
 		}
 		writeJSON(w, http.StatusCreated, createAgentResponse{Agent: agentToDTO(*result.Agent), EnrollmentToken: result.EnrollmentToken, Grant: grantToDTO(result.Grant)})
+	}
+}
+
+func handleCreateAgentEnrollmentToken(core *control.Core) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		p, err := requirePrincipal(r)
+		if err != nil {
+			writeError(w, http.StatusUnauthorized, err.Error())
+			return
+		}
+		token, err := core.Agents.CreateEnrollmentTokenForAgent(r.Context(), p.User.ID, r.PathValue("org_id"), r.PathValue("agent_id"), time.Time{})
+		if err != nil {
+			writeDeploymentError(w, err)
+			return
+		}
+		writeJSON(w, http.StatusCreated, createAgentEnrollmentTokenResponse{EnrollmentToken: token})
 	}
 }
 

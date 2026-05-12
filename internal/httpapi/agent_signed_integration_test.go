@@ -143,8 +143,41 @@ func TestAgentSignedDeployRunSecurity(t *testing.T) {
 	if revokedKeyRec.Code != http.StatusForbidden {
 		t.Fatalf("expected revoked key denial, got %d %s", revokedKeyRec.Code, revokedKeyRec.Body.String())
 	}
+	rotateReq := httptest.NewRequest(http.MethodPost, "/api/v1/orgs/"+org.ID+"/agents/"+created.Agent.ID+"/enrollment-token", nil)
+	rotateReq.Header.Set("X-Go-Go-Host-User", user)
+	rotateRec := httptest.NewRecorder()
+	h.ServeHTTP(rotateRec, rotateReq)
+	if rotateRec.Code != http.StatusCreated {
+		t.Fatalf("rotation token: %d %s", rotateRec.Code, rotateRec.Body.String())
+	}
+	var rotation createAgentEnrollmentTokenResponse
+	if err := json.Unmarshal(rotateRec.Body.Bytes(), &rotation); err != nil {
+		t.Fatal(err)
+	}
+	newPub, newPriv, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	newEnrollBody := []byte(`{"token":"` + rotation.EnrollmentToken + `","publicKey":"` + base64.StdEncoding.EncodeToString(newPub) + `"}`)
+	newEnrollReq := httptest.NewRequest(http.MethodPost, "/api/v1/agent/enroll", bytes.NewReader(newEnrollBody))
+	newEnrollReq.Header.Set("Content-Type", "application/json")
+	newEnrollRec := httptest.NewRecorder()
+	h.ServeHTTP(newEnrollRec, newEnrollReq)
+	if newEnrollRec.Code != http.StatusCreated {
+		t.Fatalf("replacement enroll: %d %s", newEnrollRec.Code, newEnrollRec.Body.String())
+	}
+	var replacement enrollAgentResponse
+	if err := json.Unmarshal(newEnrollRec.Body.Bytes(), &replacement); err != nil {
+		t.Fatal(err)
+	}
+	replacementReq := signedAgentRequest(t, http.MethodPost, "/api/v1/agent/deploy-runs", goodBody, created.Agent.ID, replacement.KeyID, newPriv, time.Now().UTC(), "nonce-replacement")
+	replacementRec := httptest.NewRecorder()
+	h.ServeHTTP(replacementRec, replacementReq)
+	if replacementRec.Code != http.StatusCreated {
+		t.Fatalf("expected replacement key success, got %d %s", replacementRec.Code, replacementRec.Body.String())
+	}
 
-	badSigReq := signedAgentRequest(t, http.MethodPost, "/api/v1/agent/deploy-runs", goodBody, created.Agent.ID, enrolled.KeyID, priv, time.Now().UTC(), "nonce-bad-sig")
+	badSigReq := signedAgentRequest(t, http.MethodPost, "/api/v1/agent/deploy-runs", goodBody, created.Agent.ID, replacement.KeyID, newPriv, time.Now().UTC(), "nonce-bad-sig")
 	badSigReq.Header.Set("X-Go-Go-Agent-Signature", base64.StdEncoding.EncodeToString([]byte("not a real signature")))
 	badSigRec := httptest.NewRecorder()
 	h.ServeHTTP(badSigRec, badSigReq)

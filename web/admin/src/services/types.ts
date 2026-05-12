@@ -28,6 +28,8 @@ export interface CreateAgentRequest { orgId: string; name: string; siteId?: stri
 export interface CreateAgentResponse { agent: Agent; enrollmentToken?: string; grant?: AgentGrant; }
 export interface RevokeAgentRequest { orgId: string; agentId: string; }
 export interface RevokeAgentKeyRequest { orgId: string; agentId: string; keyId: string; reason?: string; }
+export interface CreateAgentEnrollmentTokenRequest { orgId: string; agentId: string; }
+export interface CreateAgentEnrollmentTokenResponse { enrollmentToken: string; }
 export interface AuditEvent { id: string; orgId: string; actorType: string; actorId: string; action: string; resourceType: string; resourceId: string; ipAddress: string; userAgent: string; metadataJson: string; createdAt: string; }
 export interface ValidationReport { valid: boolean; errors?: string[]; warnings?: string[]; files: number; bytes: number; requestedCapabilities?: string[]; effectiveCapabilities?: string[]; }
 export interface UploadDeploymentResponse { deployment: Deployment; report: ValidationReport; manifest: Record<string, unknown>; }

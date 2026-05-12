@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type { AdminAgent, AdminCapability, AdminDeployment, AdminDomain, AdminOrg, AdminQuota, AdminRuntimeSummary, AdminSite, AdminUser, Agent, AgentKey, AuditEvent, ConfigResponse, CreateAgentRequest, CreateAgentResponse, CreateOrgRequest, CreateSiteRequest, Deployment, MeResponse, Org, RevokeAgentKeyRequest, RevokeAgentRequest, RuntimeStatus, Site, UploadDeploymentResponse } from './types';
+import type { AdminAgent, AdminCapability, AdminDeployment, AdminDomain, AdminOrg, AdminQuota, AdminRuntimeSummary, AdminSite, AdminUser, Agent, AgentKey, AuditEvent, ConfigResponse, CreateAgentEnrollmentTokenRequest, CreateAgentEnrollmentTokenResponse, CreateAgentRequest, CreateAgentResponse, CreateOrgRequest, CreateSiteRequest, Deployment, MeResponse, Org, RevokeAgentKeyRequest, RevokeAgentRequest, RuntimeStatus, Site, UploadDeploymentResponse } from './types';
 
 export interface UploadDeploymentRequest { siteId: string; file: File; message?: string; channel?: string; }
 
@@ -80,6 +80,10 @@ export const goGoHostApi = createApi({
       query: ({ orgId, ...body }) => ({ url: `/orgs/${orgId}/agents`, method: 'POST', body }),
       invalidatesTags: (_r, _e, { orgId }) => [{ type: 'Agent', id: `ORG:${orgId}` }, 'Audit'],
     }),
+    createAgentEnrollmentToken: build.mutation<CreateAgentEnrollmentTokenResponse, CreateAgentEnrollmentTokenRequest>({
+      query: ({ orgId, agentId }) => ({ url: `/orgs/${orgId}/agents/${agentId}/enrollment-token`, method: 'POST' }),
+      invalidatesTags: (_r, _e, { orgId, agentId }) => [{ type: 'Agent', id: `ORG:${orgId}` }, { type: 'Agent', id: `KEYS:${agentId}` }, 'Audit'],
+    }),
     listAgentKeys: build.query<AgentKey[], { orgId: string; agentId: string }>({
       query: ({ orgId, agentId }) => `/orgs/${orgId}/agents/${agentId}/keys`,
       providesTags: (_r, _e, { agentId }) => [{ type: 'Agent', id: `KEYS:${agentId}` }],
@@ -99,4 +103,4 @@ export const goGoHostApi = createApi({
   }),
 });
 
-export const { useGetConfigQuery, useGetMeQuery, useCreateOrgMutation, useListSitesQuery, useCreateSiteMutation, useGetRuntimeQuery, useGetAdminRuntimeSummaryQuery, useRestartAdminRuntimeMutation, useStopAdminRuntimeMutation, useListAdminOrgsQuery, useListAdminUsersQuery, useListAdminSitesQuery, useListAdminDeploymentsQuery, useGetAdminDeploymentQuery, useListAdminAgentsQuery, useListAdminAuditQuery, useListAdminQuotasQuery, useListAdminCapabilitiesQuery, useListAdminDomainsQuery, useListDeploymentsQuery, useGetDeploymentQuery, useUploadDeploymentMutation, useActivateDeploymentMutation, useRollbackDeploymentMutation, useListAgentsQuery, useCreateAgentMutation, useListAgentKeysQuery, useRevokeAgentKeyMutation, useRevokeAgentMutation, useListAuditQuery } = goGoHostApi;
+export const { useGetConfigQuery, useGetMeQuery, useCreateOrgMutation, useListSitesQuery, useCreateSiteMutation, useGetRuntimeQuery, useGetAdminRuntimeSummaryQuery, useRestartAdminRuntimeMutation, useStopAdminRuntimeMutation, useListAdminOrgsQuery, useListAdminUsersQuery, useListAdminSitesQuery, useListAdminDeploymentsQuery, useGetAdminDeploymentQuery, useListAdminAgentsQuery, useListAdminAuditQuery, useListAdminQuotasQuery, useListAdminCapabilitiesQuery, useListAdminDomainsQuery, useListDeploymentsQuery, useGetDeploymentQuery, useUploadDeploymentMutation, useActivateDeploymentMutation, useRollbackDeploymentMutation, useListAgentsQuery, useCreateAgentMutation, useCreateAgentEnrollmentTokenMutation, useListAgentKeysQuery, useRevokeAgentKeyMutation, useRevokeAgentMutation, useListAuditQuery } = goGoHostApi;

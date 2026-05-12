@@ -38,6 +38,7 @@ func NewHandler(core *control.Core) http.Handler {
 	api.HandleFunc("GET /api/v1/orgs/{org_id}/agents", handleListAgents(core))
 	api.HandleFunc("POST /api/v1/orgs/{org_id}/agents", handleCreateAgent(core))
 	api.HandleFunc("POST /api/v1/orgs/{org_id}/agents/{agent_id}/revoke", handleRevokeAgent(core))
+	api.HandleFunc("POST /api/v1/orgs/{org_id}/agents/{agent_id}/enrollment-token", handleCreateAgentEnrollmentToken(core))
 	api.HandleFunc("GET /api/v1/orgs/{org_id}/agents/{agent_id}/keys", handleListAgentKeys(core))
 	api.HandleFunc("POST /api/v1/orgs/{org_id}/agents/{agent_id}/keys/{key_id}/revoke", handleRevokeAgentKey(core))
 	api.HandleFunc("POST /api/v1/orgs/{org_id}/agents/{agent_id}/grants", handleUpsertAgentGrant(core))
