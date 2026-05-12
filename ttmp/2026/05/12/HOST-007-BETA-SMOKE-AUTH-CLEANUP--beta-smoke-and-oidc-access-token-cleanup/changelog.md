@@ -101,3 +101,13 @@ Deployed sha-6911d87 root redirect; https://hosting.yolo.scapegoat.dev/ now retu
 - /home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/go-go-host/deployment.yaml — live image now sha-6911d87
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/handler.go — deployed host-aware root redirect
 
+
+## 2026-05-12
+
+Added scripts/beta-agent-smoke.sh and validated the full live authenticated signed-agent publish path; deployment dep_353a2977-6f57-4602-b6bc-eb94754a664a is live and temporary smoke agent was revoked.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/scripts/beta-agent-smoke.sh — repeatable authenticated agent publishing smoke
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/12/HOST-007-BETA-SMOKE-AUTH-CLEANUP--beta-smoke-and-oidc-access-token-cleanup/reference/01-investigation-diary.md — agent smoke validation evidence
+

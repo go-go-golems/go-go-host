@@ -1110,3 +1110,93 @@ curl -fsSI https://hosting.yolo.scapegoat.dev/
 curl -fsSI https://hello.hosting.yolo.scapegoat.dev/
 scripts/beta-smoke.sh
 ```
+
+## Step 11: Add repeatable authenticated agent smoke script
+
+The user asked to continue after the root redirect work. I added a repeatable authenticated agent smoke script so future rollouts can verify the full signed-agent publishing path without manually retyping the long sequence of create-agent, keygen, enroll, deploy, verify, and revoke commands.
+
+### Prompt Context
+
+**User prompt (verbatim):** "go ahead."
+
+**User prompt (verbatim):** "continue"
+
+**Assistant interpretation:** Continue with the next recommended task: automate the authenticated/agent smoke path.
+
+**Inferred user intent:** Turn the manual live agent publishing validation into reusable operator tooling.
+
+### What I did
+
+- Added `scripts/beta-agent-smoke.sh`.
+- The script requires `GO_GO_HOST_BETA_BEARER_TOKEN` and defaults the rest of the beta targets:
+  - API: `https://hosting.yolo.scapegoat.dev`
+  - org: `org_36cc42ac-d5d7-441a-809d-6fefb7e3c761`
+  - site: `site_0fcba219-8bc9-412f-a0e0-41a4066c7a21`
+  - host: `hello.hosting.yolo.scapegoat.dev`
+  - grant path: `bundles/**`
+  - bundle path: `bundles/hello-beta-agent-smoke.tar.gz`
+  - source dir: `examples/hello-beta`
+- The script packages the demo, creates a scoped agent, enrolls an Ed25519 key, deploys and activates through `go-go-host-agent`, verifies the public hosted site, and revokes the temporary agent unless `GO_GO_HOST_BETA_KEEP_AGENT=1`.
+- Ran the script live with a browser access token.
+- Re-ran `scripts/beta-smoke.sh` afterward.
+
+### Why
+
+Manual live validation is useful once, but a beta platform needs repeatable smoke commands. This script verifies the highest-value beta path: human bearer-token operator creates a machine identity, the machine signs deployment intent, uploads a bundle, auto-activates it, and the generated public site serves the new deployment.
+
+### What worked
+
+Live authenticated agent smoke passed:
+
+```text
+deploy_run_id: dr_37e9cd85-a764-42e6-ad6e-f46300c444e1
+deployment_id: dep_353a2977-6f57-4602-b6bc-eb94754a664a
+status: active
+valid: true
+activated: true
+```
+
+The public site reported the same deployment ID at `/platform`, and the temporary agent was revoked:
+
+```text
+agt_dc77e25c-5dac-4fd1-8482-46d7dbfe94c8 -> revoked
+```
+
+`beta-smoke.sh` also passed after the agent smoke.
+
+### What didn't work
+
+No new failure occurred in this step. The script still requires manual extraction/provision of a bearer token; future OAuth Device Flow CLI work should remove that friction.
+
+### What I learned
+
+The now-corrected `--bundle-path` semantics make the smoke script clean: the grant can be narrow (`bundles/**`) while the bundle archive remains a normal go-go-host app layout.
+
+### What was tricky to build
+
+The script needs safe cleanup because every run creates a real live agent. It uses a shell `trap` to revoke the agent on exit unless `GO_GO_HOST_BETA_KEEP_AGENT=1` is set.
+
+### What warrants a second pair of eyes
+
+- Confirm whether the default org/site IDs should remain hard-coded for beta convenience or move into a checked-in `.env.example`.
+- Review whether repeated smoke deployments should prune old demo deployments periodically.
+
+### What should be done in the future
+
+- Add a CLI Device Flow login so `scripts/beta-agent-smoke.sh` can obtain a token through `go-go-host login` rather than browser localStorage extraction.
+- Add deployment pruning for the demo site or keep only the latest N smoke deployments.
+
+### Code review instructions
+
+Review:
+
+```text
+scripts/beta-agent-smoke.sh
+```
+
+Validate:
+
+```bash
+GO_GO_HOST_BETA_BEARER_TOKEN=<access-token> scripts/beta-agent-smoke.sh
+scripts/beta-smoke.sh
+```

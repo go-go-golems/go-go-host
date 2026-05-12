@@ -45,8 +45,10 @@ Intent: long-term
 - [x] Discover that pod restart/image rollout drops in-memory active runtime registrations.
 - [x] Add daemon startup restoration for deployments whose database status is `active`.
 - [x] Validate `scripts/beta-smoke.sh` again after deploying the startup-restore image.
-- [ ] Extend smoke script with optional authenticated create/upload/activate mode after access-token rollout.
-- [ ] Document required environment variables for authenticated mode.
+- [x] Add `scripts/beta-agent-smoke.sh` authenticated agent publishing smoke.
+- [x] Document required environment variables in the script help/error output.
+- [x] Validate `scripts/beta-agent-smoke.sh` live with an access token; deployment `dep_353a2977-6f57-4602-b6bc-eb94754a664a` became active and temporary agent was revoked.
+- [ ] Add a non-agent authenticated human upload smoke mode if still needed.
 
 ## P1: Demo-site lifecycle
 
