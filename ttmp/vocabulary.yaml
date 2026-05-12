@@ -17,6 +17,14 @@ topics:
       description: Frontend application code, components, routing, and browser UI.
     - slug: platform-admin
       description: Platform administrator APIs, route guards, operator dashboards, and cross-tenant control-plane workflows.
+    - slug: security
+      description: 'HOST-004 hardening topic: security'
+    - slug: agents
+      description: 'HOST-004 hardening topic: agents'
+    - slug: deployments
+      description: 'HOST-004 hardening topic: deployments'
+    - slug: hardening
+      description: 'HOST-004 hardening topic: hardening'
 docTypes:
     - slug: index
       description: Ticket index document.
