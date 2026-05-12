@@ -134,8 +134,8 @@ Exit criteria:
 Goal: make `/app` navigable with real route structure and mocked data.
 
 - [ ] Add React Router and define routes for `/app`.
-- [ ] Create `AppShell` organism with top bar, org selector, and content slot.
-- [ ] Create `OrgSidebar` organism.
+- [x] Create `AppShell` organism with top bar, org selector, and content slot.
+- [x] Create `OrgSidebar` organism.
 - [ ] Create `RequireSession` guard.
 - [ ] Create `RequireOrgAccess` guard.
 - [ ] Create `OrgRedirectOrOnboarding` behavior:
@@ -143,13 +143,13 @@ Goal: make `/app` navigable with real route structure and mocked data.
   - [ ] one org -> org sites,
   - [ ] many orgs -> last selected or picker.
 - [ ] Preserve selected org in URL.
-- [ ] Add Storybook stories for shell states:
+- [x] Add initial Storybook stories for shell states:
   - [ ] loading session,
   - [ ] unauthenticated/error,
-  - [ ] no orgs,
-  - [ ] one org,
-  - [ ] many orgs,
-  - [ ] dev auth banner.
+  - [x] no orgs,
+  - [x] one org,
+  - [x] many orgs,
+  - [x] dev auth banner.
 
 Exit criteria:
 
@@ -164,7 +164,7 @@ Goal: deliver the first useful dashboard workflow: create org/site and view site
 - [ ] Create `pages/NoOrgsPage` with create-org form.
 - [ ] Create `pages/SitesPage`.
 - [ ] Create `pages/CreateSitePage`.
-- [ ] Create `organisms/SitesTable`.
+- [x] Create `organisms/SitesTable`.
 - [ ] Add runtime badge fan-out or placeholder strategy for site rows.
 - [ ] Create site form validation for slug/name.
 - [ ] Wire `POST /api/v1/orgs`.
@@ -192,7 +192,7 @@ Goal: make each site inspectable.
 - [ ] Create `SiteTabs` organism.
 - [ ] Create `pages/SiteOverviewPage`.
 - [ ] Create `pages/RuntimePage`.
-- [ ] Create `organisms/RuntimeStatusPanel`.
+- [x] Create `organisms/RuntimeStatusPanel`.
 - [ ] Wire `GET /api/v1/sites/{site_id}/runtime`.
 - [ ] Link deployment ID in runtime panel to deployment detail when present.
 - [ ] Add copy/open affordance for `primaryHost`.
@@ -210,9 +210,9 @@ Goal: expose the complete deployment loop in the dashboard.
 
 - [ ] Create `pages/DeploymentsPage`.
 - [ ] Create `pages/DeploymentDetailPage`.
-- [ ] Create `organisms/DeploymentTimeline`.
+- [x] Create `organisms/DeploymentTimeline`.
 - [ ] Create `organisms/DeploymentUploadPanel`.
-- [ ] Create `organisms/ValidationReportPanel`.
+- [x] Create `organisms/ValidationReportPanel`.
 - [ ] Wire `POST /api/v1/sites/{site_id}/deployments` multipart upload.
 - [ ] Wire `GET /api/v1/sites/{site_id}/deployments`.
 - [ ] Wire `GET /api/v1/deployments/{deployment_id}`.
@@ -243,13 +243,13 @@ Exit criteria:
 Goal: expose the initial agent/audit APIs without overpromising future deploy-run features.
 
 - [ ] Create `pages/AgentsPage`.
-- [ ] Create `organisms/AgentsTable`.
+- [x] Create `organisms/AgentsTable`.
 - [ ] Wire `GET /api/v1/orgs/{org_id}/agents`.
 - [ ] Wire `POST /api/v1/orgs/{org_id}/agents`.
 - [ ] Wire `POST /api/v1/orgs/{org_id}/agents/{agent_id}/revoke`.
 - [ ] Add explicit preview notice for keys/grants/enrollment not yet implemented.
 - [ ] Create `pages/AuditPage`.
-- [ ] Create `organisms/AuditTimeline`.
+- [x] Create `organisms/AuditTimeline`.
 - [ ] Wire `GET /api/v1/orgs/{org_id}/audit` with query filters.
 - [ ] Preserve audit filters in URL query params.
 - [ ] Add Storybook stories:

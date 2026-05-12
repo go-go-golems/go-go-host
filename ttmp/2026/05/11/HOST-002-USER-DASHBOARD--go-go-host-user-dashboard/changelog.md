@@ -50,3 +50,12 @@ Added first dashboard molecule set with Storybook stories: RuntimeBadge, SiteHos
 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/components/molecules/index.ts — Dashboard molecule barrel exports
 
+
+## 2026-05-11
+
+Added first dashboard organism set with Storybook stories: AppShell, OrgSidebar, SitesTable, RuntimeStatusPanel, DeploymentTimeline, ValidationReportPanel, AgentsTable, and AuditTimeline.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/components/organisms/index.ts — Dashboard organism barrel exports
+

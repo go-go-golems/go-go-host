@@ -350,3 +350,63 @@ make storybook-build
 devctl restart storybook
 devctl status --tail-lines 5
 ```
+
+## Step 6: Added first organism set for shell, tables, timelines, and panels
+
+I continued from molecules into the first organism layer. These components are still Storybook-first and mostly prop-driven, but they now represent larger dashboard regions that can be composed into pages.
+
+### Prompt Context
+
+**User prompt (verbatim):** "continue"
+
+**Assistant interpretation:** Continue building the dashboard incrementally, moving from molecules toward organisms while keeping Storybook live and validated.
+
+### What I did
+
+- Added organism components and stories:
+  - `AppShell`
+  - `OrgSidebar`
+  - `SitesTable`
+  - `RuntimeStatusPanel`
+  - `DeploymentTimeline`
+  - `ValidationReportPanel`
+  - `AgentsTable`
+  - `AuditTimeline`
+- Added `components/organisms/index.ts` barrel exports.
+- Reused atoms and molecules instead of duplicating status/copy/metric/JSON UI.
+- Kept organisms mostly prop-driven so page data fetching can remain in page components.
+- Rebuilt and restarted Storybook.
+
+### Why
+
+Organisms are the next step before real pages. They turn the atom/molecule vocabulary into dashboard sections: shell chrome, site lists, runtime panels, deployment history, validation reports, agent tables, and audit timelines.
+
+### What worked
+
+- `make web-build` passes.
+- `make storybook-build` passes.
+- Storybook restarted and remains alive at `http://127.0.0.1:6007`.
+
+### What didn't work
+
+- N/A.
+
+### What was tricky
+
+- `ValidationReportPanel` needs to parse `manifestJson` and `validationJson`, which are currently strings in the API DTO. I added safe parsing fallback behavior so malformed JSON becomes visible UI state rather than a crash.
+
+### What warrants review
+
+- `AuditTimeline` and `DeploymentTimeline` use simple responsive grids. They may need mobile-specific treatment once pages are wired.
+- `AppShell` is currently a static shell organism. Route integration and real navigation state still belong to the shell/routing phase.
+
+### Validation
+
+Commands run:
+
+```bash
+make web-build
+make storybook-build
+devctl restart storybook
+devctl status --tail-lines 5
+```
