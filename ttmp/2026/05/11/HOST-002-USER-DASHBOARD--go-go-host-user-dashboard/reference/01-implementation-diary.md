@@ -410,3 +410,70 @@ make storybook-build
 devctl restart storybook
 devctl status --tail-lines 5
 ```
+
+## Step 7: Added initial routing guards and sites pages
+
+I moved from component stories into the first
+I moved from component stories into the first real application-routing slice. The dashboard now has `/app` routing, session/org guards, an organization layout, and the first sites pages backed by RTK Query and MSW stories.
+
+### Prompt Context
+
+**User prompt (verbatim):** "continue"
+
+**Assistant interpretation:** Continue the Storybook-first dashboard implementation by wiring Phase 5 shell/routing and beginning Phase 6 page work.
+
+### What I did
+
+- Added router setup:
+  - `src/app/routes.tsx`
+  - `src/app/routing/guards.tsx`
+  - `src/app/routing/OrgRedirectOrOnboarding.tsx`
+  - `src/app/routing/OrgLayout.tsx`
+- Replaced the bootstrap-only `App` with a `RouterProvider` app.
+- Added session/org guards:
+  - `RequireSession`
+  - `RequireOrgAccess`
+- Added organization redirect/onboarding behavior:
+  - no memberships -> `NoOrgsPage`
+  - first membership -> org sites page
+- Added initial pages and stories:
+  - `NoOrgsPage`
+  - `SitesPage`
+  - `CreateSitePage`
+- Wired `SitesPage` to `useListSitesQuery` for `GET /api/v1/orgs/{org_id}/sites`.
+- Added MSW-backed page story states for populated, empty, and load error site lists.
+
+### Why
+
+The component catalog is now large enough to start validating real dashboard composition. Routing and guards let later pages share consistent shell behavior instead of each page reinventing loading, access-denied, and organization selection flows.
+
+### What worked
+
+- `make web-build` passes.
+- `make storybook-build` passes.
+- Storybook was restarted and remains alive through `devctl`.
+
+### What didn't work
+
+- N/A.
+
+### What was tricky
+
+- Page stories need their own `MemoryRouter` route context so hooks like `useParams` and `useNavigate` work in isolation.
+- The sites page currently uses fixture runtime status data because runtime-by-site aggregation is not yet exposed as a page API; this should be replaced when the page detail/runtime APIs are wired.
+
+### What warrants review
+
+- `CreateSitePage` is only a form shell; mutation wiring and validation still need the next slice.
+- Agents and audit routes are placeholders in the shared org layout and should be replaced by real pages next.
+
+### Validation
+
+Commands run:
+
+```bash
+make web-build
+make storybook-build
+devctl restart storybook
+devctl status --tail-lines 5
+```

@@ -1,5 +1,6 @@
-import { AppBootstrapPage } from '../pages/AppBootstrapPage';
+import { RouterProvider } from 'react-router-dom';
+import { router } from './routes';
 
 export function App() {
-  return <AppBootstrapPage />;
+  return <RouterProvider router={router} />;
 }

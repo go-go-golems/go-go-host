@@ -1,0 +1,4 @@
+.create-site-page { display: grid; gap: 1rem; max-width: 36rem; }
+.create-site-page label { display: grid; gap: 0.25rem; }
+.create-site-page input { font-family: var(--hc-font-family); border: 1px solid var(--hc-color-border); background: var(--hc-color-bg); color: var(--hc-color-fg); padding: 0.35rem; }
+.create-site-page__actions { display: flex; justify-content: flex-end; gap: 0.5rem; }

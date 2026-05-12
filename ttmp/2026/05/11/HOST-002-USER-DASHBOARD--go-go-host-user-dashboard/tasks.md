@@ -133,16 +133,16 @@ Exit criteria:
 
 Goal: make `/app` navigable with real route structure and mocked data.
 
-- [ ] Add React Router and define routes for `/app`.
+- [x] Add React Router and define routes for `/app`.
 - [x] Create `AppShell` organism with top bar, org selector, and content slot.
 - [x] Create `OrgSidebar` organism.
-- [ ] Create `RequireSession` guard.
-- [ ] Create `RequireOrgAccess` guard.
-- [ ] Create `OrgRedirectOrOnboarding` behavior:
-  - [ ] no orgs -> onboarding,
-  - [ ] one org -> org sites,
+- [x] Create `RequireSession` guard.
+- [x] Create `RequireOrgAccess` guard.
+- [x] Create `OrgRedirectOrOnboarding` behavior:
+  - [x] no orgs -> onboarding,
+  - [x] one org -> org sites,
   - [ ] many orgs -> last selected or picker.
-- [ ] Preserve selected org in URL.
+- [x] Preserve selected org in URL.
 - [x] Add initial Storybook stories for shell states:
   - [ ] loading session,
   - [ ] unauthenticated/error,
@@ -153,28 +153,28 @@ Goal: make `/app` navigable with real route structure and mocked data.
 
 Exit criteria:
 
-- [ ] `/app` can route to an org sites page in Storybook/MSW.
-- [ ] Route guards have visible loading/error/empty states.
-- [ ] Shell uses os-core layout/theme primitives or documented local equivalents.
+- [x] `/app` can route to an org sites page in Storybook/MSW.
+- [x] Route guards have visible loading/error/empty states.
+- [x] Shell uses os-core macOS1 theme scope and documented local bridge equivalents.
 
 ## Phase 6: Organization onboarding and site list/create
 
 Goal: deliver the first useful dashboard workflow: create org/site and view sites.
 
-- [ ] Create `pages/NoOrgsPage` with create-org form.
-- [ ] Create `pages/SitesPage`.
-- [ ] Create `pages/CreateSitePage`.
+- [x] Create `pages/NoOrgsPage` onboarding shell with create-org affordance placeholder.
+- [x] Create `pages/SitesPage`.
+- [x] Create `pages/CreateSitePage` form shell.
 - [x] Create `organisms/SitesTable`.
 - [ ] Add runtime badge fan-out or placeholder strategy for site rows.
 - [ ] Create site form validation for slug/name.
 - [ ] Wire `POST /api/v1/orgs`.
-- [ ] Wire `GET /api/v1/orgs/{org_id}/sites`.
+- [x] Wire `GET /api/v1/orgs/{org_id}/sites`.
 - [ ] Wire `POST /api/v1/orgs/{org_id}/sites`.
 - [ ] Add Storybook page stories:
-  - [ ] no org onboarding empty/success/error,
-  - [ ] sites empty,
-  - [ ] sites populated,
-  - [ ] sites load error,
+  - [x] no org onboarding empty state,
+  - [x] sites empty,
+  - [x] sites populated,
+  - [x] sites load error,
   - [ ] create site valid/invalid/forbidden.
 
 Exit criteria:

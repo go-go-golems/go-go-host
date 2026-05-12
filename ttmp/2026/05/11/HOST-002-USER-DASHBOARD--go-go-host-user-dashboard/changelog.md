@@ -59,3 +59,12 @@ Added first dashboard organism set with Storybook stories: AppShell, OrgSidebar,
 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/components/organisms/index.ts — Dashboard organism barrel exports
 
+
+## 2026-05-11
+
+Added initial /app routing with session/org guards plus NoOrgsPage, SitesPage, and CreateSitePage Storybook-backed page shells.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/app/routes.tsx — Initial dashboard route tree
+

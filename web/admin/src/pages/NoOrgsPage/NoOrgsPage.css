@@ -1,0 +1,2 @@
+.no-orgs-page { min-height: 100vh; display: grid; place-items: center; background: var(--hc-color-desktop-bg); }
+.no-orgs-page .dashboard-panel { width: min(42rem, calc(100vw - 2rem)); }
