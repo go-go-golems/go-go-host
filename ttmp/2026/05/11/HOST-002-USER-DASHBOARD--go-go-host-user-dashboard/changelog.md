@@ -122,3 +122,12 @@ Implemented Phase 10 usage/members pages and Phase 11 embedded dashboard serving
 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/webadmin/handler.go — Embedded SPA handler for /app
 
+
+## 2026-05-11
+
+Replaced manual dashboard embedding with a Dagger-backed cmd/build-web pipeline, pinned pnpm, rebuilt embedded assets, and verified /app CSS assets are served by go-go-hostd.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/cmd/build-web/main.go — Dagger build-web pipeline for embedded dashboard
+

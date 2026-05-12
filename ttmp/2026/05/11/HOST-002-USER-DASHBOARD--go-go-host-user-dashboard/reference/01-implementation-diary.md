@@ -860,3 +860,62 @@ devctl restart storybook
 curl -fsSI http://127.0.0.1:8080/app
 curl -fsSI http://127.0.0.1:8080/app/orgs/org_123/sites
 ```
+
+## Step 14: Replaced ad-hoc web embedding with Dagger build-web pipeline and verified CSS serving
+
+The user reported that embedded CSS did not appear to be served and asked to use the Dagger `build-web` workflow from the project skill. I aligned the dashboard embed flow with that pattern.
+
+### Prompt Context
+
+**User prompt (verbatim):** "the CSS doesn't seem to get served? we should use the dagger build-web workflow  (see skills) in order to build the SPA and bundle it."
+
+**Assistant interpretation:** Stop relying on manual `pnpm build && cp` embedding, add a reproducible Dagger-backed Go build command, rebuild the embedded dashboard with it, and verify `/app/assets/*.css` is actually served by `go-go-hostd`.
+
+### What I did
+
+- Read the `go-web-dagger-pnpm-build` skill.
+- Added `cmd/build-web`:
+  - Dagger-first build using `node:22`, Corepack, pinned pnpm, and a Dagger cache volume,
+  - local fallback with `BUILD_WEB_LOCAL=1`,
+  - copies `web/admin/dist` into `internal/webadmin/dist`.
+- Added `packageManager: "pnpm@10.13.1"` to `web/admin/package.json` so the build tool can pin pnpm.
+- Replaced `make web-embed` with `go run ./cmd/build-web`.
+- Kept Vite `base: '/app/'` so production HTML references CSS/JS under `/app/assets/...`.
+- Adjusted the Dagger pipeline for the local linked `@go-go-golems/os-core` package:
+  - mounts the os-core checkout into the container at both the absolute link path and the relative path used by `pnpm-lock.yaml`,
+  - overlays it into `/src/node_modules/@go-go-golems/os-core` after install so TypeScript can resolve React typings from `/src/node_modules`.
+- Ran both local fallback and the real Dagger build successfully.
+- Restarted `go-go-hostd` and verified the embedded CSS asset is served with `Content-Type: text/css`.
+
+### What worked
+
+- `BUILD_WEB_LOCAL=1 go run ./cmd/build-web` succeeds.
+- `go run ./cmd/build-web` succeeds through Dagger.
+- `go test ./cmd/build-web ./internal/webadmin ./internal/httpapi` passes.
+- `go test ./...` passes.
+- `curl http://127.0.0.1:8080/app` contains `/app/assets/index-...css`.
+- `curl -I http://127.0.0.1:8080/app/assets/index-...css` returns HTTP 200 with `Content-Type: text/css`.
+
+### What didn't work
+
+- First Dagger attempt failed because `@go-go-golems/os-core` is a local `link:` dependency outside `web/admin`; the container could not see it.
+- Second Dagger attempt resolved the package but TypeScript could not find React typings for source files loaded from the external path. Overlaying the os-core source at `/src/node_modules/@go-go-golems/os-core` fixed module/type resolution.
+
+### What warrants review
+
+- This Dagger build still depends on the local os-core checkout until the npm/GitHub Packages auth issue is solved. The path can be overridden with `OS_CORE_PATH` and `OS_CORE_CONTAINER_PATH`.
+- Long term, once `@go-go-golems/os-core` is available from a registry, the extra Dagger mounts can be removed.
+
+### Validation
+
+Commands run:
+
+```bash
+BUILD_WEB_LOCAL=1 go run ./cmd/build-web
+go run ./cmd/build-web
+go test ./cmd/build-web ./internal/webadmin ./internal/httpapi
+go test ./...
+devctl restart go-go-hostd
+curl -fsS http://127.0.0.1:8080/app
+curl -fsSI http://127.0.0.1:8080/app/assets/index-z9CcjZS3.css
+```

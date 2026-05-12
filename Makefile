@@ -30,10 +30,8 @@ web-dev:
 web-build:
 	cd web/admin && pnpm build
 
-web-embed: web-build
-	rm -rf internal/webadmin/dist
-	mkdir -p internal/webadmin/dist
-	cp -R web/admin/dist/. internal/webadmin/dist/
+web-embed:
+	go run ./cmd/build-web
 
 storybook:
 	cd web/admin && pnpm storybook
