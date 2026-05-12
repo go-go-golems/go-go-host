@@ -21,8 +21,10 @@ type EnrollSettings struct {
 
 type enrollResponse struct {
 	Agent struct {
-		ID, OrgID, Status string `json:",omitempty"`
-		Name              string `json:"name"`
+		ID     string `json:"id"`
+		OrgID  string `json:"orgId"`
+		Status string `json:"status"`
+		Name   string `json:"name"`
 	} `json:"agent"`
 	KeyID string `json:"keyId"`
 	Grant *struct {
