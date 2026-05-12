@@ -86,3 +86,12 @@ Added K3s GitOps-managed DigitalOcean DNS-01 ClusterIssuer and go-go-host wildca
 - /home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/go-go-host/ingress.yaml — wildcard ingress rule for generated site hosts
 - /home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/platform-cert-issuer/clusterissuer-dns01-digitalocean.yaml — DNS-01 ClusterIssuer for DigitalOcean
 
+
+## 2026-05-12
+
+Created and activated the first live demo site at https://hello.hosting.yolo.scapegoat.dev, validating wildcard DNS/TLS/Ingress, host routing, bundle upload, activation, assets, SQLite state, and platform context.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/12/HOST-006-PRODUCTION-READINESS--go-go-host-production-readiness-and-beta-launch-plan/reference/01-investigation-diary.md — live demo site smoke results
+

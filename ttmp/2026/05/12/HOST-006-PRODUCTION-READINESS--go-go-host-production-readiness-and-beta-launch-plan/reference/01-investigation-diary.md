@@ -1130,3 +1130,166 @@ provided that:
 4. the runtime supervisor has activated the deployment and registered that host.
 
 The wildcard DNS, wildcard cert, and wildcard ingress pieces are now in place.
+
+## Step 16: First real public hosted site smoke
+
+After wildcard DNS, wildcard TLS, and wildcard Ingress were in place, the user asked to create a demo site to exercise the full hosted-site path.
+
+### Prompt Context
+
+**User prompt (verbatim):** "ok, that worked. Let's create the demo site to test the whole thing."
+
+**Assistant interpretation:** Use the live beta API to create an organization/site, upload a real go-go-host bundle, activate it, and verify that the generated wildcard subdomain serves the runtime publicly.
+
+### Authentication note
+
+The dashboard/browser flow was already logged into Keycloak. For API automation I used the browser-stored OIDC ID token as the bearer token because the backend verifier currently expects an ID token with audience `go-go-host-dashboard`. Trying the access token returned:
+
+```text
+{"error":"verify id token: oidc: expected audience \"go-go-host-dashboard\" got []"}
+```
+
+This is an important follow-up: the frontend appears to work because it can provide a token the backend accepts, but the API's bearer-token semantics are really "ID token" semantics right now. Production should either verify access tokens properly or consistently document/use ID tokens for the dashboard API.
+
+I deleted the temporary local token dump after use and did not commit any token material.
+
+### Created resources
+
+I created a beta demo organization:
+
+```text
+org_36cc42ac-d5d7-441a-809d-6fefb7e3c761
+slug: beta-demo
+name: Beta Demo
+```
+
+I created a site:
+
+```text
+site_0fcba219-8bc9-412f-a0e0-41a4066c7a21
+slug: hello
+name: Hello Beta
+primaryHost: hello.hosting.yolo.scapegoat.dev
+```
+
+### Bundle contents
+
+I built a small app bundle at `/tmp/go-go-host-hello-beta.tar.gz` with:
+
+```text
+go-go-host.json
+scripts/app.js
+assets/style.css
+```
+
+The app uses:
+
+- `express` for routes,
+- `ui.dsl` for HTML rendering,
+- `database` for a per-site SQLite visit counter,
+- `db.guard` for database quota stats,
+- `assets` for static CSS.
+
+Routes:
+
+```text
+/          HTML demo page
+/platform  JSON platform context
+/db        JSON DB guard stats
+/assets/style.css static CSS
+```
+
+### Deployment
+
+Upload returned a validated deployment:
+
+```text
+dep_181c0489-b037-4732-b7b3-3cc99bf4ea52
+status: validated
+bundleSha256: a213b4fef552679e2f3673a7a1a856560699b50557714ce718a78075d4390d7b
+```
+
+Activation returned:
+
+```text
+status: active
+activatedAt: 2026-05-12T21:23:45Z
+```
+
+### Public smoke results
+
+I verified the generated public site URL:
+
+```bash
+curl -fsSI https://hello.hosting.yolo.scapegoat.dev/
+curl -fsS https://hello.hosting.yolo.scapegoat.dev/
+curl -fsS https://hello.hosting.yolo.scapegoat.dev/platform | jq .
+curl -fsS https://hello.hosting.yolo.scapegoat.dev/db | jq .
+curl -fsSI https://hello.hosting.yolo.scapegoat.dev/assets/style.css
+```
+
+The root page returned:
+
+```text
+HTTP/2 200
+content-type: text/html; charset=utf-8
+```
+
+The rendered page included:
+
+```text
+Hello from go-go-host beta
+Host: hello.hosting.yolo.scapegoat.dev
+Site ID: site_0fcba219-8bc9-412f-a0e0-41a4066c7a21
+Deployment ID: dep_181c0489-b037-4732-b7b3-3cc99bf4ea52
+```
+
+`/platform` returned the expected platform context:
+
+```json
+{
+  "deploymentId": "dep_181c0489-b037-4732-b7b3-3cc99bf4ea52",
+  "host": "hello.hosting.yolo.scapegoat.dev",
+  "orgId": "org_36cc42ac-d5d7-441a-809d-6fefb7e3c761",
+  "siteId": "site_0fcba219-8bc9-412f-a0e0-41a4066c7a21"
+}
+```
+
+`/db` returned quota stats for the per-site SQLite DB and showed it was under limit.
+
+`/assets/style.css` returned:
+
+```text
+HTTP/2 200
+content-type: text/css; charset=utf-8
+```
+
+### What this proves
+
+This completed the first real end-to-end beta product smoke:
+
+```text
+Keycloak-authenticated user
+  -> create org
+  -> create site
+  -> generated primary host under *.hosting.yolo.scapegoat.dev
+  -> upload bundle
+  -> dry-run validation
+  -> activate deployment
+  -> runtime supervisor registers host
+  -> public wildcard DNS/TLS/Ingress reaches daemon
+  -> daemon routes by Host header
+  -> Goja app renders HTML, JSON, static assets, and SQLite-backed state
+```
+
+The important public URL is now live:
+
+```text
+https://hello.hosting.yolo.scapegoat.dev/
+```
+
+### Follow-ups discovered
+
+- The backend currently rejected the OIDC access token and accepted the ID token. This should be cleaned up before relying on third-party clients or a future CLI OAuth flow.
+- We should add a repeatable beta smoke script that creates or reuses a demo site and verifies `/`, `/platform`, `/db`, and `/assets/style.css`.
+- The demo site exists as live beta data but the bundle source currently only exists in `/tmp`; if we want it as a durable example, add it under the repo, e.g. `examples/hello-beta/` or `deployments/demo/hello-beta/`.
