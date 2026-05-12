@@ -277,3 +277,76 @@ devctl status --tail-lines 5
 ```
 
 Storybook is alive at `http://127.0.0.1:6007`.
+
+## Step 5: Added first molecule set for dashboard workflows
+
+I continued Phase 4 by building the first prop-driven molecule components on top of the atom set and the macOS1-themed Storybook environment.
+
+### Prompt Context
+
+**User prompt (verbatim):** "continue"
+
+**Assistant interpretation:** Continue implementation after fixing the macOS1/os-core setup, keeping Storybook live and adding the next layer of reusable UI components.
+
+**Inferred user intent:** Move from atoms toward dashboard workflow components while preserving Storybook coverage.
+
+### What I did
+
+- Added molecule components and stories:
+  - `RuntimeBadge`
+  - `SiteHostCopy`
+  - `DeploymentStatusPill`
+  - `ValidationSummary`
+  - `MetricCard`
+  - `ManifestSummary`
+  - `AgentStatusBadge`
+  - `OrgSwitcher`
+- Added `components/molecules/index.ts` barrel exports.
+- Kept molecules prop-driven and free of RTK Query data fetching.
+- Used existing atoms where appropriate:
+  - `RuntimeStatusDot`
+  - `StatusPill`
+  - `CopyButton`
+  - `ErrorCallout`
+  - `JsonTree`
+  - `RoleBadge`
+- Validated build and Storybook build.
+- Restarted Storybook through devctl so the new stories are visible.
+
+### Why
+
+Molecules are the next layer needed before building organisms and pages. These components represent reusable product concepts: runtime state, deployment status, validation output, manifest display, metrics, site host copy actions, agent status, and org switching.
+
+### What worked
+
+- `make web-build` passes.
+- `make storybook-build` passes.
+- Storybook restarted and remains alive on `http://127.0.0.1:6007`.
+
+### What didn't work
+
+- N/A in this slice.
+
+### What I learned
+
+- The macOS1 bridge is sufficient for early molecules, but upcoming organisms should use more os-core `data-part` conventions directly to reduce custom bridge styling.
+
+### What was tricky
+
+- Keeping `ValidationSummary` useful without overfitting to current backend JSON required treating validation errors/warnings/capabilities as optional and displayable independently.
+
+### What warrants review
+
+- `SiteHostCopy` currently exposes copy-host and copy-curl actions. Later we may add an explicit open-public-site action once host/public URL behavior is finalized.
+- `OrgSwitcher` is prop-only for now; route integration belongs in the shell/routing phase.
+
+### Validation
+
+Commands run:
+
+```bash
+make web-build
+make storybook-build
+devctl restart storybook
+devctl status --tail-lines 5
+```

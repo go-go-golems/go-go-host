@@ -41,3 +41,12 @@ Switched dashboard from temporary os-core shim to local linked go-go-os-core mac
 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/app/macos1-bridge.css — Temporary bridge from dashboard scaffold classes to os-core macOS1 tokens
 
+
+## 2026-05-11
+
+Added first dashboard molecule set with Storybook stories: RuntimeBadge, SiteHostCopy, DeploymentStatusPill, ValidationSummary, MetricCard, ManifestSummary, AgentStatusBadge, and OrgSwitcher.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/components/molecules/index.ts — Dashboard molecule barrel exports
+

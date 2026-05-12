@@ -109,25 +109,25 @@ Exit criteria:
 
 Goal: build reusable dashboard controls and panels from atoms.
 
-- [ ] Create `components/molecules/RuntimeBadge`.
-- [ ] Create `components/molecules/OrgSwitcher`.
-- [ ] Create `components/molecules/SiteHostCopy`.
-- [ ] Create `components/molecules/DeploymentStatusPill`.
-- [ ] Create `components/molecules/ValidationSummary`.
+- [x] Create `components/molecules/RuntimeBadge`.
+- [x] Create `components/molecules/OrgSwitcher`.
+- [x] Create `components/molecules/SiteHostCopy`.
+- [x] Create `components/molecules/DeploymentStatusPill`.
+- [x] Create `components/molecules/ValidationSummary`.
 - [ ] Create `components/molecules/FileDropZone`.
 - [ ] Create `components/molecules/ConfirmActionDialog`.
 - [ ] Create `components/molecules/FilterToolbar`.
-- [ ] Create `components/molecules/MetricCard`.
-- [ ] Create `components/molecules/ManifestSummary`.
+- [x] Create `components/molecules/MetricCard`.
+- [x] Create `components/molecules/ManifestSummary`.
 - [ ] Create `components/molecules/AuditEventRow`.
-- [ ] Create `components/molecules/AgentStatusBadge`.
+- [x] Create `components/molecules/AgentStatusBadge`.
 - [ ] Add interaction tests for `FileDropZone` and `ConfirmActionDialog` if test tooling is available.
 
 Exit criteria:
 
-- [ ] Every molecule has Storybook stories.
+- [x] Every implemented molecule has Storybook stories.
 - [ ] Stories cover loading/error/empty/permission states where relevant.
-- [ ] Molecules remain prop-driven and do not own route-level data fetching.
+- [x] Implemented molecules remain prop-driven and do not own route-level data fetching.
 
 ## Phase 5: Shell, routing, and session/org guards
 

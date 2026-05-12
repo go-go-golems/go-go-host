@@ -1,0 +1,5 @@
+.metric-card { display: grid; gap: 0.25rem; border: 1px solid var(--hc-color-border, var(--os-border-subtle)); background: var(--hc-color-bg, var(--os-surface-panel)); padding: var(--os-space-4); min-width: 10rem; box-shadow: var(--hc-window-shadow, none); }
+.metric-card span, .metric-card small { color: var(--hc-color-muted, var(--os-text-secondary)); }
+.metric-card strong { font-size: 1.75rem; }
+.metric-card[data-tone='danger'] strong { color: var(--os-color-danger-500); }
+.metric-card[data-tone='success'] strong { color: var(--os-color-success-500); }

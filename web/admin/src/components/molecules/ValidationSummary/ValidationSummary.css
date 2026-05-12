@@ -1,0 +1,5 @@
+.validation-summary { display: grid; gap: 0.75rem; border: 1px solid var(--hc-color-border, var(--os-border-subtle)); padding: var(--os-space-4); background: var(--hc-color-bg, var(--os-surface-panel)); }
+.validation-summary header { display: flex; justify-content: space-between; gap: 1rem; }
+.validation-summary[data-valid='true'] header strong { color: var(--os-color-success-500); }
+.validation-summary[data-valid='false'] header strong { color: var(--os-color-danger-500); }
+.validation-summary__warnings { color: var(--os-color-warning-500); }

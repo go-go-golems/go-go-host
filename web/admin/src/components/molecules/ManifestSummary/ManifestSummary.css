@@ -1,0 +1,4 @@
+.manifest-summary { display: grid; gap: var(--os-space-4); }
+.manifest-summary dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.5rem 1rem; margin: 0; }
+.manifest-summary dt { color: var(--hc-color-muted, var(--os-text-secondary)); }
+.manifest-summary dd { margin: 0; }

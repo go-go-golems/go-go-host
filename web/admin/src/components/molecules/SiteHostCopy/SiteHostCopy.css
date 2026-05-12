@@ -1,0 +1,2 @@
+.site-host-copy { display: inline-flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.site-host-copy code { border: 1px solid var(--hc-color-border, var(--os-border-subtle)); padding: 0.25rem 0.45rem; background: var(--hc-color-bg, var(--os-surface-elevated)); }
