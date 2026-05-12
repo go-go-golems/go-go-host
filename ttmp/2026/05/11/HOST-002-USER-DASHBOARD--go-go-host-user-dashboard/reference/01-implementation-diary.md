@@ -919,3 +919,59 @@ devctl restart go-go-hostd
 curl -fsS http://127.0.0.1:8080/app
 curl -fsSI http://127.0.0.1:8080/app/assets/index-z9CcjZS3.css
 ```
+
+## Step 15: Used Playwright to diagnose embedded dashboard styling mismatch
+
+The user reported that the embedded dashboard looked off compared to Storybook. I opened both with Playwright and confirmed the embedded app was loading CSS, but CSS variables from the os-core theme were not present, so the UI fell back to default browser styling.
+
+### Prompt Context
+
+**User prompt (verbatim):** "look using playwright, something is off (compared to storybook for example)"
+
+**Assistant interpretation:** Inspect the real embedded `/app` visually and compare it to Storybook, then fix the styling mismatch.
+
+### What I saw
+
+- `http://127.0.0.1:8080/app` initially looked mostly unstyled: white background, browser-default serif text, and missing macOS1 desktop colors.
+- The CSS file itself was being served with `Content-Type: text/css`, so the issue was not an HTTP static-file failure.
+- The built CSS contained many `var(--hc-...)` references but not the expected variable definitions such as `--hc-color-desktop-bg: #bfc8d8`.
+
+### Root cause
+
+The frontend imported os-core theme modules as side-effect imports, but the local linked `@go-go-golems/os-core` checkout/package path was unstable in this dev workspace. The bundle ended up with bridge CSS that referenced os-core variables without reliably bundling the variable definitions.
+
+### Fix
+
+- Moved the required macOS1 token definitions into `src/app/macos1-bridge.css` as a temporary self-contained fallback.
+- Removed side-effect imports from:
+  - `src/main.tsx`,
+  - `.storybook/preview.tsx`.
+- Removed the broken local `@go-go-golems/os-core` package dependency from `web/admin/package.json` and regenerated the pnpm lockfile.
+- Simplified `cmd/build-web` because the Dagger build no longer needs to mount a local os-core checkout.
+- Rebuilt embedded assets with `go run ./cmd/build-web`.
+- Restarted the daemon and Storybook.
+
+### Validation
+
+Commands and checks run:
+
+```bash
+BUILD_WEB_LOCAL=1 go run ./cmd/build-web
+go run ./cmd/build-web
+go test ./...
+devctl restart go-go-hostd
+devctl restart web-admin
+devctl restart storybook
+```
+
+Playwright checks:
+
+- `http://127.0.0.1:8080/app` now shows the macOS1 desktop background and table styling.
+- `http://127.0.0.1:6007/?path=/story/pages-sitespage--populated` renders again without the earlier failed dynamic preview import.
+- Screenshots saved by Playwright:
+  - `embedded-sites-fixed2.png`,
+  - `storybook-sites-fixed.png`.
+
+### What warrants review
+
+- This is intentionally still a bridge fallback. Once `@go-go-golems/os-core` can be consumed from a real package/registry reliably, we should switch back from copied token values to package-owned CSS imports.

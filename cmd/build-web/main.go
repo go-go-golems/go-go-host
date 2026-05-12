@@ -70,9 +70,6 @@ func runDagger(ctx context.Context, repoRoot string) error {
 	builderImage := getenv("WEB_BUILDER_IMAGE", defaultBuilderImage)
 
 	source := client.Host().Directory(webDir, dagger.HostDirectoryOpts{Exclude: []string{"dist", "storybook-static", "node_modules", ".git"}})
-	osCorePath := getenv("OS_CORE_PATH", "/home/manuel/workspaces/2026-05-11/npm-packages-go-go-os/go-go-os-frontend/packages/os-core")
-	osCoreContainerPath := getenv("OS_CORE_CONTAINER_PATH", "/npm-packages-go-go-os/go-go-os-frontend/packages/os-core")
-	osCoreSource := client.Host().Directory(osCorePath, dagger.HostDirectoryOpts{Exclude: []string{"dist", "node_modules", ".git"}})
 	pnpmStore := client.CacheVolume("go-go-host-admin-pnpm-store")
 	pathEnv := "/pnpm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
@@ -82,12 +79,9 @@ func runDagger(ctx context.Context, repoRoot string) error {
 		WithEnvVariable("PATH", pathEnv).
 		WithMountedCache("/pnpm/store", pnpmStore).
 		WithDirectory("/src", source).
-		WithDirectory(osCorePath, osCoreSource).
-		WithDirectory(osCoreContainerPath, osCoreSource).
 		WithWorkdir("/src").
 		WithExec([]string{"sh", "-lc", "corepack enable && corepack prepare pnpm@" + pnpmVersion + " --activate"}).
 		WithExec([]string{"pnpm", "install", "--frozen-lockfile", "--prefer-offline"}).
-		WithDirectory("/src/node_modules/@go-go-golems/os-core", osCoreSource).
 		WithExec([]string{"pnpm", "run", "build"})
 
 	tmpDir, err := os.MkdirTemp("", "go-go-host-admin-dist-")

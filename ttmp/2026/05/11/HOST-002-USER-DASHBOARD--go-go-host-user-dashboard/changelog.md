@@ -131,3 +131,12 @@ Replaced manual dashboard embedding with a Dagger-backed cmd/build-web pipeline,
 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/cmd/build-web/main.go — Dagger build-web pipeline for embedded dashboard
 
+
+## 2026-05-11
+
+Fixed embedded dashboard styling mismatch by making macOS1 bridge CSS self-contained, removing unstable os-core side-effect imports, simplifying Dagger build-web, and validating embedded/Storybook pages with Playwright.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/app/macos1-bridge.css — Self-contained macOS1 token fallback
+
