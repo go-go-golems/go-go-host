@@ -300,3 +300,12 @@ Added Phase 9A scoped agent auto-activation with can_activate grants, --can-acti
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/deployments.go — auto-activate after valid agent upload
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/11/HOST-001-GO-GO-HOST-V1--go-go-host-v1-hosting-platform-design/tasks.md — new Phase 9A tasks
 
+
+## 2026-05-12
+
+Added Phase 10 follow-up tasks for dashboard canActivate grant UI and agent key inventory/rotation/revoke hardening.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/11/HOST-001-GO-GO-HOST-V1--go-go-host-v1-hosting-platform-design/tasks.md — Phase 10 agent grant/key hardening tasks
+

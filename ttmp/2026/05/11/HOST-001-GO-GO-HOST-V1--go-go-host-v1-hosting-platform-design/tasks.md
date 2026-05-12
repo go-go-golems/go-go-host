@@ -360,6 +360,11 @@ Goal: make hosted execution boundaries visible and enforceable.
 - [ ] Add DB stats endpoint.
 - [ ] Add usage collector for request count, error count, DB size, bundle bytes, deployment count.
 - [ ] Add dashboard quota warnings.
+- [ ] Add dashboard agent grant UI for `canActivate`, with clear warnings that it permits traffic promotion.
+- [ ] Add agent key inventory UI showing key IDs, created/revoked timestamps, and active/revoked status.
+- [ ] Add agent key rotation workflow: generate/register replacement key, verify it, then retire old key.
+- [ ] Add agent key revoke endpoint and UI action distinct from whole-agent revoke.
+- [ ] Add tests for revoked-key signed request denial and replacement-key success.
 - [ ] Add structured logs with request ID/site ID/deployment ID.
 - [ ] Add runtime event table or log stream for start/stop/fail/activate events.
 - [ ] Add tests for DB hard-limit write failure.
