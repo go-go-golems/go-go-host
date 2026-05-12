@@ -2,6 +2,7 @@ export * from './CodeBlock';
 export * from './CopyButton';
 export * from './EmptyState';
 export * from './ErrorCallout';
+export * from './JsonEditor';
 export * from './JsonTree';
 export * from './LoadingBlock';
 export * from './RoleBadge';
