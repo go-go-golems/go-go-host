@@ -18,7 +18,7 @@ import (
 
 const ManifestName = "go-go-host.json"
 
-var SafeCapabilities = map[string]bool{"time": true, "timer": true, "sqlite": true}
+var SafeCapabilities = map[string]bool{"express": true, "ui.dsl": true, "database": true, "db": true, "time": true, "timer": true, "assets": true, "sqlite": true}
 
 type Manifest struct {
 	Name         string   `json:"name"`

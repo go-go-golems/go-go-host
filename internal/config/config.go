@@ -14,35 +14,35 @@ import (
 // Config contains daemon settings used by the phase-0 skeleton. Later phases
 // will extend this with database, OIDC, runtime, and quota settings.
 type Config struct {
-	ListenAddr      string        `json:"listenAddr" yaml:"listenAddr"`
-	PublicBaseURL   string        `json:"publicBaseUrl" yaml:"publicBaseUrl"`
-	BaseDomain      string        `json:"baseDomain" yaml:"baseDomain"`
-	DataDir         string        `json:"dataDir" yaml:"dataDir"`
-	ControlDBDSN    string        `json:"controlDbDsn" yaml:"controlDbDsn"`
-	OIDCIssuer      string        `json:"oidcIssuer" yaml:"oidcIssuer"`
-	OIDCClientID    string        `json:"oidcClientId" yaml:"oidcClientId"`
+	ListenAddr               string        `json:"listenAddr" yaml:"listenAddr"`
+	PublicBaseURL            string        `json:"publicBaseUrl" yaml:"publicBaseUrl"`
+	BaseDomain               string        `json:"baseDomain" yaml:"baseDomain"`
+	DataDir                  string        `json:"dataDir" yaml:"dataDir"`
+	ControlDBDSN             string        `json:"controlDbDsn" yaml:"controlDbDsn"`
+	OIDCIssuer               string        `json:"oidcIssuer" yaml:"oidcIssuer"`
+	OIDCClientID             string        `json:"oidcClientId" yaml:"oidcClientId"`
 	DevAuth                  bool          `json:"devAuth" yaml:"devAuth"`
 	DevPlatformAdminSubjects []string      `json:"devPlatformAdminSubjects" yaml:"devPlatformAdminSubjects"`
 	LogLevel                 string        `json:"logLevel" yaml:"logLevel"`
-	ReadTimeout     time.Duration `json:"readTimeout" yaml:"readTimeout"`
-	WriteTimeout    time.Duration `json:"writeTimeout" yaml:"writeTimeout"`
-	ShutdownTimeout time.Duration `json:"shutdownTimeout" yaml:"shutdownTimeout"`
+	ReadTimeout              time.Duration `json:"readTimeout" yaml:"readTimeout"`
+	WriteTimeout             time.Duration `json:"writeTimeout" yaml:"writeTimeout"`
+	ShutdownTimeout          time.Duration `json:"shutdownTimeout" yaml:"shutdownTimeout"`
 }
 
 // Default returns a local-development configuration.
 func Default() Config {
 	return Config{
-		ListenAddr:      "127.0.0.1:8080",
-		PublicBaseURL:   "http://127.0.0.1:8080",
-		BaseDomain:      "localhost",
-		DataDir:         "./data",
-		ControlDBDSN:    "postgres://go_go_host:go_go_host_dev@127.0.0.1:55432/go_go_host?sslmode=disable",
+		ListenAddr:               "127.0.0.1:8080",
+		PublicBaseURL:            "http://127.0.0.1:8080",
+		BaseDomain:               "localhost",
+		DataDir:                  "./data",
+		ControlDBDSN:             "postgres://go_go_host:go_go_host_dev@127.0.0.1:55432/go_go_host?sslmode=disable",
 		DevAuth:                  true,
 		DevPlatformAdminSubjects: []string{"dev-user"},
 		LogLevel:                 "info",
-		ReadTimeout:     15 * time.Second,
-		WriteTimeout:    30 * time.Second,
-		ShutdownTimeout: 5 * time.Second,
+		ReadTimeout:              15 * time.Second,
+		WriteTimeout:             30 * time.Second,
+		ShutdownTimeout:          5 * time.Second,
 	}
 }
 

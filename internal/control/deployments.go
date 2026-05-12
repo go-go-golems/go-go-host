@@ -89,7 +89,7 @@ func (s *DeploymentService) Upload(ctx context.Context, input UploadDeploymentIn
 		manifestJSON = []byte("{}")
 	}
 	if prepared.Report.Valid {
-		drySpec := hostruntime.Spec{SiteID: site.ID, OrgID: site.OrgID, DeploymentID: dep.ID, Hosts: []string{site.PrimaryHost}, ScriptsDir: filepath.Join(unpackDest, filepath.FromSlash(prepared.Manifest.ScriptsDir)), AssetsDir: filepath.Join(unpackDest, filepath.FromSlash(prepared.Manifest.AssetsDir)), DBPath: filepath.Join(s.dataDir, "sites", site.ID, "dry-run", dep.ID+".sqlite"), Dev: true, HealthPath: prepared.Manifest.SmokePath, Capabilities: hostruntime.DefaultCapabilities()}
+		drySpec := hostruntime.Spec{SiteID: site.ID, OrgID: site.OrgID, DeploymentID: dep.ID, Hosts: []string{site.PrimaryHost}, ScriptsDir: filepath.Join(unpackDest, filepath.FromSlash(prepared.Manifest.ScriptsDir)), AssetsDir: filepath.Join(unpackDest, filepath.FromSlash(prepared.Manifest.AssetsDir)), DBPath: filepath.Join(s.dataDir, "sites", site.ID, "dry-run", dep.ID+".sqlite"), Dev: true, HealthPath: prepared.Manifest.SmokePath, Capabilities: hostruntime.DefaultCapabilities(), DBSoftMaxBytes: quota.DBSoftMaxBytes, DBHardMaxBytes: quota.DBHardMaxBytes, RequestTimeoutMS: quota.RequestTimeoutMS}
 		dryRuntime, dryErr := hostruntime.NewSiteRuntime(ctx, drySpec)
 		if dryErr != nil {
 			prepared.Report.Valid = false
@@ -107,7 +107,7 @@ func (s *DeploymentService) Upload(ctx context.Context, input UploadDeploymentIn
 	if !prepared.Report.Valid {
 		status = store.DeploymentStatusRejected
 	}
-	if err := s.store.UpdateDeploymentArtifacts(ctx, dep.ID, status, archiveDest, unpackDest, manifestJSON, validationJSON); err != nil {
+	if err := s.store.UpdateDeploymentArtifacts(ctx, dep.ID, status, archiveDest, unpackDest, manifestJSON, validationJSON, prepared.BundleSHA256); err != nil {
 		return nil, err
 	}
 	dep, err = s.store.GetDeployment(ctx, dep.ID)
@@ -207,7 +207,13 @@ func (s *DeploymentService) activate(ctx context.Context, actorType, actorID str
 	if unpackedPath == "" {
 		unpackedPath = filepath.Join(s.dataDir, "sites", site.ID, "deployments", dep.ID)
 	}
+	quota, _ := s.store.GetSiteQuota(ctx, site.ID)
 	spec := hostruntime.Spec{SiteID: site.ID, OrgID: site.OrgID, DeploymentID: dep.ID, Hosts: []string{site.PrimaryHost}, ScriptsDir: filepath.Join(unpackedPath, filepath.FromSlash(manifest.ScriptsDir)), AssetsDir: filepath.Join(unpackedPath, filepath.FromSlash(manifest.AssetsDir)), DBPath: filepath.Join(s.dataDir, "sites", site.ID, "db", "app.sqlite"), Dev: true, HealthPath: manifest.SmokePath, Capabilities: hostruntime.DefaultCapabilities()}
+	if quota != nil {
+		spec.DBSoftMaxBytes = quota.DBSoftMaxBytes
+		spec.DBHardMaxBytes = quota.DBHardMaxBytes
+		spec.RequestTimeoutMS = quota.RequestTimeoutMS
+	}
 	if err := s.supervisor.Activate(ctx, spec); err != nil {
 		return nil, err
 	}

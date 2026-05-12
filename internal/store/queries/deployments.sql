@@ -4,24 +4,24 @@ FROM deployments
 WHERE site_id = $1;
 
 -- name: CreateDeployment :one
-INSERT INTO deployments (id, site_id, version, status, bundle_ref, unpacked_path, manifest_json, validation_json, created_by_type, created_by_id, created_at, activated_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NULL)
-RETURNING id, site_id, version, status, bundle_ref, unpacked_path, manifest_json, validation_json, created_by_type, created_by_id, created_at, activated_at;
+INSERT INTO deployments (id, site_id, version, status, bundle_ref, unpacked_path, manifest_json, validation_json, created_by_type, created_by_id, created_at, activated_at, bundle_sha256)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NULL, '')
+RETURNING id, site_id, version, status, bundle_ref, unpacked_path, manifest_json, validation_json, created_by_type, created_by_id, created_at, activated_at, bundle_sha256;
 
 -- name: GetDeployment :one
-SELECT id, site_id, version, status, bundle_ref, unpacked_path, manifest_json, validation_json, created_by_type, created_by_id, created_at, activated_at
+SELECT id, site_id, version, status, bundle_ref, unpacked_path, manifest_json, validation_json, created_by_type, created_by_id, created_at, activated_at, bundle_sha256
 FROM deployments
 WHERE id = $1;
 
 -- name: ListDeploymentsBySite :many
-SELECT id, site_id, version, status, bundle_ref, unpacked_path, manifest_json, validation_json, created_by_type, created_by_id, created_at, activated_at
+SELECT id, site_id, version, status, bundle_ref, unpacked_path, manifest_json, validation_json, created_by_type, created_by_id, created_at, activated_at, bundle_sha256
 FROM deployments
 WHERE site_id = $1
 ORDER BY version DESC;
 
 -- name: UpdateDeploymentArtifacts :exec
 UPDATE deployments
-SET status = $2, bundle_ref = $3, unpacked_path = $4, manifest_json = $5, validation_json = $6
+SET status = $2, bundle_ref = $3, unpacked_path = $4, manifest_json = $5, validation_json = $6, bundle_sha256 = $7
 WHERE id = $1;
 
 -- name: UpdateDeploymentStatus :exec
@@ -40,7 +40,7 @@ SET status = 'superseded'
 WHERE site_id = $1 AND status = 'active' AND id <> $2;
 
 -- name: PreviousValidatedDeployment :one
-SELECT id, site_id, version, status, bundle_ref, unpacked_path, manifest_json, validation_json, created_by_type, created_by_id, created_at, activated_at
+SELECT id, site_id, version, status, bundle_ref, unpacked_path, manifest_json, validation_json, created_by_type, created_by_id, created_at, activated_at, bundle_sha256
 FROM deployments
 WHERE site_id = $1 AND id <> $2 AND status IN ('validated', 'superseded', 'active')
 ORDER BY version DESC

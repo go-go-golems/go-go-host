@@ -13,7 +13,7 @@ func (r runtimeStatusRecorder) RecordRuntimeStatus(ctx context.Context, status h
 	if r.store == nil {
 		return nil
 	}
-	return r.store.UpsertRuntimeStatus(ctx, store.RuntimeStatus{
+	err := r.store.UpsertRuntimeStatus(ctx, store.RuntimeStatus{
 		SiteID:        status.SiteID,
 		OrgID:         status.OrgID,
 		DeploymentID:  status.DeploymentID,
@@ -24,4 +24,6 @@ func (r runtimeStatusRecorder) RecordRuntimeStatus(ctx context.Context, status h
 		RequestsTotal: int64(status.RequestsTotal),
 		ErrorsTotal:   int64(status.ErrorsTotal),
 	})
+	_, _ = r.store.InsertRuntimeEvent(ctx, store.RuntimeEvent{SiteID: status.SiteID, OrgID: status.OrgID, DeploymentID: status.DeploymentID, EventType: "runtime.status", Status: string(status.Status), Message: status.LastError})
+	return err
 }

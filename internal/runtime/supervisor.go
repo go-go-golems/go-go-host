@@ -161,6 +161,20 @@ func (s *Supervisor) Status(siteID string) (RuntimeStatus, bool) {
 	return st, ok
 }
 
+func (s *Supervisor) DBStats(siteID string) (map[string]any, bool, error) {
+	s.mu.RLock()
+	rt := s.bySite[siteID]
+	s.mu.RUnlock()
+	if rt == nil {
+		return nil, false, nil
+	}
+	stats, err := rt.DBGuard().Stats()
+	if err != nil {
+		return nil, true, err
+	}
+	return stats.Map(), true, nil
+}
+
 func (s *Supervisor) Summary() Summary {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -185,7 +199,11 @@ func (s *Supervisor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	rec := &statusResponseWriter{ResponseWriter: w, statusCode: http.StatusOK}
 	r = web.WithPlatformContext(r, web.PlatformContext{RequestID: r.Header.Get("X-Request-Id"), OrgID: rt.spec.OrgID, SiteID: rt.spec.SiteID, DeploymentID: rt.spec.DeploymentID, Host: normalizeHost(r.Host)})
-	rt.ServeHTTP(rec, r)
+	if rt.spec.RequestTimeoutMS > 0 {
+		http.TimeoutHandler(http.HandlerFunc(rt.ServeHTTP), time.Duration(rt.spec.RequestTimeoutMS)*time.Millisecond, "go-go-host request timed out").ServeHTTP(rec, r)
+	} else {
+		rt.ServeHTTP(rec, r)
+	}
 	s.recordRequest(rt.spec.SiteID, rec.statusCode)
 }
 

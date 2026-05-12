@@ -11,6 +11,40 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const beginDeployRunUpload = `-- name: BeginDeployRunUpload :one
+UPDATE deploy_runs
+SET status = 'uploading'
+WHERE id = $1 AND status = 'pending' AND expires_at > $2
+RETURNING id, site_id, actor_type, actor_id, agent_id, requested_by_user_id, status, allowed_actions, allowed_channels, allowed_paths, upload_token_hash, expires_at, created_at, finished_at
+`
+
+type BeginDeployRunUploadParams struct {
+	ID        string             `json:"id"`
+	ExpiresAt pgtype.Timestamptz `json:"expires_at"`
+}
+
+func (q *Queries) BeginDeployRunUpload(ctx context.Context, arg BeginDeployRunUploadParams) (DeployRun, error) {
+	row := q.db.QueryRow(ctx, beginDeployRunUpload, arg.ID, arg.ExpiresAt)
+	var i DeployRun
+	err := row.Scan(
+		&i.ID,
+		&i.SiteID,
+		&i.ActorType,
+		&i.ActorID,
+		&i.AgentID,
+		&i.RequestedByUserID,
+		&i.Status,
+		&i.AllowedActions,
+		&i.AllowedChannels,
+		&i.AllowedPaths,
+		&i.UploadTokenHash,
+		&i.ExpiresAt,
+		&i.CreatedAt,
+		&i.FinishedAt,
+	)
+	return i, err
+}
+
 const createAgent = `-- name: CreateAgent :one
 INSERT INTO agents (id, org_id, name, status, created_by_user_id, created_at, last_seen_at)
 VALUES ($1, $2, $3, $4, $5, $6, NULL)

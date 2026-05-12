@@ -23,16 +23,19 @@ import (
 )
 
 type Spec struct {
-	SiteID       string
-	OrgID        string
-	DeploymentID string
-	Hosts        []string
-	ScriptsDir   string
-	AssetsDir    string
-	DBPath       string
-	Dev          bool
-	HealthPath   string
-	Capabilities CapabilitySet
+	SiteID           string
+	OrgID            string
+	DeploymentID     string
+	Hosts            []string
+	ScriptsDir       string
+	AssetsDir        string
+	DBPath           string
+	Dev              bool
+	HealthPath       string
+	Capabilities     CapabilitySet
+	DBSoftMaxBytes   int64
+	DBHardMaxBytes   int64
+	RequestTimeoutMS int
 }
 
 type CapabilitySet struct {
@@ -75,6 +78,7 @@ func NewSiteRuntime(ctx context.Context, spec Spec) (*SiteRuntime, error) {
 
 	host := web.NewHost(web.HostOptions{Dev: spec.Dev, Renderer: uidsl.RenderAny})
 	guard := dbguard.New(db, spec.DBPath)
+	guard.Configure(dbguard.Options{SoftMaxBytes: spec.DBSoftMaxBytes, HardMaxBytes: spec.DBHardMaxBytes, FailOverHardLimit: true})
 	meteredDB := dbguard.NewMeteredDB(db, guard)
 	databaseModule := databasemod.New(databasemod.WithPreconfiguredDB(meteredDB), databasemod.WithConfigureEnabled(false))
 	dbAliasModule := databasemod.New(databasemod.WithName("db"), databasemod.WithPreconfiguredDB(meteredDB), databasemod.WithConfigureEnabled(false))

@@ -91,6 +91,12 @@ SELECT id, site_id, actor_type, actor_id, agent_id, requested_by_user_id, status
 FROM deploy_runs
 WHERE id = $1;
 
+-- name: BeginDeployRunUpload :one
+UPDATE deploy_runs
+SET status = 'uploading'
+WHERE id = $1 AND status = 'pending' AND expires_at > $2
+RETURNING id, site_id, actor_type, actor_id, agent_id, requested_by_user_id, status, allowed_actions, allowed_channels, allowed_paths, upload_token_hash, expires_at, created_at, finished_at;
+
 -- name: FinishDeployRun :exec
 UPDATE deploy_runs
 SET status = $2, finished_at = $3

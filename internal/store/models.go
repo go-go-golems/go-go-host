@@ -160,6 +160,7 @@ const (
 	AgentEnrollmentTokenStatusUsed   = "used"
 
 	DeployRunStatusPending   = "pending"
+	DeployRunStatusUploading = "uploading"
 	DeployRunStatusCompleted = "completed"
 	DeployRunStatusRejected  = "rejected"
 )

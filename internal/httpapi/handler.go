@@ -46,6 +46,7 @@ func NewHandler(core *control.Core) http.Handler {
 	api.HandleFunc("POST /api/v1/agent/deploy-runs", handleCreateAgentDeployRun(core))
 	api.HandleFunc("POST /api/v1/agent/deploy-runs/{run_id}/upload", handleAgentDeployRunUpload(core))
 	api.HandleFunc("GET /api/v1/sites/{site_id}/runtime", handleRuntimeStatus(core))
+	api.HandleFunc("GET /api/v1/sites/{site_id}/db/stats", handleDBStats(core))
 	api.HandleFunc("POST /api/v1/sites/{site_id}/deployments", handleUploadDeployment(core))
 	api.HandleFunc("GET /api/v1/sites/{site_id}/deployments", handleListDeployments(core))
 	api.HandleFunc("POST /api/v1/sites/{site_id}/rollback", handleRollbackDeployment(core))

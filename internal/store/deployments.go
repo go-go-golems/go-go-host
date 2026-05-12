@@ -23,6 +23,7 @@ type CreateDeploymentInput struct {
 	ValidationJSON []byte
 	CreatedByType  string
 	CreatedByID    string
+	BundleSHA256   string
 }
 
 type Deployment struct {
@@ -38,6 +39,7 @@ type Deployment struct {
 	CreatedByID    string
 	CreatedAt      string
 	ActivatedAt    string
+	BundleSHA256   string
 }
 
 func (s *Store) CreateDeployment(ctx context.Context, input CreateDeploymentInput) (*Deployment, error) {
@@ -84,8 +86,8 @@ func (s *Store) ListDeploymentsBySite(ctx context.Context, siteID string) ([]Dep
 	return out, nil
 }
 
-func (s *Store) UpdateDeploymentArtifacts(ctx context.Context, id, status, bundleRef, unpackedPath string, manifestJSON, validationJSON []byte) error {
-	return s.q.UpdateDeploymentArtifacts(ctx, storedb.UpdateDeploymentArtifactsParams{ID: id, Status: status, BundleRef: bundleRef, UnpackedPath: unpackedPath, ManifestJson: manifestJSON, ValidationJson: validationJSON})
+func (s *Store) UpdateDeploymentArtifacts(ctx context.Context, id, status, bundleRef, unpackedPath string, manifestJSON, validationJSON []byte, bundleSHA256 string) error {
+	return s.q.UpdateDeploymentArtifacts(ctx, storedb.UpdateDeploymentArtifactsParams{ID: id, Status: status, BundleRef: bundleRef, UnpackedPath: unpackedPath, ManifestJson: manifestJSON, ValidationJson: validationJSON, BundleSha256: bundleSHA256})
 }
 
 func (s *Store) UpdateDeploymentStatus(ctx context.Context, id, status string, validationJSON []byte) error {
@@ -124,6 +126,7 @@ func deploymentFromDB(row storedb.Deployment) *Deployment {
 		CreatedByID:    row.CreatedByID,
 		CreatedAt:      fromPgTime(row.CreatedAt).Format(timeFormat),
 		ActivatedAt:    fromPgTime(row.ActivatedAt).Format(timeFormat),
+		BundleSHA256:   row.BundleSha256,
 	}
 }
 

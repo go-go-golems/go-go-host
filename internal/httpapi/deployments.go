@@ -24,6 +24,7 @@ type deploymentDTO struct {
 	CreatedByID    string `json:"createdById"`
 	CreatedAt      string `json:"createdAt"`
 	ActivatedAt    string `json:"activatedAt,omitempty"`
+	BundleSHA256   string `json:"bundleSha256"`
 }
 
 type rollbackRequest struct {
@@ -218,5 +219,5 @@ func writeDeploymentError(w http.ResponseWriter, err error) {
 }
 
 func deploymentToDTO(dep *store.Deployment) deploymentDTO {
-	return deploymentDTO{ID: dep.ID, SiteID: dep.SiteID, Version: dep.Version, Status: dep.Status, BundleRef: dep.BundleRef, UnpackedPath: dep.UnpackedPath, ManifestJSON: string(dep.ManifestJSON), ValidationJSON: string(dep.ValidationJSON), CreatedByType: dep.CreatedByType, CreatedByID: dep.CreatedByID, CreatedAt: dep.CreatedAt, ActivatedAt: dep.ActivatedAt}
+	return deploymentDTO{ID: dep.ID, SiteID: dep.SiteID, Version: dep.Version, Status: dep.Status, BundleRef: dep.BundleRef, UnpackedPath: dep.UnpackedPath, ManifestJSON: string(dep.ManifestJSON), ValidationJSON: string(dep.ValidationJSON), CreatedByType: dep.CreatedByType, CreatedByID: dep.CreatedByID, CreatedAt: dep.CreatedAt, ActivatedAt: dep.ActivatedAt, BundleSHA256: dep.BundleSHA256}
 }

@@ -162,6 +162,14 @@ func (s *Store) GetDeployRun(ctx context.Context, id string) (*DeployRun, error)
 	return deployRunFromDB(row), nil
 }
 
+func (s *Store) BeginDeployRunUpload(ctx context.Context, id string) (*DeployRun, error) {
+	row, err := s.q.BeginDeployRunUpload(ctx, storedb.BeginDeployRunUploadParams{ID: id, ExpiresAt: pgTime(now())})
+	if err != nil {
+		return nil, err
+	}
+	return deployRunFromDB(row), nil
+}
+
 func (s *Store) FinishDeployRun(ctx context.Context, id, status string) error {
 	return s.q.FinishDeployRun(ctx, storedb.FinishDeployRunParams{ID: id, Status: status, FinishedAt: pgTime(now())})
 }

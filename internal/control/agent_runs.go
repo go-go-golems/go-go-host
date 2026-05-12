@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"path/filepath"
@@ -168,9 +169,11 @@ func (s *AgentService) Enroll(ctx context.Context, input EnrollAgentInput) (*Enr
 
 func (s *AgentService) VerifySignedRequest(ctx context.Context, req SignedAgentRequest) (*store.Agent, error) {
 	if req.AgentID == "" || req.KeyID == "" || req.Nonce == "" || req.Signature == "" {
+		s.auditAgentSecurity(ctx, "agent.signature.missing_headers", req.AgentID, "", "missing required signature headers")
 		return nil, fmt.Errorf("missing agent signature headers")
 	}
 	if d := time.Since(req.Timestamp); d > agentSignatureSkew || d < -agentSignatureSkew {
+		s.auditAgentSecurity(ctx, "agent.signature.timestamp_skew", req.AgentID, "", "agent signature timestamp outside allowed skew")
 		return nil, fmt.Errorf("agent signature timestamp outside allowed skew")
 	}
 	agent, err := s.store.GetAgent(ctx, req.AgentID)
@@ -178,6 +181,7 @@ func (s *AgentService) VerifySignedRequest(ctx context.Context, req SignedAgentR
 		return nil, err
 	}
 	if agent.Status != store.AgentStatusActive {
+		s.auditAgentSecurity(ctx, "agent.signature.revoked_agent", req.AgentID, agent.OrgID, "agent is not active")
 		return nil, ErrPermissionDenied
 	}
 	key, err := s.store.GetAgentKey(ctx, req.KeyID)
@@ -185,6 +189,7 @@ func (s *AgentService) VerifySignedRequest(ctx context.Context, req SignedAgentR
 		return nil, err
 	}
 	if key.AgentID != agent.ID || key.Status != store.AgentKeyStatusActive {
+		s.auditAgentSecurity(ctx, "agent.signature.revoked_key", req.AgentID, agent.OrgID, "agent key is not active")
 		return nil, ErrPermissionDenied
 	}
 	pub, err := decodePublicKey(key.PublicKey)
@@ -193,13 +198,16 @@ func (s *AgentService) VerifySignedRequest(ctx context.Context, req SignedAgentR
 	}
 	sig, err := base64.StdEncoding.DecodeString(req.Signature)
 	if err != nil {
+		s.auditAgentSecurity(ctx, "agent.signature.invalid", req.AgentID, agent.OrgID, "invalid signature encoding")
 		return nil, fmt.Errorf("invalid signature encoding")
 	}
 	canonical := AgentCanonicalString(req.Method, req.PathQuery, req.BodySHA256, req.Timestamp.Format(time.RFC3339), req.Nonce)
 	if !ed25519.Verify(pub, []byte(canonical), sig) {
+		s.auditAgentSecurity(ctx, "agent.signature.invalid", req.AgentID, agent.OrgID, "signature verification failed")
 		return nil, ErrPermissionDenied
 	}
 	if err := s.store.InsertAgentNonce(ctx, agent.ID, req.Nonce); err != nil {
+		s.auditAgentSecurity(ctx, "agent.signature.nonce_replay", req.AgentID, agent.OrgID, "agent nonce replay detected")
 		return nil, fmt.Errorf("agent nonce replay detected")
 	}
 	_ = s.store.TouchAgentLastSeen(ctx, agent.ID)
@@ -220,9 +228,11 @@ func (s *AgentService) CreateDeployRun(ctx context.Context, input CreateDeployRu
 		return nil, err
 	}
 	if !grant.CanDeploy || grantExpired(grant) || !allowedString(input.Channel, grant.AllowedChannels) || !allowedPath(input.Path, grant.AllowedPaths) {
+		s.auditAgentSecurity(ctx, "agent.grant.denied", input.AgentID, agent.OrgID, "deploy grant denied")
 		return nil, ErrPermissionDenied
 	}
 	if input.Activate && !grant.CanActivate {
+		s.auditAgentSecurity(ctx, "agent.grant.denied", input.AgentID, agent.OrgID, "activation grant denied")
 		return nil, ErrPermissionDenied
 	}
 	token, tokenHash, err := newSecret("upload")
@@ -251,6 +261,11 @@ func (s *AgentService) ValidateUploadToken(ctx context.Context, runID, token str
 		return nil, nil, err
 	}
 	if run.Status != store.DeployRunStatusPending || time.Now().UTC().After(run.ExpiresAt) || hashSecret(token) != run.UploadTokenHash {
+		s.auditAgentSecurity(ctx, "agent.upload_token.invalid", run.AgentID, "", "upload token invalid, expired, or already used")
+		return nil, nil, ErrPermissionDenied
+	}
+	run, err = s.store.BeginDeployRunUpload(ctx, runID)
+	if err != nil {
 		return nil, nil, ErrPermissionDenied
 	}
 	agent, err := s.store.GetAgent(ctx, run.AgentID)
@@ -356,6 +371,14 @@ func allowedPath(v string, allowed []string) bool {
 		}
 	}
 	return false
+}
+
+func (s *AgentService) auditAgentSecurity(ctx context.Context, action, agentID, orgID, message string) {
+	if s == nil || s.store == nil {
+		return
+	}
+	metadata, _ := json.Marshal(map[string]string{"message": message})
+	_, _ = s.store.InsertAuditEvent(ctx, store.AuditEvent{OrgID: orgID, ActorType: "agent", ActorID: agentID, Action: action, ResourceType: "agent", ResourceID: agentID, MetadataJSON: string(metadata)})
 }
 
 var ErrAgentSignature = errors.New("invalid agent signature")

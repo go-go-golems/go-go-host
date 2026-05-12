@@ -28,9 +28,9 @@ func (q *Queries) ActivateDeployment(ctx context.Context, arg ActivateDeployment
 }
 
 const createDeployment = `-- name: CreateDeployment :one
-INSERT INTO deployments (id, site_id, version, status, bundle_ref, unpacked_path, manifest_json, validation_json, created_by_type, created_by_id, created_at, activated_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NULL)
-RETURNING id, site_id, version, status, bundle_ref, unpacked_path, manifest_json, validation_json, created_by_type, created_by_id, created_at, activated_at
+INSERT INTO deployments (id, site_id, version, status, bundle_ref, unpacked_path, manifest_json, validation_json, created_by_type, created_by_id, created_at, activated_at, bundle_sha256)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NULL, '')
+RETURNING id, site_id, version, status, bundle_ref, unpacked_path, manifest_json, validation_json, created_by_type, created_by_id, created_at, activated_at, bundle_sha256
 `
 
 type CreateDeploymentParams struct {
@@ -75,12 +75,13 @@ func (q *Queries) CreateDeployment(ctx context.Context, arg CreateDeploymentPara
 		&i.CreatedByID,
 		&i.CreatedAt,
 		&i.ActivatedAt,
+		&i.BundleSha256,
 	)
 	return i, err
 }
 
 const getDeployment = `-- name: GetDeployment :one
-SELECT id, site_id, version, status, bundle_ref, unpacked_path, manifest_json, validation_json, created_by_type, created_by_id, created_at, activated_at
+SELECT id, site_id, version, status, bundle_ref, unpacked_path, manifest_json, validation_json, created_by_type, created_by_id, created_at, activated_at, bundle_sha256
 FROM deployments
 WHERE id = $1
 `
@@ -101,12 +102,13 @@ func (q *Queries) GetDeployment(ctx context.Context, id string) (Deployment, err
 		&i.CreatedByID,
 		&i.CreatedAt,
 		&i.ActivatedAt,
+		&i.BundleSha256,
 	)
 	return i, err
 }
 
 const listDeploymentsBySite = `-- name: ListDeploymentsBySite :many
-SELECT id, site_id, version, status, bundle_ref, unpacked_path, manifest_json, validation_json, created_by_type, created_by_id, created_at, activated_at
+SELECT id, site_id, version, status, bundle_ref, unpacked_path, manifest_json, validation_json, created_by_type, created_by_id, created_at, activated_at, bundle_sha256
 FROM deployments
 WHERE site_id = $1
 ORDER BY version DESC
@@ -134,6 +136,7 @@ func (q *Queries) ListDeploymentsBySite(ctx context.Context, siteID string) ([]D
 			&i.CreatedByID,
 			&i.CreatedAt,
 			&i.ActivatedAt,
+			&i.BundleSha256,
 		); err != nil {
 			return nil, err
 		}
@@ -159,7 +162,7 @@ func (q *Queries) NextDeploymentVersion(ctx context.Context, siteID string) (int
 }
 
 const previousValidatedDeployment = `-- name: PreviousValidatedDeployment :one
-SELECT id, site_id, version, status, bundle_ref, unpacked_path, manifest_json, validation_json, created_by_type, created_by_id, created_at, activated_at
+SELECT id, site_id, version, status, bundle_ref, unpacked_path, manifest_json, validation_json, created_by_type, created_by_id, created_at, activated_at, bundle_sha256
 FROM deployments
 WHERE site_id = $1 AND id <> $2 AND status IN ('validated', 'superseded', 'active')
 ORDER BY version DESC
@@ -187,6 +190,7 @@ func (q *Queries) PreviousValidatedDeployment(ctx context.Context, arg PreviousV
 		&i.CreatedByID,
 		&i.CreatedAt,
 		&i.ActivatedAt,
+		&i.BundleSha256,
 	)
 	return i, err
 }
@@ -209,7 +213,7 @@ func (q *Queries) SupersedeActiveDeployments(ctx context.Context, arg SupersedeA
 
 const updateDeploymentArtifacts = `-- name: UpdateDeploymentArtifacts :exec
 UPDATE deployments
-SET status = $2, bundle_ref = $3, unpacked_path = $4, manifest_json = $5, validation_json = $6
+SET status = $2, bundle_ref = $3, unpacked_path = $4, manifest_json = $5, validation_json = $6, bundle_sha256 = $7
 WHERE id = $1
 `
 
@@ -220,6 +224,7 @@ type UpdateDeploymentArtifactsParams struct {
 	UnpackedPath   string `json:"unpacked_path"`
 	ManifestJson   []byte `json:"manifest_json"`
 	ValidationJson []byte `json:"validation_json"`
+	BundleSha256   string `json:"bundle_sha256"`
 }
 
 func (q *Queries) UpdateDeploymentArtifacts(ctx context.Context, arg UpdateDeploymentArtifactsParams) error {
@@ -230,6 +235,7 @@ func (q *Queries) UpdateDeploymentArtifacts(ctx context.Context, arg UpdateDeplo
 		arg.UnpackedPath,
 		arg.ManifestJson,
 		arg.ValidationJson,
+		arg.BundleSha256,
 	)
 	return err
 }

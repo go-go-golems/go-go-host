@@ -101,6 +101,7 @@ type Deployment struct {
 	CreatedByID    string             `json:"created_by_id"`
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 	ActivatedAt    pgtype.Timestamptz `json:"activated_at"`
+	BundleSha256   string             `json:"bundle_sha256"`
 }
 
 type Membership struct {
@@ -120,6 +121,18 @@ type Org struct {
 type PlatformAdmin struct {
 	UserID    string             `json:"user_id"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
+type RuntimeEvent struct {
+	ID           string             `json:"id"`
+	SiteID       string             `json:"site_id"`
+	OrgID        string             `json:"org_id"`
+	DeploymentID string             `json:"deployment_id"`
+	EventType    string             `json:"event_type"`
+	Status       string             `json:"status"`
+	Message      string             `json:"message"`
+	MetadataJson []byte             `json:"metadata_json"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
 }
 
 type RuntimeStatus struct {

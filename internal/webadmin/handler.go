@@ -19,11 +19,15 @@ var dashboardFS embed.FS
 func NewHandler() http.Handler {
 	dist, err := fs.Sub(dashboardFS, "dist")
 	if err != nil {
-		return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { http.Error(w, err.Error(), http.StatusInternalServerError) })
+		return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		})
 	}
 	index, err := fs.ReadFile(dist, "index.html")
 	if err != nil {
-		return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { http.Error(w, err.Error(), http.StatusInternalServerError) })
+		return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		})
 	}
 	files := http.FileServer(http.FS(dist))
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
