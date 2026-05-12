@@ -10,6 +10,16 @@ export interface Org { id: string; slug: string; name: string; }
 export interface CreateOrgRequest { slug: string; name: string; }
 export interface Site { id: string; orgId: string; slug: string; name: string; primaryHost: string; status: string; activeDeploymentId: string; }
 export interface CreateSiteRequest { orgId: string; slug: string; name: string; }
+export interface SiteConfigItem { key: string; value: unknown; updatedAt: string; }
+export interface UpsertSiteConfigRequest { siteId: string; key: string; value: unknown; }
+export interface DeleteSiteConfigRequest { siteId: string; key: string; }
+export interface SiteCapability { siteId: string; capability: string; enabled: boolean; config: unknown; updatedAt: string; }
+export interface UpsertSiteCapabilityRequest { siteId: string; capability: string; enabled: boolean; config?: unknown; }
+export interface SiteDomain { id: string; siteId: string; hostname: string; status: string; verificationToken: string; verifiedAt?: string; createdAt: string; }
+export interface AddSiteDomainRequest { siteId: string; hostname: string; }
+export interface VerifySiteDomainRequest { siteId: string; domainId: string; }
+export interface DeleteSiteDomainRequest { siteId: string; domainId: string; }
+export interface SiteEnvironmentPlaceholder { siteId: string; status: string; supported: string[]; notSupported: string[]; message: string; }
 export interface Deployment { id: string; siteId: string; version: number; status: DeploymentStatus; bundleRef: string; unpackedPath: string; manifestJson: string; validationJson: string; createdByType: string; createdById: string; createdAt: string; activatedAt?: string; bundleSha256?: string; }
 export interface RuntimeStatus { siteId: string; orgId?: string; deploymentId?: string; hosts?: string[]; status: RuntimeState; startedAt?: string; lastError?: string; requestsTotal?: number; errorsTotal?: number; }
 export interface AdminRuntimeSummary { activeSites: number; hosts: string[]; runtimes: RuntimeStatus[]; }

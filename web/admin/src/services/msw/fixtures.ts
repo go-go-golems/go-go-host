@@ -1,4 +1,4 @@
-import type { AdminAgent, AdminCapability, AdminDeployment, AdminDomain, AdminOrg, AdminQuota, AdminRuntimeSummary, AdminSite, AdminUser, Agent, AuditEvent, Deployment, MeResponse, RuntimeStatus, Site } from '../types';
+import type { AdminAgent, AdminCapability, AdminDeployment, AdminDomain, AdminOrg, AdminQuota, AdminRuntimeSummary, AdminSite, AdminUser, Agent, AuditEvent, Deployment, MeResponse, RuntimeStatus, Site, SiteCapability, SiteConfigItem, SiteDomain, SiteEnvironmentPlaceholder } from '../types';
 
 export const fixtures = {
   me: {
@@ -20,6 +20,20 @@ export const fixtures = {
   ] satisfies Deployment[],
   agents: [{ id: 'agt_123', orgId: 'org_123', name: 'ci-bot', status: 'active', createdByUserId: 'usr_123', createdAt: '2026-05-11T22:30:00Z' }] satisfies Agent[],
   audit: [{ id: 'aud_123', orgId: 'org_123', actorType: 'user', actorId: 'usr_123', action: 'deployment.activate', resourceType: 'deployment', resourceId: 'dep_4', ipAddress: '', userAgent: '', metadataJson: '{}', createdAt: '2026-05-11T22:20:00Z' }] satisfies AuditEvent[],
+  siteConfig: [
+    { key: 'theme.title', value: { text: 'Hello Site' }, updatedAt: '2026-05-11T22:00:00Z' },
+    { key: 'features.comments', value: false, updatedAt: '2026-05-11T22:01:00Z' },
+  ] satisfies SiteConfigItem[],
+  siteCapabilities: [
+    { siteId: 'site_123', capability: 'express', enabled: true, config: {}, updatedAt: '2026-05-11T22:00:00Z' },
+    { siteId: 'site_123', capability: 'assets', enabled: true, config: {}, updatedAt: '2026-05-11T22:00:00Z' },
+    { siteId: 'site_123', capability: 'exec', enabled: false, config: { reason: 'never available in v1' }, updatedAt: '2026-05-11T22:00:00Z' },
+  ] satisfies SiteCapability[],
+  siteDomains: [
+    { id: 'dom_site_123', siteId: 'site_123', hostname: 'hello.example.com', status: 'pending', verificationToken: 'ggh-verify-demo', createdAt: '2026-05-11T22:00:00Z' },
+    { id: 'dom_site_456', siteId: 'site_123', hostname: 'hello.localhost', status: 'verified', verificationToken: '', verifiedAt: '2026-05-11T22:10:00Z', createdAt: '2026-05-11T21:00:00Z' },
+  ] satisfies SiteDomain[],
+  siteEnvironment: { siteId: 'site_123', status: 'design-placeholder', supported: ['non-secret site config via /config'], notSupported: ['process env passthrough', 'plaintext secret values in API responses'], message: 'Secrets/environment variables are intentionally not implemented in v1. Use non-secret site config only until encrypted secret storage and runtime injection are designed.' } satisfies SiteEnvironmentPlaceholder,
   adminMe: {
     user: { id: 'usr_admin', email: 'admin@dev.local', displayName: 'Platform Admin' },
     memberships: [{ orgId: 'org_123', orgSlug: 'demo', orgName: 'Demo Org', role: 'org_owner' }],

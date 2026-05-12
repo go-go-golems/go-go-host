@@ -41,6 +41,19 @@ export const handlers = [
     return HttpResponse.json({ id: `site_${body.slug}`, orgId: String(params.orgId), slug: body.slug, name: body.name, primaryHost: `${body.slug}.localhost`, status: 'active', activeDeploymentId: '' }, { status: 201 });
   }),
   http.get('/api/v1/sites/:siteId/runtime', () => HttpResponse.json(fixtures.runtimeReady)),
+  http.get('/api/v1/sites/:siteId/config', () => HttpResponse.json(fixtures.siteConfig)),
+  http.put('/api/v1/sites/:siteId/config', async ({ request }) => HttpResponse.json({ status: 'ok', body: await request.json() })),
+  http.delete('/api/v1/sites/:siteId/config', () => HttpResponse.json({ status: 'ok' })),
+  http.get('/api/v1/sites/:siteId/capabilities', () => HttpResponse.json(fixtures.siteCapabilities)),
+  http.put('/api/v1/sites/:siteId/capabilities', async ({ request }) => HttpResponse.json({ status: 'ok', body: await request.json() })),
+  http.get('/api/v1/sites/:siteId/domains', () => HttpResponse.json(fixtures.siteDomains)),
+  http.post('/api/v1/sites/:siteId/domains', async ({ params, request }) => {
+    const body = await request.json() as { hostname?: string };
+    return HttpResponse.json({ id: `dom_${Date.now()}`, siteId: String(params.siteId), hostname: body.hostname ?? 'new.example.com', status: 'pending', verificationToken: 'ggh-verify-new', createdAt: new Date().toISOString() }, { status: 201 });
+  }),
+  http.post('/api/v1/sites/:siteId/domains/:domainId/verify', ({ params }) => HttpResponse.json({ ...fixtures.siteDomains[0], id: String(params.domainId), status: 'verified', verifiedAt: new Date().toISOString() })),
+  http.delete('/api/v1/sites/:siteId/domains/:domainId', () => HttpResponse.json({ status: 'ok' })),
+  http.get('/api/v1/sites/:siteId/environment', ({ params }) => HttpResponse.json({ ...fixtures.siteEnvironment, siteId: String(params.siteId) })),
   http.get('/api/v1/sites/:siteId/deployments', () => HttpResponse.json(fixtures.deployments)),
   http.post('/api/v1/sites/:siteId/deployments', async ({ params }) => HttpResponse.json({ deployment: fixtures.deployments[0], report: { valid: true, files: 3, bytes: 1024 }, manifest: { name: 'hello', entry: 'scripts/app.js', siteId: params.siteId } }, { status: 201 })),
   http.get('/api/v1/deployments/:deploymentId', ({ params }) => HttpResponse.json(fixtures.deployments.find((d) => d.id === params.deploymentId) ?? fixtures.deployments[0])),

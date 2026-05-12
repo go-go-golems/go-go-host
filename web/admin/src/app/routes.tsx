@@ -8,6 +8,7 @@ import { SitesPage } from '../pages/SitesPage';
 import { CreateSitePage } from '../pages/CreateSitePage';
 import { SiteOverviewPage } from '../pages/SiteOverviewPage';
 import { RuntimePage } from '../pages/RuntimePage';
+import { SiteSettingsPage } from '../pages/SiteSettingsPage';
 import { DeploymentsPage } from '../pages/DeploymentsPage';
 import { DeploymentDetailPage } from '../pages/DeploymentDetailPage';
 import { AgentsPage } from '../pages/AgentsPage';
@@ -53,6 +54,7 @@ export const router = createBrowserRouter([
     { path: 'sites/:siteId', element: <SiteLayout />, children: [
       { index: true, element: <SiteOverviewPage /> },
       { path: 'runtime', element: <RuntimePage /> },
+      { path: 'settings', element: <SiteSettingsPage /> },
       { path: 'deployments', element: <DeploymentsPage /> },
       { path: 'deployments/:deploymentId', element: <DeploymentDetailPage /> },
     ] },
