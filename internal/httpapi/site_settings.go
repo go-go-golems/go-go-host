@@ -255,7 +255,11 @@ func handleSiteEnvironmentPlaceholder(core *control.Core) http.HandlerFunc {
 }
 
 func siteDomainToDTO(domain store.SiteDomain) siteDomainDTO {
-	return siteDomainDTO{ID: domain.ID, SiteID: domain.SiteID, Hostname: domain.Hostname, Status: domain.Status, VerificationToken: domain.VerificationToken, VerifiedAt: domain.VerifiedAt.Format("2006-01-02T15:04:05Z07:00"), CreatedAt: domain.CreatedAt.Format("2006-01-02T15:04:05Z07:00")}
+	verifiedAt := ""
+	if !domain.VerifiedAt.IsZero() {
+		verifiedAt = domain.VerifiedAt.Format("2006-01-02T15:04:05Z07:00")
+	}
+	return siteDomainDTO{ID: domain.ID, SiteID: domain.SiteID, Hostname: domain.Hostname, Status: domain.Status, VerificationToken: domain.VerificationToken, VerifiedAt: verifiedAt, CreatedAt: domain.CreatedAt.Format("2006-01-02T15:04:05Z07:00")}
 }
 
 func writeControlError(w http.ResponseWriter, err error) {
