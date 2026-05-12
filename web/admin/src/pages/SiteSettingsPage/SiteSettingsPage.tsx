@@ -1,6 +1,7 @@
 import { FormEvent, useMemo, useState } from 'react';
 import { useOutletContext, useParams } from 'react-router-dom';
-import { CodeBlock, ErrorCallout, LoadingBlock, StatusPill, Timestamp } from '../../components/atoms';
+import { Checkbox } from '@go-go-golems/os-core';
+import { CodeBlock, ErrorCallout, JsonEditor, LoadingBlock, StatusPill, Timestamp } from '../../components/atoms';
 import { apiErrorMessage } from '../../services/errors';
 import { useAddSiteDomainMutation, useDeleteSiteConfigMutation, useDeleteSiteDomainMutation, useGetSiteEnvironmentQuery, useListSiteCapabilitiesQuery, useListSiteConfigQuery, useListSiteDomainsQuery, useUpsertSiteCapabilityMutation, useUpsertSiteConfigMutation, useVerifySiteDomainMutation } from '../../services/goGoHostApi';
 import type { Site } from '../../services/types';
@@ -64,15 +65,15 @@ export function SiteSettingsPage() {
 
   return <div className="site-settings-page">
     <section className="dashboard-panel site-settings-page__intro">
-      <header><h1>Site settings</h1><p>Configuration lives outside deployment bundles. Store non-secret values here, keep secrets out of v1 runtime APIs, and use domains to prepare traffic hosts.</p></header>
-      <dl><div><dt>Primary host</dt><dd><code>{site.primaryHost}</code></dd></div><div><dt>Site ID</dt><dd><code>{site.id}</code></dd></div></dl>
+      <header><h1>Site settings</h1><p>Configuration lives outside deployment bundles. Store <span className="site-settings-page__highlight site-settings-page__highlight--safe">non-secret values</span> here, keep <span className="site-settings-page__highlight site-settings-page__highlight--danger">secrets out of v1 runtime APIs</span>, and use domains to prepare traffic hosts.</p></header>
+      <dl><div><dt>Primary host</dt><dd><code className="site-settings-page__identifier">{site.primaryHost}</code></dd></div><div><dt>Site ID</dt><dd><code className="site-settings-page__identifier">{site.id}</code></dd></div></dl>
     </section>
 
     <section className="dashboard-panel site-settings-page__section">
-      <header><h2>Non-secret config</h2><p>JSON values available to operators as site metadata. Secret storage is intentionally deferred.</p></header>
+      <header><h2>Non-secret config</h2><p><span className="site-settings-page__highlight site-settings-page__highlight--info">JSON values</span> available to operators as site metadata. <span className="site-settings-page__highlight site-settings-page__highlight--warning">Secret storage is intentionally deferred.</span></p></header>
       <form className="site-settings-page__form" onSubmit={submitConfig}>
-        <label>Key<input value={configKey} onChange={(e) => setConfigKey(e.target.value)} /></label>
-        <label>JSON value<textarea rows={4} value={configValue} onChange={(e) => setConfigValue(e.target.value)} /></label>
+        <label>Key<input data-part="field-input" value={configKey} onChange={(e) => setConfigKey(e.target.value)} /></label>
+        <label>JSON value<JsonEditor value={configValue} onChange={setConfigValue} ariaLabel="Site config JSON value" /></label>
         <button type="submit" data-part="btn" disabled={upsertConfigState.isLoading}>Save config</button>
       </form>
       {configError ? <ErrorCallout title="Config not saved" error={configError} /> : null}
@@ -80,21 +81,21 @@ export function SiteSettingsPage() {
     </section>
 
     <section className="dashboard-panel site-settings-page__section">
-      <header><h2>Domains</h2><p>Add custom hostnames, copy the verification token, then mark them verified using the manual placeholder flow. Verified domains are included on the next activation.</p></header>
-      <form className="site-settings-page__form site-settings-page__form--inline" onSubmit={submitDomain}><label>Hostname<input value={hostname} onChange={(e) => setHostname(e.target.value)} /></label><button type="submit" data-part="btn" disabled={addDomainState.isLoading}>Add domain</button></form>
+      <header><h2>Domains</h2><p>Add custom hostnames, copy the <span className="site-settings-page__highlight site-settings-page__highlight--info">verification token</span>, then mark them verified using the manual placeholder flow. <span className="site-settings-page__highlight site-settings-page__highlight--safe">Verified domains</span> are included on the next activation.</p></header>
+      <form className="site-settings-page__form site-settings-page__form--inline" onSubmit={submitDomain}><label>Hostname<input data-part="field-input" value={hostname} onChange={(e) => setHostname(e.target.value)} /></label><button type="submit" data-part="btn" disabled={addDomainState.isLoading}>Add domain</button></form>
       {addDomainState.error ? <ErrorCallout title="Domain not added" error={apiErrorMessage(addDomainState.error)} /> : null}
       <table><thead><tr><th>Hostname</th><th>Status</th><th>Verification token</th><th>Verified</th><th>Actions</th></tr></thead><tbody>{(domains.data ?? []).map((domain) => <tr key={domain.id}><td><strong>{domain.hostname}</strong></td><td><StatusPill status={domain.status} tone={domain.status === 'verified' ? 'success' : 'warning'} /></td><td><code>{domain.verificationToken || '—'}</code></td><td><Timestamp value={domain.verifiedAt} /></td><td><button type="button" data-part="btn" onClick={() => verifyDomain({ siteId: site.id, domainId: domain.id })}>Verify</button> <button type="button" data-part="btn" onClick={() => deleteDomain({ siteId: site.id, domainId: domain.id })}>Delete</button></td></tr>)}</tbody></table>
     </section>
 
     <section className="dashboard-panel site-settings-page__section">
-      <header><h2>Capabilities</h2><p>Org owners can toggle site capability policy. `exec` and unrestricted `fs` remain unavailable in hosted v1.</p></header>
+      <header><h2>Capabilities</h2><p>Org owners can toggle <span className="site-settings-page__highlight site-settings-page__highlight--info">site capability policy</span>. <code className="site-settings-page__highlight site-settings-page__highlight--danger">exec</code> and unrestricted <code className="site-settings-page__highlight site-settings-page__highlight--danger">fs</code> remain unavailable in hosted v1.</p></header>
       {capError ? <ErrorCallout title="Capability not updated" error={capError} /> : null}
-      <table><thead><tr><th>Capability</th><th>Status</th><th>Config</th><th>Action</th></tr></thead><tbody>{capabilityRows.map((cap) => <tr key={cap.capability}><td><code>{cap.capability}</code></td><td><StatusPill status={cap.enabled ? 'enabled' : 'disabled'} tone={cap.enabled ? 'success' : 'danger'} /></td><td><CodeBlock code={JSON.stringify(cap.config ?? {}, null, 2)} /></td><td><button type="button" data-part="btn" disabled={upsertCapabilityState.isLoading} onClick={() => toggleCapability(cap.capability, !cap.enabled, cap.config)}>{cap.enabled ? 'Disable' : 'Enable'}</button></td></tr>)}</tbody></table>
+      <table><thead><tr><th>Capability</th><th>Policy</th><th>Status</th><th>Config</th></tr></thead><tbody>{capabilityRows.map((cap) => <tr key={cap.capability}><td><code className={cap.enabled ? 'site-settings-page__highlight site-settings-page__highlight--safe' : undefined}>{cap.capability}</code></td><td><Checkbox label={cap.enabled ? 'Enabled' : 'Disabled'} checked={cap.enabled} disabled={upsertCapabilityState.isLoading} onChange={() => { void toggleCapability(cap.capability, !cap.enabled, cap.config); }} /></td><td><StatusPill status={cap.enabled ? 'enabled' : 'disabled'} tone={cap.enabled ? 'success' : 'danger'} /></td><td><CodeBlock code={JSON.stringify(cap.config ?? {}, null, 2)} /></td></tr>)}</tbody></table>
     </section>
 
     <section className="dashboard-panel site-settings-page__section">
-      <header><h2>Environment and secrets</h2><p>{environment.data?.message}</p></header>
-      <div className="site-settings-page__env"><div><h3>Supported now</h3><ul>{environment.data?.supported.map((item) => <li key={item}>{item}</li>)}</ul></div><div><h3>Not supported in v1</h3><ul>{environment.data?.notSupported.map((item) => <li key={item}>{item}</li>)}</ul></div></div>
+      <header><h2>Environment and secrets</h2><p><span className="site-settings-page__highlight site-settings-page__highlight--warning">{environment.data?.message}</span></p></header>
+      <div className="site-settings-page__env"><div><h3>Supported now</h3><ul>{environment.data?.supported.map((item) => <li className="site-settings-page__highlight site-settings-page__highlight--safe" key={item}>{item}</li>)}</ul></div><div><h3>Not supported in v1</h3><ul>{environment.data?.notSupported.map((item) => <li className="site-settings-page__highlight site-settings-page__highlight--danger" key={item}>{item}</li>)}</ul></div></div>
     </section>
   </div>;
 }

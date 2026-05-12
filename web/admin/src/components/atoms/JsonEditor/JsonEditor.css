@@ -30,16 +30,6 @@
   background: color-mix(in srgb, var(--hc-color-desktop-bg) 30%, transparent);
 }
 
-.json-editor .ͼb,
-.json-editor .ͼc {
-  color: color-mix(in srgb, var(--hc-color-fg) 70%, #0066aa);
-}
-
-.json-editor .ͼd,
-.json-editor .ͼe {
-  color: color-mix(in srgb, var(--hc-color-fg) 65%, #8a5a00);
-}
-
-.json-editor .ͼf {
-  color: color-mix(in srgb, var(--hc-color-fg) 70%, #116611);
+.json-editor .cm-content {
+  caret-color: var(--hc-color-border);
 }

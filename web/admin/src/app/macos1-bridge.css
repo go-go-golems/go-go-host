@@ -4,8 +4,13 @@
   min-height: 100vh;
   background: var(--hc-color-desktop-bg);
   color: var(--hc-color-fg);
+  --ggh-font-xs: 10px;
+  --ggh-font-sm: 11px;
+  --ggh-font-md: 12px;
+  --ggh-font-lg: 16px;
+  --ggh-font-code: 11px;
   font-family: var(--hc-font-family);
-  font-size: var(--hc-font-size);
+  font-size: var(--ggh-font-sm);
 }
 
 [data-widget="hypercard"].theme-macos1 .dashboard-shell {
@@ -83,6 +88,10 @@
 [data-widget="hypercard"].theme-macos1 .dashboard-panel h3 {
   margin-top: 0;
 }
+
+[data-widget="hypercard"].theme-macos1 .dashboard-panel h1 { font-size: var(--ggh-font-lg); }
+[data-widget="hypercard"].theme-macos1 .dashboard-panel h2 { font-size: 14px; }
+[data-widget="hypercard"].theme-macos1 .dashboard-panel h3 { font-size: var(--ggh-font-md); }
 
 [data-widget="hypercard"].theme-macos1 .dashboard-panel p {
   max-width: 64ch;
