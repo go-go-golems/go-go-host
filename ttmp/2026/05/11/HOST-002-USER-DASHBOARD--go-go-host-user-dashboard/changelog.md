@@ -140,3 +140,12 @@ Fixed embedded dashboard styling mismatch by making macOS1 bridge CSS self-conta
 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/app/macos1-bridge.css — Self-contained macOS1 token fallback
 
+
+## 2026-05-11
+
+Restored @go-go-golems/os-core as a published npmjs dependency, rebuilt embedded dashboard with Dagger, and verified embedded styling with Playwright.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/package.json — Uses @go-go-golems/os-core from npmjs
+

@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@go-go-golems/os-core':
+        specifier: ^0.1.2
+        version: 0.1.2(@reduxjs/toolkit@2.11.2(react-redux@9.2.0(@types/react@19.2.14)(react@19.2.6)(redux@5.0.1))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react-redux@9.2.0(@types/react@19.2.14)(react@19.2.6)(redux@5.0.1))(react@19.2.6)
       '@reduxjs/toolkit':
         specifier: ^2.5.0
         version: 2.11.2(react-redux@9.2.0(@types/react@19.2.14)(react@19.2.6)(redux@5.0.1))(react@19.2.6)
@@ -470,6 +473,14 @@ packages:
     engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
+
+  '@go-go-golems/os-core@0.1.2':
+    resolution: {integrity: sha512-ZuzTEb1hKmJEdfazyYv/ht3Nhmc1kE289TAotoNtctcyVAVBySYXIITSaOZpI5UqLh0enSBwU5qFGMamvftg/w==}
+    peerDependencies:
+      '@reduxjs/toolkit': ^2.0.0
+      react: ^18 || ^19
+      react-dom: ^18 || ^19
+      react-redux: ^9.0.0
 
   '@inquirer/ansi@2.0.5':
     resolution: {integrity: sha512-doc2sWgJpbFQ64UflSVd17ibMGDuxO1yKgOgLMwavzESnXjFWJqUeG8saYosqKpHp4kWiM5x1nXvEjbpx90gzw==}
@@ -2309,6 +2320,16 @@ snapshots:
 
   '@esbuild/win32-x64@0.25.12':
     optional: true
+
+  '@go-go-golems/os-core@0.1.2(@reduxjs/toolkit@2.11.2(react-redux@9.2.0(@types/react@19.2.14)(react@19.2.6)(redux@5.0.1))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react-redux@9.2.0(@types/react@19.2.14)(react@19.2.6)(redux@5.0.1))(react@19.2.6)':
+    dependencies:
+      '@reduxjs/toolkit': 2.11.2(react-redux@9.2.0(@types/react@19.2.14)(react@19.2.6)(redux@5.0.1))(react@19.2.6)
+      debug: 4.4.3
+      react: 19.2.6
+      react-dom: 19.2.6(react@19.2.6)
+      react-redux: 9.2.0(@types/react@19.2.14)(react@19.2.6)(redux@5.0.1)
+    transitivePeerDependencies:
+      - supports-color
 
   '@inquirer/ansi@2.0.5': {}
 

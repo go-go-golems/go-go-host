@@ -12,6 +12,7 @@
     "storybook:build": "storybook build"
   },
   "dependencies": {
+    "@go-go-golems/os-core": "^0.1.2",
     "@reduxjs/toolkit": "^2.5.0",
     "@vitejs/plugin-react": "^4.3.4",
     "react": "^19.0.0",

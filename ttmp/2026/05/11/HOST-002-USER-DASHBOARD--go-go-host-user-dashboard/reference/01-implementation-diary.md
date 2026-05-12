@@ -975,3 +975,53 @@ Playwright checks:
 ### What warrants review
 
 - This is intentionally still a bridge fallback. Once `@go-go-golems/os-core` can be consumed from a real package/registry reliably, we should switch back from copied token values to package-owned CSS imports.
+
+## Step 16: Restored os-core from npmjs instead of local-link workaround
+
+The user pointed out that `@go-go-golems/os-core` has been deployed to npmjs. I checked the public registry and confirmed `@go-go-golems/os-core@0.1.2` exists.
+
+### Prompt Context
+
+**User prompt (verbatim):** "@go-go-golems/os-core has been deployed to npmjs though?"
+
+**Assistant interpretation:** Revisit the earlier assumption that os-core needed a local-link workaround, switch the dashboard to the published npm package, and validate Dagger/embedded builds with the real package.
+
+### What I did
+
+- Verified the npm package:
+  - `npm view @go-go-golems/os-core version dist.tarball --registry=https://registry.npmjs.org`
+  - result: `0.1.2`.
+- Switched `web/admin/package.json` back to the package dependency:
+  - `"@go-go-golems/os-core": "^0.1.2"`.
+- Restored os-core side-effect imports in:
+  - `src/main.tsx`,
+  - `.storybook/preview.tsx`.
+- Regenerated `pnpm-lock.yaml`.
+- Rebuilt embedded assets via both local fallback and Dagger:
+  - `BUILD_WEB_LOCAL=1 go run ./cmd/build-web`,
+  - `go run ./cmd/build-web`.
+- Restarted dev services.
+- Verified the embedded dashboard with Playwright.
+
+### Correction
+
+My previous explanation was incomplete: the local-link path was broken, but the correct fix was not to remove os-core. Since the package is now public on npmjs, the reproducible dependency should come from the registry. The bridge CSS can keep fallback tokens for now, but os-core is once again the source package dependency.
+
+### Validation
+
+Commands run:
+
+```bash
+npm view @go-go-golems/os-core version dist.tarball --registry=https://registry.npmjs.org
+pnpm install --lockfile-only
+BUILD_WEB_LOCAL=1 go run ./cmd/build-web
+go run ./cmd/build-web
+go test ./...
+devctl restart go-go-hostd
+devctl restart web-admin
+devctl restart storybook
+```
+
+Playwright screenshot:
+
+- `embedded-npm-os-core.png`
