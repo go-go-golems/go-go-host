@@ -28,6 +28,7 @@ export const goGoHostApi = createApi({
       query: (params) => ({ url: '/admin/deployments', params: params ?? undefined }),
       providesTags: [{ type: 'AdminInventory', id: 'DEPLOYMENTS' }],
     }),
+    getAdminDeployment: build.query<AdminDeployment, string>({ query: (deploymentId) => `/admin/deployments/${deploymentId}`, providesTags: (_r, _e, deploymentId) => [{ type: 'AdminInventory', id: `DEPLOYMENT:${deploymentId}` }] }),
     listAdminAgents: build.query<AdminAgent[], { orgId?: string; status?: string } | void>({
       query: (params) => ({ url: '/admin/agents', params: params ?? undefined }),
       providesTags: [{ type: 'AdminInventory', id: 'AGENTS' }],
@@ -79,4 +80,4 @@ export const goGoHostApi = createApi({
   }),
 });
 
-export const { useGetConfigQuery, useGetMeQuery, useCreateOrgMutation, useListSitesQuery, useCreateSiteMutation, useGetRuntimeQuery, useGetAdminRuntimeSummaryQuery, useListAdminOrgsQuery, useListAdminUsersQuery, useListAdminSitesQuery, useListAdminDeploymentsQuery, useListAdminAgentsQuery, useListAdminAuditQuery, useListDeploymentsQuery, useGetDeploymentQuery, useUploadDeploymentMutation, useActivateDeploymentMutation, useRollbackDeploymentMutation, useListAgentsQuery, useCreateAgentMutation, useRevokeAgentMutation, useListAuditQuery } = goGoHostApi;
+export const { useGetConfigQuery, useGetMeQuery, useCreateOrgMutation, useListSitesQuery, useCreateSiteMutation, useGetRuntimeQuery, useGetAdminRuntimeSummaryQuery, useListAdminOrgsQuery, useListAdminUsersQuery, useListAdminSitesQuery, useListAdminDeploymentsQuery, useGetAdminDeploymentQuery, useListAdminAgentsQuery, useListAdminAuditQuery, useListDeploymentsQuery, useGetDeploymentQuery, useUploadDeploymentMutation, useActivateDeploymentMutation, useRollbackDeploymentMutation, useListAgentsQuery, useCreateAgentMutation, useRevokeAgentMutation, useListAuditQuery } = goGoHostApi;

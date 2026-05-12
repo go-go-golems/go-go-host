@@ -150,6 +150,24 @@ func handleAdminListSites(core *control.Core) http.HandlerFunc {
 	}
 }
 
+func adminDeploymentToDTO(deployment *store.AdminDeployment) adminDeploymentDTO {
+	return adminDeploymentDTO{ID: deployment.ID, SiteID: deployment.SiteID, SiteSlug: deployment.SiteSlug, PrimaryHost: deployment.PrimaryHost, OrgID: deployment.OrgID, OrgSlug: deployment.OrgSlug, OrgName: deployment.OrgName, Version: deployment.Version, Status: deployment.Status, BundleRef: deployment.BundleRef, UnpackedPath: deployment.UnpackedPath, ManifestJSON: string(deployment.ManifestJSON), ValidationJSON: string(deployment.ValidationJSON), CreatedByType: deployment.CreatedByType, CreatedByID: deployment.CreatedByID, CreatedAt: deployment.CreatedAt, ActivatedAt: deployment.ActivatedAt}
+}
+
+func handleAdminGetDeployment(core *control.Core) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if _, ok := requirePlatformAdmin(core, w, r); !ok {
+			return
+		}
+		deployment, err := core.Store.GetAdminDeployment(r.Context(), r.PathValue("deployment_id"))
+		if err != nil {
+			writeError(w, http.StatusNotFound, "deployment not found")
+			return
+		}
+		writeJSON(w, http.StatusOK, adminDeploymentToDTO(deployment))
+	}
+}
+
 func handleAdminListAgents(core *control.Core) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if _, ok := requirePlatformAdmin(core, w, r); !ok {
@@ -200,7 +218,7 @@ func handleAdminListDeployments(core *control.Core) http.HandlerFunc {
 		}
 		out := make([]adminDeploymentDTO, 0, len(deployments))
 		for _, deployment := range deployments {
-			out = append(out, adminDeploymentDTO{ID: deployment.ID, SiteID: deployment.SiteID, SiteSlug: deployment.SiteSlug, PrimaryHost: deployment.PrimaryHost, OrgID: deployment.OrgID, OrgSlug: deployment.OrgSlug, OrgName: deployment.OrgName, Version: deployment.Version, Status: deployment.Status, BundleRef: deployment.BundleRef, UnpackedPath: deployment.UnpackedPath, ManifestJSON: string(deployment.ManifestJSON), ValidationJSON: string(deployment.ValidationJSON), CreatedByType: deployment.CreatedByType, CreatedByID: deployment.CreatedByID, CreatedAt: deployment.CreatedAt, ActivatedAt: deployment.ActivatedAt})
+			out = append(out, adminDeploymentToDTO(&deployment))
 		}
 		writeJSON(w, http.StatusOK, out)
 	}

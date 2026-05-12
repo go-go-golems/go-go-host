@@ -77,6 +77,30 @@ WHERE (sqlc.narg('org_id')::text IS NULL OR s.org_id = sqlc.narg('org_id')::text
 ORDER BY d.created_at DESC
 LIMIT sqlc.arg('limit')::int;
 
+-- name: GetAdminDeployment :one
+SELECT
+  d.id,
+  d.site_id,
+  s.slug AS site_slug,
+  s.primary_host,
+  s.org_id,
+  o.slug AS org_slug,
+  o.name AS org_name,
+  d.version,
+  d.status,
+  d.bundle_ref,
+  d.unpacked_path,
+  d.manifest_json,
+  d.validation_json,
+  d.created_by_type,
+  d.created_by_id,
+  d.created_at,
+  d.activated_at
+FROM deployments d
+JOIN sites s ON s.id = d.site_id
+JOIN orgs o ON o.id = s.org_id
+WHERE d.id = $1;
+
 -- name: ListAdminAgents :many
 SELECT
   a.id,

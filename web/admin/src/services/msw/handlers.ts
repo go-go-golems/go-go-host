@@ -13,6 +13,7 @@ export const handlers = [
     const status = url.searchParams.get('status');
     return HttpResponse.json(status ? fixtures.adminDeployments.filter((d) => d.status === status) : fixtures.adminDeployments);
   }),
+  http.get('/api/v1/admin/deployments/:deploymentId', ({ params }) => HttpResponse.json(fixtures.adminDeployments.find((d) => d.id === params.deploymentId) ?? fixtures.adminDeployments[0])),
   http.get('/api/v1/admin/agents', ({ request }) => {
     const url = new URL(request.url);
     const status = url.searchParams.get('status');

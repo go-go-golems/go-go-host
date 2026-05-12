@@ -61,3 +61,14 @@ Added global admin agents and audit endpoints/pages, including sqlc queries, RTK
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/AdminAgentsPage/AdminAgentsPage.tsx — global agents page
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/AdminAuditPage/AdminAuditPage.tsx — global audit page
 
+
+## 2026-05-11
+
+Added admin deployment detail endpoint and page with manifest, validation, actor, bundle, org/site metadata, Storybook stories, embedded build, and Playwright verification.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/admin_inventory.go — admin deployment detail handler
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/store/queries/admin.sql — GetAdminDeployment query
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/AdminDeploymentDetailPage/AdminDeploymentDetailPage.tsx — admin deployment detail page
+

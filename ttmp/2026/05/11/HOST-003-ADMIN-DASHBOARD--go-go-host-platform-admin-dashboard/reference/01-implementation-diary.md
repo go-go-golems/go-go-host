@@ -312,3 +312,68 @@ Screenshots:
 - Add global agent revoke controls with confirmation once admin operation safety controls are in place.
 - Add deployment detail under `/admin/deployments/:deploymentId` next.
 - Add richer audit filters for actor ID/resource ID/time range.
+
+## Step 6: Admin deployment detail route
+
+I implemented the platform-admin deployment detail view and backend detail endpoint.
+
+### What changed
+
+Backend/store:
+
+- Added `GetAdminDeployment` sqlc query joining deployment, site, and org metadata.
+- Added `Store.GetAdminDeployment` wrapper.
+- Added `GET /api/v1/admin/deployments/{deployment_id}` gated by `requirePlatformAdmin`.
+
+Frontend:
+
+- Added `useGetAdminDeploymentQuery`.
+- Added `AdminDeploymentDetailPage` at `/admin/deployments/:deploymentId`.
+- Rendered:
+  - status,
+  - org/site/host metadata,
+  - actor metadata,
+  - bundle/unpacked paths,
+  - manifest summary,
+  - validation summary,
+  - raw manifest/validation JSON.
+- Existing runtime and deployment table links now resolve to the detail route.
+- Added Storybook stories for active and not-found states.
+
+### Validation
+
+Commands run:
+
+```bash
+sqlc generate
+make web-build
+go test ./...
+make storybook-build
+go run ./cmd/build-web
+devctl restart go-go-hostd
+curl -fsS 'http://127.0.0.1:8080/api/v1/admin/deployments?limit=1'
+curl -fsS "http://127.0.0.1:8080/api/v1/admin/deployments/$DEPLOYMENT_ID"
+```
+
+Results:
+
+- Web build passed.
+- Go tests passed.
+- Storybook build passed.
+- Dagger embedded build passed.
+- Admin deployment detail endpoint returned the selected deployment with org/site metadata.
+
+### Browser verification
+
+Playwright checked:
+
+- `http://127.0.0.1:8080/admin/deployments/dep_4022db3e-b50d-4380-a2a7-a86e02c78777`
+
+Screenshot:
+
+- `embedded-admin-deployment-detail.png`
+
+### Follow-ups
+
+- Add a richer activation timeline once runtime events or audit correlation is formalized.
+- Add filters for actor ID/resource ID/time range to the global audit UI.

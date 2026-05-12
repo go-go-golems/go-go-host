@@ -50,6 +50,7 @@ func NewHandler(core *control.Core) http.Handler {
 	api.HandleFunc("GET /api/v1/admin/users", handleAdminListUsers(core))
 	api.HandleFunc("GET /api/v1/admin/sites", handleAdminListSites(core))
 	api.HandleFunc("GET /api/v1/admin/deployments", handleAdminListDeployments(core))
+	api.HandleFunc("GET /api/v1/admin/deployments/{deployment_id}", handleAdminGetDeployment(core))
 	api.HandleFunc("GET /api/v1/admin/agents", handleAdminListAgents(core))
 	api.HandleFunc("GET /api/v1/admin/audit", handleAdminListAudit(core))
 	authn := &oidcAuthenticator{cfg: core.Config, st: core.Store}

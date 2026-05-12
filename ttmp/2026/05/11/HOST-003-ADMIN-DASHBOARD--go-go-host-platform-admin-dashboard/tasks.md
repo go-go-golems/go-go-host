@@ -49,10 +49,10 @@
 ## Phase 5 — Admin deployments and audit pages
 
 - [x] Add `AdminDeploymentsPage` with status/org/site/actor filters.
-- [ ] Add `AdminDeploymentDetailPage` for manifest, validation report, activation timeline, actor, and bundle metadata.
+- [x] Add `AdminDeploymentDetailPage` for manifest, validation report, activation timeline, actor, and bundle metadata.
 - [x] Add `AdminAuditPage` for global audit with URL-backed filters.
 - [ ] Add Storybook interaction stories for filtering and bad JSON metadata.
-- [ ] Link runtime deployment IDs to the admin deployment detail route.
+- [x] Link runtime deployment IDs to the admin deployment detail route.
 
 ## Phase 6 — Runtime operations and safety controls
 

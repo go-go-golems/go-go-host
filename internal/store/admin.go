@@ -125,6 +125,18 @@ func (s *Store) ListAdminSites(ctx context.Context) ([]AdminSite, error) {
 	return out, nil
 }
 
+func (s *Store) GetAdminDeployment(ctx context.Context, id string) (*AdminDeployment, error) {
+	row, err := s.q.GetAdminDeployment(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return adminDeploymentFromRow(adminDeploymentRow{
+		ID: row.ID, SiteID: row.SiteID, SiteSlug: row.SiteSlug, PrimaryHost: row.PrimaryHost, OrgID: row.OrgID, OrgSlug: row.OrgSlug, OrgName: row.OrgName,
+		Version: row.Version, Status: row.Status, BundleRef: row.BundleRef, UnpackedPath: row.UnpackedPath, ManifestJson: row.ManifestJson, ValidationJson: row.ValidationJson,
+		CreatedByType: row.CreatedByType, CreatedByID: row.CreatedByID, CreatedAt: row.CreatedAt, ActivatedAt: row.ActivatedAt,
+	})
+}
+
 func (s *Store) ListAdminAgents(ctx context.Context, filter AdminAgentFilter) ([]AdminAgent, error) {
 	rows, err := s.q.ListAdminAgents(ctx, storedb.ListAdminAgentsParams{OrgID: optionalText(filter.OrgID), Status: optionalText(filter.Status)})
 	if err != nil {
@@ -164,9 +176,37 @@ func (s *Store) ListAdminDeployments(ctx context.Context, filter AdminDeployment
 	}
 	out := make([]AdminDeployment, 0, len(rows))
 	for _, row := range rows {
-		out = append(out, AdminDeployment{ID: row.ID, SiteID: row.SiteID, SiteSlug: row.SiteSlug, PrimaryHost: row.PrimaryHost, OrgID: row.OrgID, OrgSlug: row.OrgSlug, OrgName: row.OrgName, Version: int(row.Version), Status: row.Status, BundleRef: row.BundleRef, UnpackedPath: row.UnpackedPath, ManifestJSON: row.ManifestJson, ValidationJSON: row.ValidationJson, CreatedByType: row.CreatedByType, CreatedByID: row.CreatedByID, CreatedAt: formatDBTime(row.CreatedAt), ActivatedAt: formatDBTime(row.ActivatedAt)})
+		dep, err := adminDeploymentFromRow(adminDeploymentRow{ID: row.ID, SiteID: row.SiteID, SiteSlug: row.SiteSlug, PrimaryHost: row.PrimaryHost, OrgID: row.OrgID, OrgSlug: row.OrgSlug, OrgName: row.OrgName, Version: row.Version, Status: row.Status, BundleRef: row.BundleRef, UnpackedPath: row.UnpackedPath, ManifestJson: row.ManifestJson, ValidationJson: row.ValidationJson, CreatedByType: row.CreatedByType, CreatedByID: row.CreatedByID, CreatedAt: row.CreatedAt, ActivatedAt: row.ActivatedAt})
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, *dep)
 	}
 	return out, nil
+}
+
+type adminDeploymentRow struct {
+	ID             string
+	SiteID         string
+	SiteSlug       string
+	PrimaryHost    string
+	OrgID          string
+	OrgSlug        string
+	OrgName        string
+	Version        int32
+	Status         string
+	BundleRef      string
+	UnpackedPath   string
+	ManifestJson   []byte
+	ValidationJson []byte
+	CreatedByType  string
+	CreatedByID    string
+	CreatedAt      pgtype.Timestamptz
+	ActivatedAt    pgtype.Timestamptz
+}
+
+func adminDeploymentFromRow(row adminDeploymentRow) (*AdminDeployment, error) {
+	return &AdminDeployment{ID: row.ID, SiteID: row.SiteID, SiteSlug: row.SiteSlug, PrimaryHost: row.PrimaryHost, OrgID: row.OrgID, OrgSlug: row.OrgSlug, OrgName: row.OrgName, Version: int(row.Version), Status: row.Status, BundleRef: row.BundleRef, UnpackedPath: row.UnpackedPath, ManifestJSON: row.ManifestJson, ValidationJSON: row.ValidationJson, CreatedByType: row.CreatedByType, CreatedByID: row.CreatedByID, CreatedAt: formatDBTime(row.CreatedAt), ActivatedAt: formatDBTime(row.ActivatedAt)}, nil
 }
 
 func optionalText(value string) pgtype.Text {

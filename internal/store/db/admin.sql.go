@@ -11,6 +11,76 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const getAdminDeployment = `-- name: GetAdminDeployment :one
+SELECT
+  d.id,
+  d.site_id,
+  s.slug AS site_slug,
+  s.primary_host,
+  s.org_id,
+  o.slug AS org_slug,
+  o.name AS org_name,
+  d.version,
+  d.status,
+  d.bundle_ref,
+  d.unpacked_path,
+  d.manifest_json,
+  d.validation_json,
+  d.created_by_type,
+  d.created_by_id,
+  d.created_at,
+  d.activated_at
+FROM deployments d
+JOIN sites s ON s.id = d.site_id
+JOIN orgs o ON o.id = s.org_id
+WHERE d.id = $1
+`
+
+type GetAdminDeploymentRow struct {
+	ID             string             `json:"id"`
+	SiteID         string             `json:"site_id"`
+	SiteSlug       string             `json:"site_slug"`
+	PrimaryHost    string             `json:"primary_host"`
+	OrgID          string             `json:"org_id"`
+	OrgSlug        string             `json:"org_slug"`
+	OrgName        string             `json:"org_name"`
+	Version        int32              `json:"version"`
+	Status         string             `json:"status"`
+	BundleRef      string             `json:"bundle_ref"`
+	UnpackedPath   string             `json:"unpacked_path"`
+	ManifestJson   []byte             `json:"manifest_json"`
+	ValidationJson []byte             `json:"validation_json"`
+	CreatedByType  string             `json:"created_by_type"`
+	CreatedByID    string             `json:"created_by_id"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	ActivatedAt    pgtype.Timestamptz `json:"activated_at"`
+}
+
+func (q *Queries) GetAdminDeployment(ctx context.Context, id string) (GetAdminDeploymentRow, error) {
+	row := q.db.QueryRow(ctx, getAdminDeployment, id)
+	var i GetAdminDeploymentRow
+	err := row.Scan(
+		&i.ID,
+		&i.SiteID,
+		&i.SiteSlug,
+		&i.PrimaryHost,
+		&i.OrgID,
+		&i.OrgSlug,
+		&i.OrgName,
+		&i.Version,
+		&i.Status,
+		&i.BundleRef,
+		&i.UnpackedPath,
+		&i.ManifestJson,
+		&i.ValidationJson,
+		&i.CreatedByType,
+		&i.CreatedByID,
+		&i.CreatedAt,
+		&i.ActivatedAt,
+	)
+	return i, err
+}
+
 const listAdminAgents = `-- name: ListAdminAgents :many
 SELECT
   a.id,
