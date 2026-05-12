@@ -3,7 +3,9 @@ package httpapi
 import (
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/go-go-golems/go-go-host/internal/control"
@@ -102,7 +104,47 @@ func NewHandler(core *control.Core) http.Handler {
 	mux.Handle("/api/v1/admin/", authedAPI)
 	mux.Handle("/api/v1/agent/", api)
 
-	return withRequestID(withFallback(mux, core.Supervisor))
+	return withRequestID(rootRedirectHandler{next: withFallback(mux, core.Supervisor), dashboardHost: hostFromPublicBaseURL(core.Config.PublicBaseURL)})
+}
+
+type rootRedirectHandler struct {
+	next          http.Handler
+	dashboardHost string
+}
+
+func (h rootRedirectHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path == "/" && h.isDashboardHost(r.Host) {
+		http.Redirect(w, r, "/app", http.StatusFound)
+		return
+	}
+	h.next.ServeHTTP(w, r)
+}
+
+func (h rootRedirectHandler) isDashboardHost(host string) bool {
+	if h.dashboardHost == "" {
+		return true
+	}
+	return strings.EqualFold(stripPort(host), h.dashboardHost)
+}
+
+func hostFromPublicBaseURL(raw string) string {
+	u, err := url.Parse(raw)
+	if err != nil {
+		return ""
+	}
+	return stripPort(u.Host)
+}
+
+func stripPort(host string) string {
+	if strings.HasPrefix(host, "[") {
+		if end := strings.LastIndex(host, "]"); end >= 0 {
+			return strings.Trim(host[:end+1], "[]")
+		}
+	}
+	if idx := strings.LastIndex(host, ":"); idx >= 0 {
+		return host[:idx]
+	}
+	return host
 }
 
 func handleHealth(w http.ResponseWriter, _ *http.Request) {

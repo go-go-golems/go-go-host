@@ -81,3 +81,13 @@ Deployed sha-0b70bdd and verified live agent publishing with allowedBundlePaths 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/cmd/go-go-host-agent/cmds/deploy.go — live --bundle-path deploy
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/agents_audit.go — live allowedBundlePaths behavior
 
+
+## 2026-05-12
+
+Added host-aware root redirect so the dashboard host / redirects to /app without breaking hosted-site root routing.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/handler.go — host-aware root redirect
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/webadmin_integration_test.go — root redirect test
+

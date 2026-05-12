@@ -923,3 +923,89 @@ Live image:
 ```text
 ghcr.io/go-go-golems/go-go-host:sha-0b70bdd
 ```
+
+## Step 9: Add dashboard-root redirect without breaking hosted-site roots
+
+The user requested that `https://hosting.yolo.scapegoat.dev/` redirect to `/app`. I added a small wrapper around the main handler so the dashboard host root redirects to `/app`, while generated hosted-site roots such as `https://hello.hosting.yolo.scapegoat.dev/` still fall through to the runtime supervisor.
+
+### Prompt Context
+
+**User prompt (verbatim):** "have https://hosting.yolo.scapegoat.dev/ redirect to /app"
+
+**Assistant interpretation:** Make the beta dashboard apex/root URL land users in the application dashboard instead of returning 404 or falling through to hosted-site routing.
+
+**Inferred user intent:** Improve first-touch UX for the beta control-plane host without breaking hosted apps that legitimately serve `/`.
+
+### What I did
+
+- Added `rootRedirectHandler` in `internal/httpapi/handler.go`.
+- It redirects only when:
+
+```text
+path == "/"
+host == host(publicBaseUrl)
+```
+
+- It does not redirect generated site hosts, so `hello.hosting.yolo.scapegoat.dev/` can still serve the hosted app.
+- Added `TestRootRedirectsToApp` in `internal/httpapi/webadmin_integration_test.go`.
+- Re-ran:
+
+```bash
+go test ./internal/httpapi
+go test ./...
+```
+
+### Why
+
+A plain visit to `https://hosting.yolo.scapegoat.dev/` should not look broken. It should send users to the dashboard entrypoint. But a blanket `/` redirect would break every hosted app root page, so the redirect must be host-aware.
+
+### What worked
+
+The host-aware redirect preserves the existing fallback test for public hosted traffic. The first naive route registration conflicted with Go 1.22 ServeMux method/path matching and then a too-broad root wrapper broke hosted site root routing; the final version checks the configured dashboard host.
+
+### What didn't work
+
+A direct `mux.HandleFunc("GET /", ...)` caused a ServeMux panic:
+
+```text
+pattern "/app" conflicts with pattern "GET /": /app matches more methods than GET /, but has a more specific path pattern
+```
+
+A wrapper that redirected all `/` requests broke hosted apps:
+
+```text
+TestHandlerFallsBackToSupervisorForPublicHostTraffic: expected public host to be served, got 302
+```
+
+### What I learned
+
+Go 1.22 ServeMux conflict rules are stricter around method-specific catch-all root patterns. A host-aware wrapper outside the mux is simpler and preserves runtime fallback behavior.
+
+### What was tricky to build
+
+The tricky part was distinguishing the dashboard/control-plane host from generated site hosts. The handler uses `publicBaseUrl` to derive the dashboard host and only redirects root requests for that host.
+
+### What warrants a second pair of eyes
+
+- The host parser strips ports for normal hostnames and simple bracketed IPv6. If IPv6 public URLs become relevant, review `stripPort`.
+- If the deployment ever serves the dashboard on multiple canonical hosts, the config may need a list rather than one `publicBaseUrl` host.
+
+### What should be done in the future
+
+- Deploy this image and verify `curl -I https://hosting.yolo.scapegoat.dev/` returns `302 Location: /app` while `https://hello.hosting.yolo.scapegoat.dev/` remains 200.
+
+### Code review instructions
+
+Review:
+
+```text
+internal/httpapi/handler.go
+internal/httpapi/webadmin_integration_test.go
+```
+
+Validate:
+
+```bash
+go test ./internal/httpapi
+go test ./...
+```

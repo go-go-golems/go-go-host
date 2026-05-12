@@ -10,6 +10,20 @@ import (
 	"github.com/go-go-golems/go-go-host/internal/control"
 )
 
+func TestRootRedirectsToApp(t *testing.T) {
+	h := NewHandler(control.NewCore(config.Config{BaseDomain: "localhost", PublicBaseURL: "http://127.0.0.1:8080", DevAuth: true}))
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Host = "127.0.0.1:8080"
+	h.ServeHTTP(rec, req)
+	if rec.Code != http.StatusFound {
+		t.Fatalf("expected 302 redirect, got %d", rec.Code)
+	}
+	if got := rec.Header().Get("Location"); got != "/app" {
+		t.Fatalf("expected Location /app, got %q", got)
+	}
+}
+
 func TestDashboardRoutesServeEmbeddedSPAAndAPIRoutesStillWork(t *testing.T) {
 	h := NewHandler(control.NewCore(config.Config{BaseDomain: "localhost", PublicBaseURL: "http://127.0.0.1:8080", DevAuth: true}))
 	for _, path := range []string{"/app", "/app/", "/app/orgs/org_123/sites", "/admin", "/admin/", "/admin/overview", "/admin/runtimes"} {
