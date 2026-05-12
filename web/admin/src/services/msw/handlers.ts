@@ -26,6 +26,9 @@ export const handlers = [
     const action = url.searchParams.get('action');
     return HttpResponse.json(action ? fixtures.audit.filter((event) => event.action.includes(action)) : fixtures.audit);
   }),
+  http.get('/api/v1/admin/quotas', () => HttpResponse.json(fixtures.adminQuotas)),
+  http.get('/api/v1/admin/capabilities', () => HttpResponse.json(fixtures.adminCapabilities)),
+  http.get('/api/v1/admin/domains', () => HttpResponse.json(fixtures.adminDomains)),
   http.post('/api/v1/orgs', async ({ request }) => {
     const body = await request.json() as { slug?: string; name?: string };
     if (!body.slug || !body.name) return HttpResponse.json({ error: 'slug and name are required' }, { status: 400 });

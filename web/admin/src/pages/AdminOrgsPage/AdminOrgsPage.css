@@ -1,6 +1,7 @@
 .admin-inventory-page { display: grid; gap: 1rem; }
 .admin-inventory-page h1 { margin: 0 0 0.35rem; }
 .admin-inventory-page p { margin: 0; color: var(--hc-color-muted); }
+.admin-inventory-page { overflow-x: auto; }
 .admin-inventory-page table { width: 100%; border-collapse: collapse; background: var(--hc-color-bg); }
 .admin-inventory-page th, .admin-inventory-page td { border: 1px solid var(--hc-color-border); padding: 0.35rem 0.5rem; text-align: left; vertical-align: top; }
 .admin-inventory-page th { background: var(--hc-color-border); color: var(--hc-color-bg); }

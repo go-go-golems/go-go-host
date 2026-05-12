@@ -65,11 +65,11 @@
 
 ## Phase 7 — Quotas, capabilities, domains, and policy pages
 
-- [ ] Add admin quota policy API design for defaults and per-site overrides.
-- [ ] Add `AdminQuotasPage` with read-only current usage first, then editable policy forms.
-- [ ] Add admin capability policy page showing requested vs effective capabilities.
-- [ ] Add admin domain policy page for base domains, verification status, and custom-domain placeholders.
-- [ ] Add Storybook stories for quota/capability/domain edge cases.
+- [x] Add admin quota policy API design for defaults and per-site overrides.
+- [x] Add `AdminQuotasPage` with read-only current usage first, then editable policy forms.
+- [x] Add admin capability policy page showing requested vs effective capabilities.
+- [x] Add admin domain policy page for base domains, verification status, and custom-domain placeholders.
+- [x] Add Storybook stories for quota/capability/domain edge cases.
 
 ## Phase 8 — Admin agents and enrollment oversight
 
@@ -81,17 +81,17 @@
 
 ## Phase 9 — Visual polish, accessibility, and responsiveness
 
-- [ ] Match the macOS1/HyperCard style established by the user dashboard.
-- [ ] Keep os-core as the canonical theme package; admin CSS should only add app-specific mappings.
-- [ ] Verify keyboard navigation for sidebar, filters, tables, and confirmation dialogs.
-- [ ] Add responsive states for small laptop widths and narrow panes.
-- [ ] Add missing favicon or suppress known favicon 404 noise.
+- [x] Match the macOS1/HyperCard style established by the user dashboard.
+- [x] Keep os-core as the canonical theme package; admin CSS should only add app-specific mappings.
+- [x] Verify keyboard navigation for sidebar, filters, tables, and confirmation dialogs.
+- [x] Add responsive states for small laptop widths and narrow panes.
+- [x] Add missing favicon or suppress known favicon 404 noise.
 
 ## Phase 10 — E2E validation and release readiness
 
 - [ ] Add Playwright smoke for non-admin denial under `/admin`.
 - [x] Add Playwright smoke for admin overview/runtime inventory with seeded platform admin.
 - [x] Add embedded SPA tests for `/admin/*` fallback behavior.
-- [ ] Add devctl runbook for creating a local platform admin user.
-- [ ] Run `go test ./...`, `make web-build`, `make storybook-build`, and `go run ./cmd/build-web`.
+- [x] Add devctl runbook for creating a local platform admin user.
+- [x] Run `go test ./...`, `make web-build`, `make storybook-build`, and `go run ./cmd/build-web`.
 - [ ] Upload the final admin dashboard design/task bundle to reMarkable if requested.

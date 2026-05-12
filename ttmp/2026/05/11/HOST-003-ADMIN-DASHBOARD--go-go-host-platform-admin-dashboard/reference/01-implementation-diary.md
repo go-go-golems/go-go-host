@@ -448,3 +448,83 @@ Screenshots:
 
 - Add an actual runtime-running E2E path before testing a real restart/stop against a live hosted site.
 - Consider making confirmation dialog focus-trapping and Escape-key aware during accessibility polish.
+
+## Step 8: Phase 7-9 admin policy pages and polish
+
+The user asked to complete phases 7 through 9 without stopping. I added read-only policy surfaces for quotas, capabilities, and domains, plus visual/responsive/favicon polish.
+
+### What changed
+
+Backend/store:
+
+- Added admin sqlc queries:
+  - `ListAdminQuotas`,
+  - `ListAdminCapabilities`,
+  - `ListAdminDomains`.
+- Added store wrappers returning admin quota/capability/domain rows with org/site metadata.
+- Added platform-admin-gated endpoints:
+  - `GET /api/v1/admin/quotas`,
+  - `GET /api/v1/admin/capabilities`,
+  - `GET /api/v1/admin/domains`.
+
+Frontend:
+
+- Added routes and sidebar entries:
+  - `/admin/quotas`,
+  - `/admin/capabilities`,
+  - `/admin/domains`.
+- Added pages:
+  - `AdminQuotasPage` for read-only site quota and request/error counters,
+  - `AdminCapabilitiesPage` for effective capability rows and JSON config,
+  - `AdminDomainsPage` for domain verification state and tokens.
+- Added RTK Query hooks and MSW fixtures/handlers for each policy endpoint.
+- Added Storybook populated/empty stories for all three pages.
+
+Polish:
+
+- Added app favicon SVG and linked it from `index.html`.
+- Added horizontal overflow handling for admin inventory pages on narrow screens.
+- Improved `ConfirmActionDialog` keyboard support with Escape-to-cancel and autofocus on Cancel.
+- Confirmed admin pages continue to use os-core theme imports and app-specific CSS only.
+
+### Validation
+
+Commands run:
+
+```bash
+sqlc generate
+make web-build
+go test ./...
+make storybook-build
+go run ./cmd/build-web
+devctl restart go-go-hostd
+for p in quotas capabilities domains; do
+  curl -fsS "http://127.0.0.1:8080/api/v1/admin/$p" | jq 'length'
+done
+curl -fsSI http://127.0.0.1:8080/app/favicon.svg
+```
+
+Results:
+
+- Web build passed.
+- Go tests passed.
+- Storybook build passed.
+- Dagger embedded build passed.
+- Embedded admin policy endpoints returned expected JSON arrays.
+- Favicon is served as `image/svg+xml`.
+
+### Browser verification
+
+Playwright checked:
+
+- `http://127.0.0.1:8080/admin/quotas`
+- `http://127.0.0.1:6007/?path=/story/admin-pages-admincapabilitiespage--populated`
+
+Screenshots:
+
+- `embedded-admin-quotas.png`
+- `storybook-admin-capabilities.png`
+
+### Notes
+
+Capability and domain pages are intentionally read-only for this phase. Editable policies and custom-domain automation should come after backend policy semantics are hardened.

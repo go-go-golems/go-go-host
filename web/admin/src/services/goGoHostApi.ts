@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type { AdminAgent, AdminDeployment, AdminOrg, AdminRuntimeSummary, AdminSite, AdminUser, Agent, AuditEvent, ConfigResponse, CreateAgentRequest, CreateOrgRequest, CreateSiteRequest, Deployment, MeResponse, Org, RevokeAgentRequest, RuntimeStatus, Site, UploadDeploymentResponse } from './types';
+import type { AdminAgent, AdminCapability, AdminDeployment, AdminDomain, AdminOrg, AdminQuota, AdminRuntimeSummary, AdminSite, AdminUser, Agent, AuditEvent, ConfigResponse, CreateAgentRequest, CreateOrgRequest, CreateSiteRequest, Deployment, MeResponse, Org, RevokeAgentRequest, RuntimeStatus, Site, UploadDeploymentResponse } from './types';
 
 export interface UploadDeploymentRequest { siteId: string; file: File; message?: string; channel?: string; }
 
@@ -45,6 +45,9 @@ export const goGoHostApi = createApi({
       query: (params) => ({ url: '/admin/audit', params: params ?? undefined }),
       providesTags: [{ type: 'AdminInventory', id: 'AUDIT' }],
     }),
+    listAdminQuotas: build.query<AdminQuota[], void>({ query: () => '/admin/quotas', providesTags: [{ type: 'AdminInventory', id: 'QUOTAS' }] }),
+    listAdminCapabilities: build.query<AdminCapability[], void>({ query: () => '/admin/capabilities', providesTags: [{ type: 'AdminInventory', id: 'CAPABILITIES' }] }),
+    listAdminDomains: build.query<AdminDomain[], void>({ query: () => '/admin/domains', providesTags: [{ type: 'AdminInventory', id: 'DOMAINS' }] }),
     listDeployments: build.query<Deployment[], string>({ query: (siteId) => `/sites/${siteId}/deployments`, providesTags: (_r, _e, siteId) => [{ type: 'Deployment', id: `SITE:${siteId}` }] }),
     getDeployment: build.query<Deployment, string>({ query: (deploymentId) => `/deployments/${deploymentId}`, providesTags: (_r, _e, deploymentId) => [{ type: 'Deployment', id: deploymentId }] }),
     uploadDeployment: build.mutation<UploadDeploymentResponse, UploadDeploymentRequest>({
@@ -88,4 +91,4 @@ export const goGoHostApi = createApi({
   }),
 });
 
-export const { useGetConfigQuery, useGetMeQuery, useCreateOrgMutation, useListSitesQuery, useCreateSiteMutation, useGetRuntimeQuery, useGetAdminRuntimeSummaryQuery, useRestartAdminRuntimeMutation, useStopAdminRuntimeMutation, useListAdminOrgsQuery, useListAdminUsersQuery, useListAdminSitesQuery, useListAdminDeploymentsQuery, useGetAdminDeploymentQuery, useListAdminAgentsQuery, useListAdminAuditQuery, useListDeploymentsQuery, useGetDeploymentQuery, useUploadDeploymentMutation, useActivateDeploymentMutation, useRollbackDeploymentMutation, useListAgentsQuery, useCreateAgentMutation, useRevokeAgentMutation, useListAuditQuery } = goGoHostApi;
+export const { useGetConfigQuery, useGetMeQuery, useCreateOrgMutation, useListSitesQuery, useCreateSiteMutation, useGetRuntimeQuery, useGetAdminRuntimeSummaryQuery, useRestartAdminRuntimeMutation, useStopAdminRuntimeMutation, useListAdminOrgsQuery, useListAdminUsersQuery, useListAdminSitesQuery, useListAdminDeploymentsQuery, useGetAdminDeploymentQuery, useListAdminAgentsQuery, useListAdminAuditQuery, useListAdminQuotasQuery, useListAdminCapabilitiesQuery, useListAdminDomainsQuery, useListDeploymentsQuery, useGetDeploymentQuery, useUploadDeploymentMutation, useActivateDeploymentMutation, useRollbackDeploymentMutation, useListAgentsQuery, useCreateAgentMutation, useRevokeAgentMutation, useListAuditQuery } = goGoHostApi;

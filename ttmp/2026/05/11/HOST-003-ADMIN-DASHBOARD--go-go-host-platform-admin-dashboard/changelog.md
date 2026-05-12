@@ -84,3 +84,16 @@ Added platform-admin runtime restart/stop endpoints with audit logging, themed c
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/components/molecules/ConfirmActionDialog/ConfirmActionDialog.tsx — themed confirmation dialog
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/AdminRuntimesPage/AdminRuntimesPage.tsx — runtime operation UI wiring
 
+
+## 2026-05-11
+
+Completed admin dashboard phases 7-9 with read-only quota/capability/domain APIs and pages, Storybook coverage, favicon, responsive table overflow, and dialog keyboard polish.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/admin_inventory.go — admin policy endpoint handlers
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/store/queries/admin.sql — admin quota/capability/domain queries
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/AdminCapabilitiesPage/AdminCapabilitiesPage.tsx — capability policy page
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/AdminDomainsPage/AdminDomainsPage.tsx — domain policy page
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/AdminQuotasPage/AdminQuotasPage.tsx — read-only quota page
+

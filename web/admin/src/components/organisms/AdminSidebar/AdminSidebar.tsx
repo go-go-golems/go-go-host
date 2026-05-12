@@ -1,6 +1,6 @@
 import './AdminSidebar.css';
 
-export type AdminSection = 'overview' | 'runtimes' | 'orgs' | 'users' | 'sites' | 'deployments' | 'agents' | 'audit' | 'quotas';
+export type AdminSection = 'overview' | 'runtimes' | 'orgs' | 'users' | 'sites' | 'deployments' | 'agents' | 'audit' | 'quotas' | 'capabilities' | 'domains';
 
 const sections: { id: AdminSection; label: string }[] = [
   { id: 'overview', label: 'Overview' },
@@ -12,6 +12,8 @@ const sections: { id: AdminSection; label: string }[] = [
   { id: 'agents', label: 'Agents' },
   { id: 'audit', label: 'Audit' },
   { id: 'quotas', label: 'Quotas' },
+  { id: 'capabilities', label: 'Capabilities' },
+  { id: 'domains', label: 'Domains' },
 ];
 
 export function AdminSidebar({ active = 'overview', onSelect }: { active?: AdminSection; onSelect?: (section: AdminSection) => void }) {

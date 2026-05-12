@@ -58,6 +58,48 @@ type adminAgentDTO struct {
 	GrantCount      int64  `json:"grantCount"`
 }
 
+type adminQuotaDTO struct {
+	SiteID           string `json:"siteId"`
+	SiteSlug         string `json:"siteSlug"`
+	PrimaryHost      string `json:"primaryHost"`
+	OrgID            string `json:"orgId"`
+	OrgSlug          string `json:"orgSlug"`
+	OrgName          string `json:"orgName"`
+	BundleMaxBytes   int64  `json:"bundleMaxBytes"`
+	DBSoftMaxBytes   int64  `json:"dbSoftMaxBytes"`
+	DBHardMaxBytes   int64  `json:"dbHardMaxBytes"`
+	RequestTimeoutMS int    `json:"requestTimeoutMs"`
+	UpdatedAt        string `json:"updatedAt"`
+	RequestsTotal    int64  `json:"requestsTotal"`
+	ErrorsTotal      int64  `json:"errorsTotal"`
+}
+
+type adminCapabilityDTO struct {
+	SiteID     string `json:"siteId"`
+	SiteSlug   string `json:"siteSlug"`
+	OrgID      string `json:"orgId"`
+	OrgSlug    string `json:"orgSlug"`
+	OrgName    string `json:"orgName"`
+	Capability string `json:"capability"`
+	Enabled    bool   `json:"enabled"`
+	ConfigJSON string `json:"configJson"`
+	UpdatedAt  string `json:"updatedAt"`
+}
+
+type adminDomainDTO struct {
+	ID                string `json:"id"`
+	SiteID            string `json:"siteId"`
+	SiteSlug          string `json:"siteSlug"`
+	OrgID             string `json:"orgId"`
+	OrgSlug           string `json:"orgSlug"`
+	OrgName           string `json:"orgName"`
+	Hostname          string `json:"hostname"`
+	Status            string `json:"status"`
+	VerificationToken string `json:"verificationToken"`
+	VerifiedAt        string `json:"verifiedAt,omitempty"`
+	CreatedAt         string `json:"createdAt"`
+}
+
 type adminDeploymentDTO struct {
 	ID             string `json:"id"`
 	SiteID         string `json:"siteId"`
@@ -200,6 +242,60 @@ func handleAdminListAudit(core *control.Core) http.HandlerFunc {
 		out := make([]auditDTO, 0, len(events))
 		for _, event := range events {
 			out = append(out, auditToDTO(event))
+		}
+		writeJSON(w, http.StatusOK, out)
+	}
+}
+
+func handleAdminListQuotas(core *control.Core) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if _, ok := requirePlatformAdmin(core, w, r); !ok {
+			return
+		}
+		rows, err := core.Store.ListAdminQuotas(r.Context())
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		out := make([]adminQuotaDTO, 0, len(rows))
+		for _, row := range rows {
+			out = append(out, adminQuotaDTO{SiteID: row.SiteID, SiteSlug: row.SiteSlug, PrimaryHost: row.PrimaryHost, OrgID: row.OrgID, OrgSlug: row.OrgSlug, OrgName: row.OrgName, BundleMaxBytes: row.BundleMaxBytes, DBSoftMaxBytes: row.DBSoftMaxBytes, DBHardMaxBytes: row.DBHardMaxBytes, RequestTimeoutMS: row.RequestTimeoutMS, UpdatedAt: row.UpdatedAt, RequestsTotal: row.RequestsTotal, ErrorsTotal: row.ErrorsTotal})
+		}
+		writeJSON(w, http.StatusOK, out)
+	}
+}
+
+func handleAdminListCapabilities(core *control.Core) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if _, ok := requirePlatformAdmin(core, w, r); !ok {
+			return
+		}
+		rows, err := core.Store.ListAdminCapabilities(r.Context())
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		out := make([]adminCapabilityDTO, 0, len(rows))
+		for _, row := range rows {
+			out = append(out, adminCapabilityDTO{SiteID: row.SiteID, SiteSlug: row.SiteSlug, OrgID: row.OrgID, OrgSlug: row.OrgSlug, OrgName: row.OrgName, Capability: row.Capability, Enabled: row.Enabled, ConfigJSON: string(row.ConfigJSON), UpdatedAt: row.UpdatedAt})
+		}
+		writeJSON(w, http.StatusOK, out)
+	}
+}
+
+func handleAdminListDomains(core *control.Core) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if _, ok := requirePlatformAdmin(core, w, r); !ok {
+			return
+		}
+		rows, err := core.Store.ListAdminDomains(r.Context())
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		out := make([]adminDomainDTO, 0, len(rows))
+		for _, row := range rows {
+			out = append(out, adminDomainDTO{ID: row.ID, SiteID: row.SiteID, SiteSlug: row.SiteSlug, OrgID: row.OrgID, OrgSlug: row.OrgSlug, OrgName: row.OrgName, Hostname: row.Hostname, Status: row.Status, VerificationToken: row.VerificationToken, VerifiedAt: row.VerifiedAt, CreatedAt: row.CreatedAt})
 		}
 		writeJSON(w, http.StatusOK, out)
 	}

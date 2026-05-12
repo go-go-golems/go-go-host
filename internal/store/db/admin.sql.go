@@ -211,6 +211,65 @@ func (q *Queries) ListAdminAuditEvents(ctx context.Context, arg ListAdminAuditEv
 	return items, nil
 }
 
+const listAdminCapabilities = `-- name: ListAdminCapabilities :many
+SELECT
+  s.id AS site_id,
+  s.slug AS site_slug,
+  o.id AS org_id,
+  o.slug AS org_slug,
+  o.name AS org_name,
+  c.capability,
+  c.enabled,
+  c.config_json,
+  c.updated_at
+FROM site_capabilities c
+JOIN sites s ON s.id = c.site_id
+JOIN orgs o ON o.id = s.org_id
+ORDER BY o.slug, s.slug, c.capability
+`
+
+type ListAdminCapabilitiesRow struct {
+	SiteID     string             `json:"site_id"`
+	SiteSlug   string             `json:"site_slug"`
+	OrgID      string             `json:"org_id"`
+	OrgSlug    string             `json:"org_slug"`
+	OrgName    string             `json:"org_name"`
+	Capability string             `json:"capability"`
+	Enabled    bool               `json:"enabled"`
+	ConfigJson []byte             `json:"config_json"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+}
+
+func (q *Queries) ListAdminCapabilities(ctx context.Context) ([]ListAdminCapabilitiesRow, error) {
+	rows, err := q.db.Query(ctx, listAdminCapabilities)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListAdminCapabilitiesRow{}
+	for rows.Next() {
+		var i ListAdminCapabilitiesRow
+		if err := rows.Scan(
+			&i.SiteID,
+			&i.SiteSlug,
+			&i.OrgID,
+			&i.OrgSlug,
+			&i.OrgName,
+			&i.Capability,
+			&i.Enabled,
+			&i.ConfigJson,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listAdminDeployments = `-- name: ListAdminDeployments :many
 SELECT
   d.id,
@@ -310,6 +369,71 @@ func (q *Queries) ListAdminDeployments(ctx context.Context, arg ListAdminDeploym
 	return items, nil
 }
 
+const listAdminDomains = `-- name: ListAdminDomains :many
+SELECT
+  d.id,
+  d.site_id,
+  s.slug AS site_slug,
+  o.id AS org_id,
+  o.slug AS org_slug,
+  o.name AS org_name,
+  d.hostname,
+  d.status,
+  d.verification_token,
+  d.verified_at,
+  d.created_at
+FROM site_domains d
+JOIN sites s ON s.id = d.site_id
+JOIN orgs o ON o.id = s.org_id
+ORDER BY d.hostname
+`
+
+type ListAdminDomainsRow struct {
+	ID                string             `json:"id"`
+	SiteID            string             `json:"site_id"`
+	SiteSlug          string             `json:"site_slug"`
+	OrgID             string             `json:"org_id"`
+	OrgSlug           string             `json:"org_slug"`
+	OrgName           string             `json:"org_name"`
+	Hostname          string             `json:"hostname"`
+	Status            string             `json:"status"`
+	VerificationToken string             `json:"verification_token"`
+	VerifiedAt        pgtype.Timestamptz `json:"verified_at"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) ListAdminDomains(ctx context.Context) ([]ListAdminDomainsRow, error) {
+	rows, err := q.db.Query(ctx, listAdminDomains)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListAdminDomainsRow{}
+	for rows.Next() {
+		var i ListAdminDomainsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.SiteID,
+			&i.SiteSlug,
+			&i.OrgID,
+			&i.OrgSlug,
+			&i.OrgName,
+			&i.Hostname,
+			&i.Status,
+			&i.VerificationToken,
+			&i.VerifiedAt,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listAdminOrgs = `-- name: ListAdminOrgs :many
 SELECT
   o.id,
@@ -354,6 +478,78 @@ func (q *Queries) ListAdminOrgs(ctx context.Context) ([]ListAdminOrgsRow, error)
 			&i.MemberCount,
 			&i.SiteCount,
 			&i.DeploymentCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listAdminQuotas = `-- name: ListAdminQuotas :many
+SELECT
+  s.id AS site_id,
+  s.slug AS site_slug,
+  s.primary_host,
+  o.id AS org_id,
+  o.slug AS org_slug,
+  o.name AS org_name,
+  q.bundle_max_bytes,
+  q.db_soft_max_bytes,
+  q.db_hard_max_bytes,
+  q.request_timeout_ms,
+  q.updated_at,
+  COALESCE(rs.requests_total, 0)::bigint AS requests_total,
+  COALESCE(rs.errors_total, 0)::bigint AS errors_total
+FROM site_quotas q
+JOIN sites s ON s.id = q.site_id
+JOIN orgs o ON o.id = s.org_id
+LEFT JOIN runtime_status rs ON rs.site_id = s.id
+ORDER BY o.slug, s.slug
+`
+
+type ListAdminQuotasRow struct {
+	SiteID           string             `json:"site_id"`
+	SiteSlug         string             `json:"site_slug"`
+	PrimaryHost      string             `json:"primary_host"`
+	OrgID            string             `json:"org_id"`
+	OrgSlug          string             `json:"org_slug"`
+	OrgName          string             `json:"org_name"`
+	BundleMaxBytes   int64              `json:"bundle_max_bytes"`
+	DbSoftMaxBytes   int64              `json:"db_soft_max_bytes"`
+	DbHardMaxBytes   int64              `json:"db_hard_max_bytes"`
+	RequestTimeoutMs int32              `json:"request_timeout_ms"`
+	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
+	RequestsTotal    int64              `json:"requests_total"`
+	ErrorsTotal      int64              `json:"errors_total"`
+}
+
+func (q *Queries) ListAdminQuotas(ctx context.Context) ([]ListAdminQuotasRow, error) {
+	rows, err := q.db.Query(ctx, listAdminQuotas)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListAdminQuotasRow{}
+	for rows.Next() {
+		var i ListAdminQuotasRow
+		if err := rows.Scan(
+			&i.SiteID,
+			&i.SiteSlug,
+			&i.PrimaryHost,
+			&i.OrgID,
+			&i.OrgSlug,
+			&i.OrgName,
+			&i.BundleMaxBytes,
+			&i.DbSoftMaxBytes,
+			&i.DbHardMaxBytes,
+			&i.RequestTimeoutMs,
+			&i.UpdatedAt,
+			&i.RequestsTotal,
+			&i.ErrorsTotal,
 		); err != nil {
 			return nil, err
 		}

@@ -1,4 +1,4 @@
-import type { AdminAgent, AdminDeployment, AdminOrg, AdminRuntimeSummary, AdminSite, AdminUser, Agent, AuditEvent, Deployment, MeResponse, RuntimeStatus, Site } from '../types';
+import type { AdminAgent, AdminCapability, AdminDeployment, AdminDomain, AdminOrg, AdminQuota, AdminRuntimeSummary, AdminSite, AdminUser, Agent, AuditEvent, Deployment, MeResponse, RuntimeStatus, Site } from '../types';
 
 export const fixtures = {
   me: {
@@ -45,6 +45,18 @@ export const fixtures = {
     { id: 'agt_123', orgId: 'org_123', orgSlug: 'demo', orgName: 'Demo Org', name: 'ci-bot', status: 'active', createdByUserId: 'usr_123', createdAt: '2026-05-11T22:30:00Z', grantCount: 2 },
     { id: 'agt_456', orgId: 'org_123', orgSlug: 'demo', orgName: 'Demo Org', name: 'old-bot', status: 'revoked', createdByUserId: 'usr_admin', createdAt: '2026-05-11T21:30:00Z', lastSeenAt: '2026-05-11T22:00:00Z', grantCount: 0 },
   ] satisfies AdminAgent[],
+  adminQuotas: [
+    { siteId: 'site_123', siteSlug: 'hello', primaryHost: 'hello.localhost', orgId: 'org_123', orgSlug: 'demo', orgName: 'Demo Org', bundleMaxBytes: 52428800, dbSoftMaxBytes: 52428800, dbHardMaxBytes: 104857600, requestTimeoutMs: 2000, updatedAt: '2026-05-11T22:00:00Z', requestsTotal: 1234, errorsTotal: 2 },
+    { siteId: 'site_456', siteSlug: 'docs', primaryHost: 'docs.localhost', orgId: 'org_123', orgSlug: 'demo', orgName: 'Demo Org', bundleMaxBytes: 52428800, dbSoftMaxBytes: 52428800, dbHardMaxBytes: 104857600, requestTimeoutMs: 2000, updatedAt: '2026-05-11T22:00:00Z', requestsTotal: 15, errorsTotal: 7 },
+  ] satisfies AdminQuota[],
+  adminCapabilities: [
+    { siteId: 'site_123', siteSlug: 'hello', orgId: 'org_123', orgSlug: 'demo', orgName: 'Demo Org', capability: 'express', enabled: true, configJson: '{}', updatedAt: '2026-05-11T22:00:00Z' },
+    { siteId: 'site_123', siteSlug: 'hello', orgId: 'org_123', orgSlug: 'demo', orgName: 'Demo Org', capability: 'exec', enabled: false, configJson: '{"reason":"never available in v1"}', updatedAt: '2026-05-11T22:00:00Z' },
+  ] satisfies AdminCapability[],
+  adminDomains: [
+    { id: 'dom_123', siteId: 'site_123', siteSlug: 'hello', orgId: 'org_123', orgSlug: 'demo', orgName: 'Demo Org', hostname: 'hello.localhost', status: 'verified', verificationToken: '', verifiedAt: '2026-05-11T22:00:00Z', createdAt: '2026-05-11T20:00:00Z' },
+    { id: 'dom_456', siteId: 'site_456', siteSlug: 'docs', orgId: 'org_123', orgSlug: 'demo', orgName: 'Demo Org', hostname: 'docs.example.com', status: 'pending', verificationToken: 'ggh-verify-demo', createdAt: '2026-05-11T20:30:00Z' },
+  ] satisfies AdminDomain[],
   adminDeployments: [
     { id: 'dep_4', siteId: 'site_123', siteSlug: 'hello', primaryHost: 'hello.localhost', orgId: 'org_123', orgSlug: 'demo', orgName: 'Demo Org', version: 4, status: 'active', bundleRef: 'bundles/site_123/dep_4.tar.gz', unpackedPath: 'sites/site_123/deployments/dep_4', manifestJson: '{}', validationJson: '{"valid":true}', createdByType: 'user', createdById: 'usr_123', createdAt: '2026-05-11T22:10:00Z', activatedAt: '2026-05-11T22:20:00Z' },
     { id: 'dep_bad', siteId: 'site_456', siteSlug: 'docs', primaryHost: 'docs.localhost', orgId: 'org_123', orgSlug: 'demo', orgName: 'Demo Org', version: 2, status: 'rejected', bundleRef: 'bundles/site_456/dep_bad.tar.gz', unpackedPath: '', manifestJson: '{}', validationJson: '{"valid":false,"errors":["smoke failed"]}', createdByType: 'user', createdById: 'usr_123', createdAt: '2026-05-11T22:15:00Z' },

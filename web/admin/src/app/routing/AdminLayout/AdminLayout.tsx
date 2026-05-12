@@ -12,6 +12,8 @@ function sectionFromPath(path: string): AdminSection {
   if (path.includes('/agents')) return 'agents';
   if (path.includes('/audit')) return 'audit';
   if (path.includes('/quotas')) return 'quotas';
+  if (path.includes('/capabilities')) return 'capabilities';
+  if (path.includes('/domains')) return 'domains';
   return 'overview';
 }
 

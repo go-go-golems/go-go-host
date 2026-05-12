@@ -23,6 +23,9 @@ import { AdminDeploymentsPage } from '../pages/AdminDeploymentsPage';
 import { AdminDeploymentDetailPage } from '../pages/AdminDeploymentDetailPage';
 import { AdminAgentsPage } from '../pages/AdminAgentsPage';
 import { AdminAuditPage } from '../pages/AdminAuditPage';
+import { AdminQuotasPage } from '../pages/AdminQuotasPage';
+import { AdminCapabilitiesPage } from '../pages/AdminCapabilitiesPage';
+import { AdminDomainsPage } from '../pages/AdminDomainsPage';
 
 export const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/app" replace /> },
@@ -38,6 +41,9 @@ export const router = createBrowserRouter([
     { path: 'deployments/:deploymentId', element: <AdminDeploymentDetailPage /> },
     { path: 'agents', element: <AdminAgentsPage /> },
     { path: 'audit', element: <AdminAuditPage /> },
+    { path: 'quotas', element: <AdminQuotasPage /> },
+    { path: 'capabilities', element: <AdminCapabilitiesPage /> },
+    { path: 'domains', element: <AdminDomainsPage /> },
     { path: '*', element: <AdminOverviewPage /> },
   ] },
   { path: '/app/orgs/:orgId', element: <RequireSession><RequireOrgAccess><OrgLayout /></RequireOrgAccess></RequireSession>, children: [

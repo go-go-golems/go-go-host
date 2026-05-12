@@ -89,6 +89,48 @@ type AdminAgentFilter struct {
 	Status string
 }
 
+type AdminQuota struct {
+	SiteID           string
+	SiteSlug         string
+	PrimaryHost      string
+	OrgID            string
+	OrgSlug          string
+	OrgName          string
+	BundleMaxBytes   int64
+	DBSoftMaxBytes   int64
+	DBHardMaxBytes   int64
+	RequestTimeoutMS int
+	UpdatedAt        string
+	RequestsTotal    int64
+	ErrorsTotal      int64
+}
+
+type AdminCapability struct {
+	SiteID     string
+	SiteSlug   string
+	OrgID      string
+	OrgSlug    string
+	OrgName    string
+	Capability string
+	Enabled    bool
+	ConfigJSON []byte
+	UpdatedAt  string
+}
+
+type AdminDomain struct {
+	ID                string
+	SiteID            string
+	SiteSlug          string
+	OrgID             string
+	OrgSlug           string
+	OrgName           string
+	Hostname          string
+	Status            string
+	VerificationToken string
+	VerifiedAt        string
+	CreatedAt         string
+}
+
 func (s *Store) ListAdminOrgs(ctx context.Context) ([]AdminOrg, error) {
 	rows, err := s.q.ListAdminOrgs(ctx)
 	if err != nil {
@@ -121,6 +163,42 @@ func (s *Store) ListAdminSites(ctx context.Context) ([]AdminSite, error) {
 	out := make([]AdminSite, 0, len(rows))
 	for _, row := range rows {
 		out = append(out, AdminSite{ID: row.ID, OrgID: row.OrgID, OrgSlug: row.OrgSlug, OrgName: row.OrgName, Slug: row.Slug, Name: row.Name, PrimaryHost: row.PrimaryHost, Status: row.Status, ActiveDeploymentID: row.ActiveDeploymentID, CreatedAt: formatDBTime(row.CreatedAt), RuntimeStatus: row.RuntimeStatus, RequestsTotal: row.RequestsTotal, ErrorsTotal: row.ErrorsTotal, LastError: row.LastError})
+	}
+	return out, nil
+}
+
+func (s *Store) ListAdminQuotas(ctx context.Context) ([]AdminQuota, error) {
+	rows, err := s.q.ListAdminQuotas(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]AdminQuota, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, AdminQuota{SiteID: row.SiteID, SiteSlug: row.SiteSlug, PrimaryHost: row.PrimaryHost, OrgID: row.OrgID, OrgSlug: row.OrgSlug, OrgName: row.OrgName, BundleMaxBytes: row.BundleMaxBytes, DBSoftMaxBytes: row.DbSoftMaxBytes, DBHardMaxBytes: row.DbHardMaxBytes, RequestTimeoutMS: int(row.RequestTimeoutMs), UpdatedAt: formatDBTime(row.UpdatedAt), RequestsTotal: row.RequestsTotal, ErrorsTotal: row.ErrorsTotal})
+	}
+	return out, nil
+}
+
+func (s *Store) ListAdminCapabilities(ctx context.Context) ([]AdminCapability, error) {
+	rows, err := s.q.ListAdminCapabilities(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]AdminCapability, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, AdminCapability{SiteID: row.SiteID, SiteSlug: row.SiteSlug, OrgID: row.OrgID, OrgSlug: row.OrgSlug, OrgName: row.OrgName, Capability: row.Capability, Enabled: row.Enabled, ConfigJSON: row.ConfigJson, UpdatedAt: formatDBTime(row.UpdatedAt)})
+	}
+	return out, nil
+}
+
+func (s *Store) ListAdminDomains(ctx context.Context) ([]AdminDomain, error) {
+	rows, err := s.q.ListAdminDomains(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]AdminDomain, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, AdminDomain{ID: row.ID, SiteID: row.SiteID, SiteSlug: row.SiteSlug, OrgID: row.OrgID, OrgSlug: row.OrgSlug, OrgName: row.OrgName, Hostname: row.Hostname, Status: row.Status, VerificationToken: row.VerificationToken, VerifiedAt: formatDBTime(row.VerifiedAt), CreatedAt: formatDBTime(row.CreatedAt)})
 	}
 	return out, nil
 }

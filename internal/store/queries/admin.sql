@@ -131,3 +131,58 @@ WHERE (sqlc.narg('org_id')::text IS NULL OR org_id = sqlc.narg('org_id')::text)
   AND (sqlc.narg('action')::text IS NULL OR action = sqlc.narg('action')::text)
 ORDER BY created_at DESC
 LIMIT sqlc.arg('limit')::int;
+
+-- name: ListAdminQuotas :many
+SELECT
+  s.id AS site_id,
+  s.slug AS site_slug,
+  s.primary_host,
+  o.id AS org_id,
+  o.slug AS org_slug,
+  o.name AS org_name,
+  q.bundle_max_bytes,
+  q.db_soft_max_bytes,
+  q.db_hard_max_bytes,
+  q.request_timeout_ms,
+  q.updated_at,
+  COALESCE(rs.requests_total, 0)::bigint AS requests_total,
+  COALESCE(rs.errors_total, 0)::bigint AS errors_total
+FROM site_quotas q
+JOIN sites s ON s.id = q.site_id
+JOIN orgs o ON o.id = s.org_id
+LEFT JOIN runtime_status rs ON rs.site_id = s.id
+ORDER BY o.slug, s.slug;
+
+-- name: ListAdminCapabilities :many
+SELECT
+  s.id AS site_id,
+  s.slug AS site_slug,
+  o.id AS org_id,
+  o.slug AS org_slug,
+  o.name AS org_name,
+  c.capability,
+  c.enabled,
+  c.config_json,
+  c.updated_at
+FROM site_capabilities c
+JOIN sites s ON s.id = c.site_id
+JOIN orgs o ON o.id = s.org_id
+ORDER BY o.slug, s.slug, c.capability;
+
+-- name: ListAdminDomains :many
+SELECT
+  d.id,
+  d.site_id,
+  s.slug AS site_slug,
+  o.id AS org_id,
+  o.slug AS org_slug,
+  o.name AS org_name,
+  d.hostname,
+  d.status,
+  d.verification_token,
+  d.verified_at,
+  d.created_at
+FROM site_domains d
+JOIN sites s ON s.id = d.site_id
+JOIN orgs o ON o.id = s.org_id
+ORDER BY d.hostname;
