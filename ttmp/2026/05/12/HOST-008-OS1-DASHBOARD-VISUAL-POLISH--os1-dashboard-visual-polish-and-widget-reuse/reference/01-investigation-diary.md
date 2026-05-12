@@ -294,3 +294,17 @@ The playbook captures the rules learned so far:
 - capture Playwright screenshots and review full pages before moving on.
 
 Next step: upload the playbook to reMarkable.
+
+## 2026-05-12 — reMarkable upload
+
+Uploaded the guidelines playbook to reMarkable:
+
+```text
+/ai/2026/05/12/HOST-008-OS1-DASHBOARD-VISUAL-POLISH/HOST-008_OS1_Admin_UI_Guidelines.pdf
+```
+
+Command output:
+
+```text
+OK: uploaded HOST-008_OS1_Admin_UI_Guidelines.pdf -> /ai/2026/05/12/HOST-008-OS1-DASHBOARD-VISUAL-POLISH
+```
