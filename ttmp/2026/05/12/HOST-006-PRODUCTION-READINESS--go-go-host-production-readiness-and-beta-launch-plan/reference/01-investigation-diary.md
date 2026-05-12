@@ -199,3 +199,7 @@ I made the live OIDC browser smoke repeatable from the repository instead of rel
 ### Remaining note
 
 The smoke currently verifies the platform-admin path. The Alice/Bob isolation flow was manually verified with the built-in Playwright browser tool; turning that exact multi-user flow into the scripted smoke remains a future enhancement.
+
+## Step 5: CI decision for OIDC smoke
+
+The user clarified that CI wiring is not necessary for the OIDC browser smoke right now. Local testing through `devctl up --force` plus `make oidc-e2e` is sufficient for Phase 1. I updated the HOST-006 task list to mark the CI decision complete and leave the next work focused on production/beta deployment readiness rather than CI automation.

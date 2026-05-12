@@ -51,3 +51,14 @@ Made OIDC smoke repeatable with a Playwright dev dependency, GO_GO_HOST_OIDC_E2E
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/scripts/oidc-login-playwright.mjs — repeatable OIDC browser smoke
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/package.json — Playwright dev dependency
 
+
+## 2026-05-12
+
+Closed Phase 1 CI-smoke follow-up by deciding local GO_GO_HOST_OIDC_E2E=1 node scripts/oidc-login-playwright.mjs
+OIDC E2E ok: admin@example.test platformAdmin=true testing is sufficient for now.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/12/HOST-006-PRODUCTION-READINESS--go-go-host-production-readiness-and-beta-launch-plan/reference/01-investigation-diary.md — CI decision note
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/12/HOST-006-PRODUCTION-READINESS--go-go-host-production-readiness-and-beta-launch-plan/tasks.md — Phase 1 CI decision
+
