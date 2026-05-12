@@ -29,3 +29,13 @@ Implemented Phase 1 local Keycloak/OIDC foundations: realm import, dev Keycloak 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/scripts/oidc-login-playwright.mjs — gated OIDC browser smoke
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/auth/oidc.ts — dashboard PKCE/token/logout helper
 
+
+## 2026-05-12
+
+Verified Phase 1 OIDC browser flow live with built-in Playwright tooling: Keycloak redirect, platform-admin login, admin dashboard access, logout, Alice login, and non-admin `/admin` denial.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/12/HOST-006-PRODUCTION-READINESS--go-go-host-production-readiness-and-beta-launch-plan/reference/01-investigation-diary.md — live Playwright verification notes
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/12/HOST-006-PRODUCTION-READINESS--go-go-host-production-readiness-and-beta-launch-plan/tasks.md — Phase 1 live smoke task updates
+

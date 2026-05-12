@@ -150,3 +150,28 @@ I implemented the first production-readiness phase so the local stack can exerci
 ### Notes
 
 I did not run the live browser Keycloak smoke in this step because it requires starting the full devctl stack and Playwright browser runtime. The script is checked in and gated for that follow-up.
+
+## Step 3: Live browser verification with built-in Playwright tooling
+
+The user pointed out that the agent has a Playwright browser tool available, so I used it to validate the Phase 1 OIDC work without depending on the repo-local `playwright` npm package.
+
+### What I ran
+
+- Started the dev stack with `devctl up --force`.
+- The first cold start timed out on devctl health while Keycloak/import was still warming up, so I brought up Docker Compose services and the daemon manually once to verify the browser flow.
+- After Keycloak was warm, `devctl up --force` completed successfully with five services: Postgres, Keycloak, go-go-hostd, Vite, and Storybook.
+- Used the built-in Playwright browser tool against the embedded dashboard at `http://127.0.0.1:8080/admin`.
+
+### Browser checks
+
+- Navigating to `/admin` redirected to Keycloak.
+- Logged in as `platform-admin` / `admin`.
+- Returned to `/admin/overview` and saw `admin@example.test · platform admin` plus admin navigation.
+- Clicked `Sign out`; the dashboard returned to `/app` and redirected to Keycloak login.
+- Logged in as `alice` / `alice`.
+- Alice landed on the no-organization onboarding page.
+- Navigating Alice to `/admin` showed `Platform admin required`, proving the OIDC admin bootstrap did not accidentally grant normal users platform-admin access.
+
+### Follow-up
+
+The live browser smoke passed through the built-in tool. The remaining work is to convert this manual flow into a repeatable automated test path that does not require the repo-local `playwright` package to be installed separately.

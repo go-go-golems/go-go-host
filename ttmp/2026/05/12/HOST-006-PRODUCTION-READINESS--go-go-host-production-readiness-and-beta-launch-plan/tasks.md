@@ -36,8 +36,9 @@ Intent: long-term
 - [x] Attach bearer tokens in RTK Query `prepareHeaders` and deployment uploads.
 - [x] Add backend OIDC config/admin claim mapping unit coverage.
 - [x] Add gated Playwright admin-login OIDC smoke script.
-- [ ] Run live Keycloak/browser E2E with `GO_GO_HOST_OIDC_E2E=1` after starting devctl.
-- [ ] Add deeper browser E2E for logout and Alice/Bob user isolation.
+- [x] Run live Keycloak/browser smoke with Playwright browser tooling after starting devctl.
+- [x] Manually verify logout and non-admin Alice denial on `/admin`.
+- [ ] Convert the live Playwright smoke into a repeatable automated CI/dev script without relying on external npm Playwright availability.
 
 ## P0: Platform-admin bootstrap
 
