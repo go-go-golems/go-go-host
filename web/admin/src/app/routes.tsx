@@ -2,7 +2,8 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { OrgRedirectOrOnboarding } from './routing/OrgRedirectOrOnboarding';
 import { OrgLayout } from './routing/OrgLayout';
 import { SiteLayout } from './routing/SiteLayout';
-import { RequireOrgAccess, RequireSession } from './routing/guards';
+import { AdminLayout } from './routing/AdminLayout';
+import { RequireOrgAccess, RequirePlatformAdmin, RequireSession } from './routing/guards';
 import { SitesPage } from '../pages/SitesPage';
 import { CreateSitePage } from '../pages/CreateSitePage';
 import { SiteOverviewPage } from '../pages/SiteOverviewPage';
@@ -13,10 +14,18 @@ import { AgentsPage } from '../pages/AgentsPage';
 import { AuditPage } from '../pages/AuditPage';
 import { UsagePage } from '../pages/UsagePage';
 import { MembersPage } from '../pages/MembersPage';
+import { AdminOverviewPage } from '../pages/AdminOverviewPage';
+import { AdminRuntimesPage } from '../pages/AdminRuntimesPage';
 
 export const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/app" replace /> },
   { path: '/app', element: <RequireSession><OrgRedirectOrOnboarding /></RequireSession> },
+  { path: '/admin', element: <RequireSession><RequirePlatformAdmin><AdminLayout /></RequirePlatformAdmin></RequireSession>, children: [
+    { index: true, element: <Navigate to="overview" replace /> },
+    { path: 'overview', element: <AdminOverviewPage /> },
+    { path: 'runtimes', element: <AdminRuntimesPage /> },
+    { path: '*', element: <AdminOverviewPage /> },
+  ] },
   { path: '/app/orgs/:orgId', element: <RequireSession><RequireOrgAccess><OrgLayout /></RequireOrgAccess></RequireSession>, children: [
     { index: true, element: <Navigate to="sites" replace /> },
     { path: 'sites', element: <SitesPage /> },

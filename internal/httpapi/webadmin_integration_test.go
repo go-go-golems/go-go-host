@@ -12,7 +12,7 @@ import (
 
 func TestDashboardRoutesServeEmbeddedSPAAndAPIRoutesStillWork(t *testing.T) {
 	h := NewHandler(control.NewCore(config.Config{BaseDomain: "localhost", PublicBaseURL: "http://127.0.0.1:8080", DevAuth: true}))
-	for _, path := range []string{"/app", "/app/", "/app/orgs/org_123/sites"} {
+	for _, path := range []string{"/app", "/app/", "/app/orgs/org_123/sites", "/admin", "/admin/", "/admin/overview", "/admin/runtimes"} {
 		rec := httptest.NewRecorder()
 		h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, path, nil))
 		if rec.Code != http.StatusOK {

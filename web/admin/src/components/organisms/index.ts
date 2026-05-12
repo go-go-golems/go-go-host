@@ -1,3 +1,5 @@
+export * from './AdminRuntimeTable';
+export * from './AdminSidebar';
 export * from './AgentsTable';
 export * from './AppShell';
 export * from './AuditTimeline';

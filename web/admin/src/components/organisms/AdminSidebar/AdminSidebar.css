@@ -1,0 +1,3 @@
+.admin-sidebar { display: grid; align-content: start; gap: 0.25rem; }
+.admin-sidebar button { text-align: left; border: 0; background: transparent; padding: 0.35rem 0.5rem; font: inherit; cursor: pointer; }
+.admin-sidebar button:hover, .admin-sidebar button[data-active="true"] { background: var(--hc-color-border); color: var(--hc-color-bg); }

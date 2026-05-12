@@ -4,6 +4,7 @@ import { fixtures } from './fixtures';
 export const handlers = [
   http.get('/api/v1/config', () => HttpResponse.json({ baseDomain: 'localhost', publicBaseUrl: 'http://127.0.0.1:8080', devAuth: true })),
   http.get('/api/v1/me', () => HttpResponse.json(fixtures.me)),
+  http.get('/api/v1/admin/runtimes/summary', () => HttpResponse.json(fixtures.adminRuntimeSummary)),
   http.post('/api/v1/orgs', async ({ request }) => {
     const body = await request.json() as { slug?: string; name?: string };
     if (!body.slug || !body.name) return HttpResponse.json({ error: 'slug and name are required' }, { status: 400 });

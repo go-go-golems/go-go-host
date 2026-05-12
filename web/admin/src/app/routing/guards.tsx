@@ -10,6 +10,14 @@ export function RequireSession({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+export function RequirePlatformAdmin({ children }: { children: ReactNode }) {
+  const me = useGetMeQuery();
+  if (me.isLoading) return <LoadingBlock lines={4} />;
+  if (me.error || !me.data) return <ErrorCallout title="Unable to load platform session" error="The admin dashboard could not load /api/v1/me." />;
+  if (!me.data.platformAdmin) return <ErrorCallout title="Platform admin required" error="Current user is authenticated but is not allowed to inspect platform-wide state." />;
+  return <>{children}</>;
+}
+
 export function RequireOrgAccess({ children }: { children: ReactNode }) {
   const { orgId } = useParams();
   const me = useGetMeQuery();

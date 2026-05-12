@@ -1858,3 +1858,11 @@ The backend and CLI now expose enough functionality to start the dashboard, but 
 - Start with the new Phase 7 design doc.
 - Compare API references against `internal/httpapi/handler.go`, `internal/httpapi/deployments.go`, `internal/httpapi/runtime.go`, and `internal/httpapi/agents_audit.go`.
 - Confirm that every requested page/widget/storybook requirement is represented before implementation begins.
+
+## Step 18: Split platform admin dashboard into HOST-003
+
+The admin-side dashboard work that was originally tracked as future `/admin` work in this platform ticket is now split into a dedicated ticket: `HOST-003-ADMIN-DASHBOARD`.
+
+The new ticket should follow the same implementation style as `HOST-002-USER-DASHBOARD`: Storybook-first React pages, MSW fixtures, RTK Query API integration, embedded Vite SPA delivery, macOS1 styling via os-core, and frequent docmgr task/changelog/diary updates.
+
+Initial HOST-003 scope starts with read-only platform admin observability: route guard, admin shell, overview, and runtime summary using the existing `/api/v1/admin/runtimes/summary` endpoint.

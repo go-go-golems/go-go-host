@@ -1,0 +1,4 @@
+.admin-runtimes-page { display: grid; gap: 1rem; }
+.admin-runtimes-page > header { display: flex; align-items: start; justify-content: space-between; gap: 1rem; }
+.admin-runtimes-page h1 { margin: 0 0 0.35rem; }
+.admin-runtimes-page p { margin: 0; color: var(--hc-color-muted); }

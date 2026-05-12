@@ -12,6 +12,7 @@ export interface Site { id: string; orgId: string; slug: string; name: string; p
 export interface CreateSiteRequest { orgId: string; slug: string; name: string; }
 export interface Deployment { id: string; siteId: string; version: number; status: DeploymentStatus; bundleRef: string; unpackedPath: string; manifestJson: string; validationJson: string; createdByType: string; createdById: string; createdAt: string; activatedAt?: string; }
 export interface RuntimeStatus { siteId: string; orgId?: string; deploymentId?: string; hosts?: string[]; status: RuntimeState; startedAt?: string; lastError?: string; requestsTotal?: number; errorsTotal?: number; }
+export interface AdminRuntimeSummary { activeSites: number; hosts: string[]; runtimes: RuntimeStatus[]; }
 export interface Agent { id: string; orgId: string; name: string; status: 'active' | 'revoked'; createdByUserId: string; createdAt: string; lastSeenAt?: string; }
 export interface CreateAgentRequest { orgId: string; name: string; }
 export interface RevokeAgentRequest { orgId: string; agentId: string; }

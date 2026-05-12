@@ -247,3 +247,12 @@ Moved Phase 7 user dashboard design guide to dedicated ticket HOST-002-USER-DASH
 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/11/HOST-001-GO-GO-HOST-V1--go-go-host-v1-hosting-platform-design/design-doc/02-phase-7-user-dashboard-affordances-page-designs-and-component-system-guide.md — Pointer to moved dashboard design guide
 
+
+## 2026-05-11
+
+Split platform admin dashboard delivery into HOST-003-ADMIN-DASHBOARD while keeping backend/admin API dependencies visible in the platform ticket.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/11/HOST-003-ADMIN-DASHBOARD--go-go-host-platform-admin-dashboard/index.md — Dedicated admin dashboard ticket
+

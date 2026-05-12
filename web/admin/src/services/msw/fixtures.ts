@@ -1,4 +1,4 @@
-import type { Agent, AuditEvent, Deployment, MeResponse, RuntimeStatus, Site } from '../types';
+import type { AdminRuntimeSummary, Agent, AuditEvent, Deployment, MeResponse, RuntimeStatus, Site } from '../types';
 
 export const fixtures = {
   me: {
@@ -20,4 +20,13 @@ export const fixtures = {
   ] satisfies Deployment[],
   agents: [{ id: 'agt_123', orgId: 'org_123', name: 'ci-bot', status: 'active', createdByUserId: 'usr_123', createdAt: '2026-05-11T22:30:00Z' }] satisfies Agent[],
   audit: [{ id: 'aud_123', orgId: 'org_123', actorType: 'user', actorId: 'usr_123', action: 'deployment.activate', resourceType: 'deployment', resourceId: 'dep_4', ipAddress: '', userAgent: '', metadataJson: '{}', createdAt: '2026-05-11T22:20:00Z' }] satisfies AuditEvent[],
+  adminMe: {
+    user: { id: 'usr_admin', email: 'admin@dev.local', displayName: 'Platform Admin' },
+    memberships: [{ orgId: 'org_123', orgSlug: 'demo', orgName: 'Demo Org', role: 'org_owner' }],
+    platformAdmin: true,
+  } satisfies MeResponse,
+  adminRuntimeSummary: { activeSites: 1, hosts: ['hello.localhost'], runtimes: [
+    { siteId: 'site_123', orgId: 'org_123', deploymentId: 'dep_4', hosts: ['hello.localhost'], status: 'ready', startedAt: '2026-05-11T22:20:00Z', requestsTotal: 1234, errorsTotal: 2 },
+    { siteId: 'site_456', orgId: 'org_123', deploymentId: 'dep_bad', hosts: ['docs.localhost'], status: 'failed', startedAt: '2026-05-11T22:25:00Z', lastError: 'dry-run smoke check failed', requestsTotal: 15, errorsTotal: 7 },
+  ] } satisfies AdminRuntimeSummary,
 };
