@@ -198,3 +198,28 @@ Plan for this slice:
 3. Render capability policy rows with OS-core `Checkbox` widgets so enabled/disabled state reads as a boolean control, while still preserving async save behavior.
 4. Add subtle highlight classes for safe, warning, danger, and identifier text.
 5. Normalize settings-page font sizes and table/control density.
+
+## 2026-05-12 — CodeMirror JSON editor atom
+
+Installed official CodeMirror packages in `web/admin`:
+
+```text
+@codemirror/commands
+@codemirror/lang-json
+@codemirror/state
+@codemirror/view
+```
+
+Added reusable atom:
+
+```text
+web/admin/src/components/atoms/JsonEditor/JsonEditor.tsx
+web/admin/src/components/atoms/JsonEditor/JsonEditor.css
+web/admin/src/components/atoms/JsonEditor/index.ts
+```
+
+The component creates an `EditorView` with JSON language support, line numbers, history, default keymap, tab indentation, line wrapping, and a small OS1-compatible theme layer. It is controlled from React by syncing external `value` changes into the editor while reporting CodeMirror edits back through `onChange`.
+
+Validation: `pnpm build` passed.
+
+Commit: `36b846e Add CodeMirror JSON editor atom`.
