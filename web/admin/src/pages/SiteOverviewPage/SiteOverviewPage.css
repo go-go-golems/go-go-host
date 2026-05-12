@@ -1,0 +1,9 @@
+.site-overview-page { display: grid; gap: 1rem; }
+.site-overview-page__hero { display: grid; grid-template-columns: max-content 1fr max-content; gap: 1rem; align-items: center; }
+.site-overview-page__hero h1, .site-overview-page__hero p, .site-overview-page__deployments h2, .site-overview-page__deployments p { margin: 0; }
+.site-overview-page__hero p, .site-overview-page__deployments p { color: var(--hc-color-muted); }
+.site-overview-page__deployments { display: grid; gap: 1rem; }
+.site-overview-page__deployments header { display: flex; justify-content: space-between; gap: 1rem; align-items: start; }
+.site-overview-page__debug { display: grid; gap: 0.5rem; }
+.site-overview-page__debug h2 { margin: 0; }
+@media (max-width: 760px) { .site-overview-page__hero { grid-template-columns: 1fr; } .site-overview-page__deployments header { flex-direction: column; } }

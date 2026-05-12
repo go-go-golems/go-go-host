@@ -1,0 +1,11 @@
+import type { Meta, StoryObj } from '@storybook/react';
+import { http, HttpResponse } from 'msw';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { SiteLayout } from '../../app/routing/SiteLayout';
+import { RuntimePage } from './RuntimePage';
+import { fixtures } from '../../services/msw/fixtures';
+const Wrapped = () => <MemoryRouter initialEntries={['/app/orgs/org_123/sites/site_123/runtime']}><Routes><Route path="/app/orgs/:orgId/sites/:siteId" element={<SiteLayout />}><Route path="runtime" element={<RuntimePage />} /></Route></Routes></MemoryRouter>;
+const meta = { title: 'Pages/RuntimePage', component: Wrapped } satisfies Meta<typeof Wrapped>; export default meta; type Story = StoryObj<typeof meta>;
+export const Ready: Story = {};
+export const Failed: Story = { parameters: { msw: { handlers: [http.get('/api/v1/sites/:siteId/runtime', () => HttpResponse.json(fixtures.runtimeFailed))] } } };
+export const Forbidden: Story = { parameters: { msw: { handlers: [http.get('/api/v1/sites/:siteId/runtime', () => HttpResponse.json({ error: 'permission denied' }, { status: 403 }))] } } };

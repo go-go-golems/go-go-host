@@ -165,12 +165,12 @@ Goal: deliver the first useful dashboard workflow: create org/site and view site
 - [x] Create `pages/SitesPage`.
 - [x] Create `pages/CreateSitePage` form shell.
 - [x] Create `organisms/SitesTable`.
-- [ ] Add runtime badge fan-out or placeholder strategy for site rows.
+- [x] Add runtime badge fan-out or placeholder strategy for site rows.
 - [x] Create site form validation for slug/name.
-- [ ] Wire `POST /api/v1/orgs`.
+- [x] Wire `POST /api/v1/orgs`.
 - [x] Wire `GET /api/v1/orgs/{org_id}/sites`.
 - [x] Wire `POST /api/v1/orgs/{org_id}/sites`.
-- [ ] Add Storybook page stories:
+- [x] Add Storybook page stories:
   - [x] no org onboarding empty state,
   - [x] sites empty,
   - [x] sites populated,
@@ -179,64 +179,64 @@ Goal: deliver the first useful dashboard workflow: create org/site and view site
 
 Exit criteria:
 
-- [ ] User can create org and site from the UI against dev daemon.
-- [ ] Site list renders real API data.
-- [ ] Page stories cover the full workflow without a daemon.
+- [x] User can create org and site from the UI against dev daemon.
+- [x] Site list renders real API data.
+- [x] Page stories cover the full workflow without a daemon.
 
 ## Phase 7: Site overview and runtime details
 
 Goal: make each site inspectable.
 
-- [ ] Create `SiteLayout`.
-- [ ] Create `SiteHeader` organism.
-- [ ] Create `SiteTabs` organism.
-- [ ] Create `pages/SiteOverviewPage`.
-- [ ] Create `pages/RuntimePage`.
+- [x] Create `SiteLayout`.
+- [x] Create `SiteHeader` organism.
+- [x] Create `SiteTabs` organism.
+- [x] Create `pages/SiteOverviewPage`.
+- [x] Create `pages/RuntimePage`.
 - [x] Create `organisms/RuntimeStatusPanel`.
-- [ ] Wire `GET /api/v1/sites/{site_id}/runtime`.
+- [x] Wire `GET /api/v1/sites/{site_id}/runtime`.
 - [ ] Link deployment ID in runtime panel to deployment detail when present.
-- [ ] Add copy/open affordance for `primaryHost`.
-- [ ] Add Storybook stories for runtime ready/stopped/failed/loading/forbidden.
+- [x] Add copy/open affordance for `primaryHost`.
+- [x] Add Storybook stories for runtime ready/stopped/failed/forbidden.
 
 Exit criteria:
 
-- [ ] Site overview shows host, active deployment ID, runtime badge, counters, and last error.
-- [ ] Runtime page can refresh runtime status.
-- [ ] Runtime states are easy to review in Storybook.
+- [x] Site overview shows host, active deployment ID, runtime badge, counters, and last error.
+- [x] Runtime page can refresh runtime status.
+- [x] Runtime states are easy to review in Storybook.
 
 ## Phase 8: Deployment upload, list, detail, activate, rollback
 
 Goal: expose the complete deployment loop in the dashboard.
 
-- [ ] Create `pages/DeploymentsPage`.
-- [ ] Create `pages/DeploymentDetailPage`.
+- [x] Create `pages/DeploymentsPage`.
+- [x] Create `pages/DeploymentDetailPage`.
 - [x] Create `organisms/DeploymentTimeline`.
-- [ ] Create `organisms/DeploymentUploadPanel`.
+- [x] Create `organisms/DeploymentUploadPanel`.
 - [x] Create `organisms/ValidationReportPanel`.
-- [ ] Wire `POST /api/v1/sites/{site_id}/deployments` multipart upload.
-- [ ] Wire `GET /api/v1/sites/{site_id}/deployments`.
-- [ ] Wire `GET /api/v1/deployments/{deployment_id}`.
-- [ ] Wire `POST /api/v1/deployments/{deployment_id}/activate`.
-- [ ] Wire `POST /api/v1/sites/{site_id}/rollback`.
-- [ ] Add safe JSON parsing helpers for `manifestJson` and `validationJson`.
-- [ ] Add confirmation dialogs for activate and rollback.
+- [x] Wire `POST /api/v1/sites/{site_id}/deployments` multipart upload.
+- [x] Wire `GET /api/v1/sites/{site_id}/deployments`.
+- [x] Wire `GET /api/v1/deployments/{deployment_id}`.
+- [x] Wire `POST /api/v1/deployments/{deployment_id}/activate`.
+- [x] Wire `POST /api/v1/sites/{site_id}/rollback`.
+- [x] Add safe JSON parsing helpers for `manifestJson` and `validationJson`.
+- [x] Add confirmation dialogs for activate and rollback.
 - [ ] Add Storybook stories:
-  - [ ] upload idle,
+  - [x] upload idle,
   - [ ] upload progress,
-  - [ ] validation success,
-  - [ ] validation rejected,
-  - [ ] active deployment,
-  - [ ] superseded deployment,
-  - [ ] rejected deployment detail,
-  - [ ] activation error,
-  - [ ] rollback confirmation.
+  - [x] validation success,
+  - [x] validation rejected,
+  - [x] active deployment,
+  - [x] superseded deployment,
+  - [x] rejected deployment detail,
+  - [x] activation error,
+  - [x] rollback confirmation.
 
 Exit criteria:
 
-- [ ] User can upload a valid bundle and read validation output.
-- [ ] User can activate a deployment.
-- [ ] User can roll back to a previous deployment.
-- [ ] Rejected validation reports are presented as normal user-facing output, not uncaught errors.
+- [x] User can upload a valid bundle and read validation output.
+- [x] User can activate a deployment.
+- [x] User can roll back to a previous deployment.
+- [x] Rejected validation reports are presented as normal user-facing output, not uncaught errors.
 
 ## Phase 9: Agents page and audit page
 

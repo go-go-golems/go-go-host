@@ -1,5 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import { http, HttpResponse } from 'msw';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { userEvent, within, expect } from '@storybook/test';
 import { NoOrgsPage } from './NoOrgsPage';
-const meta = { title: 'Pages/NoOrgsPage', component: NoOrgsPage } satisfies Meta<typeof NoOrgsPage>;
+const Wrapped = () => <MemoryRouter initialEntries={['/app']}><Routes><Route path="/app" element={<NoOrgsPage />} /><Route path="/app/orgs/:orgId/sites/new" element={<div className="dashboard-panel">Create site next</div>} /></Routes></MemoryRouter>;
+const meta = { title: 'Pages/NoOrgsPage', component: Wrapped } satisfies Meta<typeof Wrapped>;
 export default meta; type Story = StoryObj<typeof meta>;
 export const EmptyMemberships: Story = {};
+export const InvalidOrg: Story = { play: async ({ canvasElement }) => { const canvas = within(canvasElement); await userEvent.type(canvas.getByLabelText('Organization slug'), 'Bad Org!'); await userEvent.click(canvas.getByRole('button', { name: 'Create organization' })); await expect(canvas.getByText('Fix organization details')).toBeInTheDocument(); } };
+export const CreateSuccess: Story = { play: async ({ canvasElement }) => { const canvas = within(canvasElement); await userEvent.type(canvas.getByLabelText('Organization slug'), 'demo'); await userEvent.type(canvas.getByLabelText('Organization name'), 'Demo Org'); await userEvent.click(canvas.getByRole('button', { name: 'Create organization' })); await expect(await canvas.findByText('Create site next')).toBeInTheDocument(); } };
+export const CreateError: Story = { parameters: { msw: { handlers: [http.post('/api/v1/orgs', () => HttpResponse.json({ error: 'slug already exists' }, { status: 400 }))] } }, play: async ({ canvasElement }) => { const canvas = within(canvasElement); await userEvent.type(canvas.getByLabelText('Organization slug'), 'demo'); await userEvent.type(canvas.getByLabelText('Organization name'), 'Demo Org'); await userEvent.click(canvas.getByRole('button', { name: 'Create organization' })); await expect(await canvas.findByText('Unable to create organization')).toBeInTheDocument(); } };

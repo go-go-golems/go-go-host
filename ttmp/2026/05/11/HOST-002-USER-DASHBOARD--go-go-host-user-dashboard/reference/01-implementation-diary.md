@@ -541,3 +541,85 @@ make web-build
 make storybook-build
 devctl restart storybook
 ```
+
+## Step 9: Completed practical Phase 6-8 dashboard workflow for real testing
+
+The user asked to push through phases 6, 7, and 8 so there is a real dashboard workflow to test against the dev daemon. I implemented the missing organization/site creation pieces, site overview/runtime pages, and the deployment upload/list/detail/activate/rollback loop.
+
+### Prompt Context
+
+**User prompt (verbatim):** "do phase 6 7 8 because then i'll have something to test for real."
+
+**Assistant interpretation:** Prioritize end-to-end usability over polishing every subcomponent. The important path is: create org, create site, inspect runtime/deployments, upload a bundle, activate, and rollback.
+
+### What I did
+
+Phase 6:
+
+- Added `createOrg` RTK Query mutation for `POST /api/v1/orgs`.
+- Reworked `NoOrgsPage` into a real create-organization form with validation, API error rendering, and success navigation into create-site.
+- Added MSW `POST /api/v1/orgs` handler.
+- Replaced fixture-only site runtime badges with runtime fan-out queries from the real `GET /api/v1/sites/{site_id}/runtime` endpoint.
+
+Phase 7:
+
+- Added `SiteHeader` and `SiteTabs` organisms.
+- Added `SiteLayout` route wrapper.
+- Added `SiteOverviewPage` that composes runtime status, deployment timeline, active deployment validation report, host copy affordance, and raw site DTO debug output.
+- Added `RuntimePage` with runtime refresh and 10-second polling.
+- Wired nested routes under `/app/orgs/:orgId/sites/:siteId`.
+
+Phase 8:
+
+- Added `getDeployment`, `uploadDeployment`, `activateDeployment`, and `rollbackDeployment` RTK Query endpoints.
+- Implemented multipart bundle upload with `FormData`.
+- Treated validation-rejected upload responses that include `{ deployment, report, manifest }` as displayable results even when the HTTP status is `400`.
+- Added `DeploymentUploadPanel` organism with manifest and validation output.
+- Added `DeploymentsPage` with upload panel, deployment timeline, and rollback confirmation.
+- Added `DeploymentDetailPage` with deployment status, validation report, and activation confirmation.
+- Added safe JSON parsing helpers for deployment `manifestJson` and `validationJson`.
+- Expanded MSW handlers for deployment upload, get, activate, and rollback.
+- Added Storybook stories for site overview, runtime page, upload states, deployment list states, and deployment detail states.
+
+### Why
+
+This creates a coherent browser workflow that can be exercised against the real daemon instead of only isolated components:
+
+1. Open `/app`.
+2. Create an organization if none exists.
+3. Create a site.
+4. Open the site overview.
+5. Inspect runtime/deployments.
+6. Upload a bundle.
+7. Inspect validation output.
+8. Activate or roll back deployments.
+
+### What worked
+
+- `make web-build` passes.
+- `make storybook-build` passes.
+- The Storybook/MSW workflow can exercise these pages without a backend.
+
+### What didn't work
+
+- N/A in this slice.
+
+### What was tricky
+
+- Upload validation failures are intentionally not treated as fatal UI errors when the backend returns a deployment plus validation report. This lets rejected bundles appear as normal reviewable deployment records.
+- The site list runtime badge fan-out uses per-site child query components so the parent can keep `SitesTable` simple while still getting live status.
+
+### What warrants review
+
+- Activate and rollback currently use `window.confirm`; this satisfies confirmation gating, but should be replaced by the planned themed `ConfirmActionDialog` molecule/organism.
+- Upload progress is currently represented by `isLoading`, not byte-level progress.
+- The runtime panel shows deployment ID but does not yet render it as a direct link to deployment detail.
+
+### Validation
+
+Commands run:
+
+```bash
+make web-build
+make storybook-build
+```

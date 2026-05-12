@@ -1,0 +1,10 @@
+import type { Meta, StoryObj } from '@storybook/react';
+import { http, HttpResponse } from 'msw';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { SiteLayout } from '../../app/routing/SiteLayout';
+import { DeploymentsPage } from './DeploymentsPage';
+const Wrapped = () => <MemoryRouter initialEntries={['/app/orgs/org_123/sites/site_123/deployments']}><Routes><Route path="/app/orgs/:orgId/sites/:siteId" element={<SiteLayout />}><Route path="deployments" element={<DeploymentsPage />} /><Route path="deployments/:deploymentId" element={<div className="dashboard-panel">Deployment detail placeholder</div>} /></Route></Routes></MemoryRouter>;
+const meta = { title: 'Pages/DeploymentsPage', component: Wrapped } satisfies Meta<typeof Wrapped>; export default meta; type Story = StoryObj<typeof meta>;
+export const Populated: Story = {};
+export const Empty: Story = { parameters: { msw: { handlers: [http.get('/api/v1/sites/:siteId/deployments', () => HttpResponse.json([]))] } } };
+export const ActivationError: Story = { parameters: { msw: { handlers: [http.post('/api/v1/sites/:siteId/rollback', () => HttpResponse.json({ error: 'no previous deployment' }, { status: 400 }))] } } };

@@ -77,3 +77,12 @@ Wired CreateSitePage to RTK Query create-site mutation with validation, MSW POST
 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/CreateSitePage/CreateSitePage.tsx — Create-site page form and mutation wiring
 
+
+## 2026-05-11
+
+Completed practical Phase 6-8 dashboard workflow: org/site create, site layout/runtime overview, deployment upload/list/detail/activate/rollback pages, MSW handlers, and Storybook states.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/app/routes.tsx — Nested site and deployment route tree
+

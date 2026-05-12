@@ -1,0 +1,11 @@
+import type { Meta, StoryObj } from '@storybook/react';
+import { http, HttpResponse } from 'msw';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { SiteLayout } from '../../app/routing/SiteLayout';
+import { DeploymentDetailPage } from './DeploymentDetailPage';
+import { fixtures } from '../../services/msw/fixtures';
+const Wrapped = ({ path = '/app/orgs/org_123/sites/site_123/deployments/dep_4' }: { path?: string }) => <MemoryRouter initialEntries={[path]}><Routes><Route path="/app/orgs/:orgId/sites/:siteId" element={<SiteLayout />}><Route path="deployments" element={<div className="dashboard-panel">Deployments list</div>} /><Route path="deployments/:deploymentId" element={<DeploymentDetailPage />} /></Route></Routes></MemoryRouter>;
+const meta = { title: 'Pages/DeploymentDetailPage', component: Wrapped } satisfies Meta<typeof Wrapped>; export default meta; type Story = StoryObj<typeof meta>;
+export const Active: Story = {};
+export const Rejected: Story = { args: { path: '/app/orgs/org_123/sites/site_123/deployments/dep_2' }, parameters: { msw: { handlers: [http.get('/api/v1/deployments/:deploymentId', () => HttpResponse.json(fixtures.deployments[2]))] } } };
+export const ActivationError: Story = { args: { path: '/app/orgs/org_123/sites/site_123/deployments/dep_3' }, parameters: { msw: { handlers: [http.get('/api/v1/deployments/:deploymentId', () => HttpResponse.json(fixtures.deployments[1])), http.post('/api/v1/deployments/:deploymentId/activate', () => HttpResponse.json({ error: 'runtime health check failed' }, { status: 400 }))] } } };
