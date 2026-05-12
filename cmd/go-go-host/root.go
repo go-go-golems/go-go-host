@@ -67,6 +67,10 @@ func newRootCommand() (*cobra.Command, error) {
 	if err != nil {
 		return nil, err
 	}
-	rootCmd.AddCommand(statusCmd, loginCmd, meCmd, orgCmd, siteCmd, deployCmd, deploymentsCmd, rollbackCmd, agentsCmd, auditCmd)
+	maintenanceCmd, err := commands.NewMaintenanceCobraCommand()
+	if err != nil {
+		return nil, err
+	}
+	rootCmd.AddCommand(statusCmd, loginCmd, meCmd, orgCmd, siteCmd, deployCmd, deploymentsCmd, rollbackCmd, agentsCmd, auditCmd, maintenanceCmd)
 	return rootCmd, nil
 }
