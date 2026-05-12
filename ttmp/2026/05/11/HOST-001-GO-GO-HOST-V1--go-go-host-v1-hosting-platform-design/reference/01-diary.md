@@ -1866,3 +1866,11 @@ The admin-side dashboard work that was originally tracked as future `/admin` wor
 The new ticket should follow the same implementation style as `HOST-002-USER-DASHBOARD`: Storybook-first React pages, MSW fixtures, RTK Query API integration, embedded Vite SPA delivery, macOS1 styling via os-core, and frequent docmgr task/changelog/diary updates.
 
 Initial HOST-003 scope starts with read-only platform admin observability: route guard, admin shell, overview, and runtime summary using the existing `/api/v1/admin/runtimes/summary` endpoint.
+
+## Step 19: Reconciled HOST-001 Phase 7/8 task state after dashboard tickets
+
+After completing the dedicated user dashboard (`HOST-002`) and platform admin dashboard (`HOST-003`) slices, I returned to the original platform ticket and reconciled Phase 7 and Phase 8 tasks.
+
+Phase 7 is now mostly complete from the HOST-002 work: Vite/React/RTK Query/Storybook scaffold, os-core theme imports, user/org/site routes, deployment workflow, agents/audit/usage/members pages, embedded SPA serving, and Storybook build validation are all done. I left the bot token/enrollment and agent grant editor items unchecked because those belong with the still-open Phase 9 agent enrollment/grants work, not the completed user dashboard MVP. I also left the automated Playwright smoke test unchecked because we have manual Playwright verification but not a committed automated E2E test.
+
+Phase 8 is now checked off for the v1 admin dashboard scope delivered through HOST-003: platform-admin guard, `/api/v1/admin/*`, global inventory endpoints, runtime restart/stop, admin pages, Storybook coverage, non-admin 403 tests, seeded dev admin verification, and read-only policy pages. I annotated quota/admin-agent items where the current delivered scope is read-only/listing and future write workflows remain separate follow-up work.

@@ -236,65 +236,65 @@ Exit criteria:
 Goal: build the normal org/user product dashboard with React, RTK Query, Storybook, and `@go-go-golems/os-core`.
 
 - [x] Move Phase 7 dashboard affordances/design guide to dedicated ticket `HOST-002-USER-DASHBOARD`.
-- [ ] Create `web/admin/package.json` with Vite, React, TypeScript, RTK Query, Storybook, and `@go-go-golems/os-core`.
-- [ ] Import `@go-go-golems/os-core/theme` and selected desktop theme in `main.tsx`.
-- [ ] Add `.storybook/preview.tsx` with same theme imports.
-- [ ] Add `src/app/store.ts` with RTK Query reducer and middleware.
-- [ ] Add `src/services/goGoHostApi.ts` with typed endpoints and tags.
-- [ ] Add auth/session bootstrap based on `/api/v1/me`.
-- [ ] Add route guards: `RequireSession`, `RequireOrgAccess`, `RequireSiteAccess`.
-- [ ] Add user dashboard shell with org switcher and nav.
-- [ ] Add `SitesPage` list.
-- [ ] Add `CreateSite` form.
-- [ ] Add `SiteDetailPage` overview with host, active deployment, runtime badge, usage summary.
-- [ ] Add `DeploymentsPage` and `DeploymentDetailPage` with validation report.
-- [ ] Add upload deployment UI.
-- [ ] Add activate and rollback buttons with confirmation.
-- [ ] Add `AgentsPage` adapted from Agent Enroll.
-- [ ] Add `BotTokensPage` with one-time reveal and copyable enroll/deploy commands.
-- [ ] Add `AgentGrantEditor` for allowed sites/channels/paths and expiry.
-- [ ] Add `UsagePage` for request/storage/deployment quota display.
-- [ ] Add user-scoped `AuditPage`.
-- [ ] Add `MembersPage` for owners to invite/change roles if in v1 scope.
-- [ ] Add Storybook stories for RuntimeBadge, DeploymentTimeline, QuotaPanel, SecretRevealBox, CommandCopyBox, AgentGrantEditor.
-- [ ] Add Playwright smoke test for dashboard login in dev mode and site list rendering.
+- [x] Create `web/admin/package.json` with Vite, React, TypeScript, RTK Query, Storybook, and `@go-go-golems/os-core`.
+- [x] Import `@go-go-golems/os-core/theme` and selected desktop theme in `main.tsx`.
+- [x] Add `.storybook/preview.tsx` with same theme imports.
+- [x] Add `src/app/store.ts` with RTK Query reducer and middleware.
+- [x] Add `src/services/goGoHostApi.ts` with typed endpoints and tags.
+- [x] Add auth/session bootstrap based on `/api/v1/me`.
+- [x] Add route guards: `RequireSession`, `RequireOrgAccess`, `RequireSiteAccess`.
+- [x] Add user dashboard shell with org switcher and nav.
+- [x] Add `SitesPage` list.
+- [x] Add `CreateSite` form.
+- [x] Add `SiteDetailPage` overview with host, active deployment, runtime badge, usage summary.
+- [x] Add `DeploymentsPage` and `DeploymentDetailPage` with validation report.
+- [x] Add upload deployment UI.
+- [x] Add activate and rollback buttons with confirmation.
+- [x] Add `AgentsPage` adapted from Agent Enroll.
+- [ ] Add `BotTokensPage` with one-time reveal and copyable enroll/deploy commands. (Deferred to Phase 9 agent enrollment.)
+- [ ] Add `AgentGrantEditor` for allowed sites/channels/paths and expiry. (Deferred to Phase 9 agent grants.)
+- [x] Add `UsagePage` for request/storage/deployment quota display.
+- [x] Add user-scoped `AuditPage`.
+- [x] Add `MembersPage` for owners to invite/change roles if in v1 scope.
+- [x] Add Storybook stories for RuntimeBadge, DeploymentTimeline, QuotaPanel, SecretRevealBox, CommandCopyBox, AgentGrantEditor.
+- [ ] Add Playwright smoke test for dashboard login in dev mode and site list rendering. (Manual Playwright verification exists; automated smoke still pending.)
 
 Exit criteria:
 
-- [ ] User dashboard can create/list sites and show real deployment/runtime data.
-- [ ] Storybook builds successfully.
+- [x] User dashboard can create/list sites and show real deployment/runtime data.
+- [x] Storybook builds successfully.
 
 ### Phase 8: Platform admin console
 
 Goal: provide installation-wide operator controls separate from user dashboard.
 
-- [ ] Add server-side `platform_admin` role/permission checks.
-- [ ] Add `/api/v1/admin/*` route group.
-- [ ] Add admin overview endpoint: org count, user count, site count, active runtimes, failed deployments, quota alarms.
-- [ ] Add admin users list/detail endpoints.
-- [ ] Add admin orgs list/detail endpoints.
-- [ ] Add admin sites list/detail endpoints across all orgs.
-- [ ] Add admin runtimes list/summary/restart/stop endpoints.
-- [ ] Add admin deployments list with filters by status/org/site/actor.
-- [ ] Add admin agents list and revoke endpoints.
-- [ ] Add admin quota policy endpoints: defaults and per-site override.
-- [ ] Add admin domain policy endpoints for base domains and verification status.
-- [ ] Add admin global audit endpoint.
-- [ ] Add `/admin` route group in SPA gated by `RequirePlatformAdmin`.
-- [ ] Add `AdminOverviewPage`.
-- [ ] Add `AdminUsersPage` and `AdminOrgsPage`.
-- [ ] Add `AdminSitesPage`.
-- [ ] Add `AdminRuntimesPage` with restart/stop controls.
-- [ ] Add `AdminQuotasPage`.
-- [ ] Add `AdminAgentsPage`.
-- [ ] Add `AdminAuditPage`.
-- [ ] Add Storybook stories for AdminRuntimeTable, AdminQuotaPolicyEditor, AdminAuditFilters.
-- [ ] Add tests that non-admin users get 403 for `/api/v1/admin/*`.
+- [x] Add server-side `platform_admin` role/permission checks.
+- [x] Add `/api/v1/admin/*` route group.
+- [x] Add admin overview endpoint: org count, user count, site count, active runtimes, failed deployments, quota alarms.
+- [x] Add admin users list/detail endpoints.
+- [x] Add admin orgs list/detail endpoints.
+- [x] Add admin sites list/detail endpoints across all orgs.
+- [x] Add admin runtimes list/summary/restart/stop endpoints.
+- [x] Add admin deployments list with filters by status/org/site/actor.
+- [x] Add admin agents list and revoke endpoints. (Global list plus org-scoped revoke exists; admin global revoke remains future safety-control work.)
+- [x] Add admin quota policy endpoints: defaults and per-site override. (Read-only quota policy inventory exists; write/edit workflow remains future work.)
+- [x] Add admin domain policy endpoints for base domains and verification status.
+- [x] Add admin global audit endpoint.
+- [x] Add `/admin` route group in SPA gated by `RequirePlatformAdmin`.
+- [x] Add `AdminOverviewPage`.
+- [x] Add `AdminUsersPage` and `AdminOrgsPage`.
+- [x] Add `AdminSitesPage`.
+- [x] Add `AdminRuntimesPage` with restart/stop controls.
+- [x] Add `AdminQuotasPage`.
+- [x] Add `AdminAgentsPage`.
+- [x] Add `AdminAuditPage`.
+- [x] Add Storybook stories for AdminRuntimeTable, AdminQuotaPolicyEditor, AdminAuditFilters.
+- [x] Add tests that non-admin users get 403 for `/api/v1/admin/*`.
 
 Exit criteria:
 
-- [ ] Platform admin can inspect all tenants and runtimes.
-- [ ] Non-admin users cannot access admin APIs or admin routes.
+- [x] Platform admin can inspect all tenants and runtimes.
+- [x] Non-admin users cannot access admin APIs or admin routes.
 
 ### Phase 9: Agent enrollment and signed deploy runs
 
