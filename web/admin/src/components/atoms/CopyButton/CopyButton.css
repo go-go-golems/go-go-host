@@ -1,0 +1,3 @@
+.copy-button { border: 1px solid var(--os-border-subtle); background: var(--os-surface-elevated); color: var(--os-text-primary); border-radius: var(--os-radius-sm); padding: 0.35rem 0.65rem; cursor: pointer; }
+.copy-button[data-state='copied'] { color: var(--os-color-success-500); }
+.copy-button[data-state='error'] { color: var(--os-color-danger-500); }

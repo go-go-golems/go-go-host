@@ -22,3 +22,13 @@ Scaffolded web/admin with Vite React TypeScript, RTK Query, MSW Storybook, os-co
 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/package.json — Dashboard frontend scaffold
 
+
+## 2026-05-11
+
+Fixed Storybook MSW worker registration and added initial atom components with stories: RuntimeStatusDot, RoleBadge, CopyButton, EmptyState, ErrorCallout, LoadingBlock, Timestamp, CodeBlock, and JsonTree.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/public/mockServiceWorker.js — MSW worker served by Storybook
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/components/atoms/index.ts — Atom component barrel exports
+

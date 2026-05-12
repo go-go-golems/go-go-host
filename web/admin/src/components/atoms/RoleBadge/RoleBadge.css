@@ -1,0 +1,4 @@
+.role-badge { display: inline-flex; border-radius: 999px; border: 1px solid var(--os-border-subtle); padding: 0.125rem 0.5rem; font-size: 0.8125rem; color: var(--os-text-secondary); }
+.role-badge[data-role='org_owner'] { color: var(--os-color-success-500); }
+.role-badge[data-role='org_developer'] { color: var(--os-color-info-500); }
+.role-badge[data-role='org_viewer'] { color: var(--os-color-neutral-500); }

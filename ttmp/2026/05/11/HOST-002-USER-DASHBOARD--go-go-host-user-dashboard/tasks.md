@@ -55,7 +55,7 @@ Goal: establish data contracts before building pages.
   - [x] `ConfigResponse`
   - [x] `MeResponse`
   - [x] `Membership`
-  - [ ] `Org`
+  - [x] `Org`
   - [x] `Site`
   - [x] `Deployment`
   - [x] `ValidationReport`
@@ -76,27 +76,27 @@ Goal: establish data contracts before building pages.
 Exit criteria:
 
 - [x] Page stories can fetch `/api/v1/me` through MSW.
-- [ ] Fixtures cover ready/stopped/failed runtime states and validated/rejected/active deployments.
+- [x] Fixtures cover ready/stopped/failed runtime states and validated/rejected/active deployments.
 - [x] No Storybook story requires a live daemon.
 
 ## Phase 3: Design tokens, atoms, and primitive stories
 
 Goal: build the visual vocabulary before page composition.
 
-- [ ] Create `components/atoms/RuntimeStatusDot` with story states: ready, failed, stopped, starting, draining.
+- [x] Create `components/atoms/RuntimeStatusDot` with story states: ready, failed, stopped, starting, draining.
 - [x] Create `components/atoms/StatusPill` with story states for site/deployment/agent statuses.
-- [ ] Create `components/atoms/RoleBadge` with owner/developer/viewer stories.
-- [ ] Create `components/atoms/CopyButton` with idle/copied/error stories.
-- [ ] Create `components/atoms/EmptyState` with and without action.
-- [ ] Create `components/atoms/ErrorCallout` with auth/network/validation examples.
-- [ ] Create `components/atoms/LoadingBlock` with small/large variants.
-- [ ] Create `components/atoms/Timestamp` with absolute/relative/empty variants.
-- [ ] Create `components/atoms/CodeBlock` for shell and JSON examples.
-- [ ] Create `components/atoms/JsonTree` for manifest and validation report examples.
-- [ ] Ensure each atom directory contains:
-  - [ ] `Component.tsx`
-  - [ ] `Component.stories.tsx`
-  - [ ] `index.ts`
+- [x] Create `components/atoms/RoleBadge` with owner/developer/viewer stories.
+- [x] Create `components/atoms/CopyButton` with idle/copied/error stories.
+- [x] Create `components/atoms/EmptyState` with and without action.
+- [x] Create `components/atoms/ErrorCallout` with auth/network/validation examples.
+- [x] Create `components/atoms/LoadingBlock` with small/large variants.
+- [x] Create `components/atoms/Timestamp` with absolute/relative/empty variants.
+- [x] Create `components/atoms/CodeBlock` for shell and JSON examples.
+- [x] Create `components/atoms/JsonTree` for manifest and validation report examples.
+- [x] Ensure each implemented atom directory contains:
+  - [x] `Component.tsx`
+  - [x] `Component.stories.tsx`
+  - [x] `index.ts`
 - [x] Use os-core tokens/CSS variables instead of hardcoded colors wherever possible.
 
 Exit criteria:

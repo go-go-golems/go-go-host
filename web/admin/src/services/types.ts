@@ -6,6 +6,7 @@ export interface ConfigResponse { baseDomain: string; publicBaseUrl: string; dev
 export interface User { id: string; email: string; displayName: string; }
 export interface Membership { orgId: string; orgSlug: string; orgName: string; role: Role; }
 export interface MeResponse { user: User; memberships: Membership[]; platformAdmin: boolean; }
+export interface Org { id: string; slug: string; name: string; }
 export interface Site { id: string; orgId: string; slug: string; name: string; primaryHost: string; status: string; activeDeploymentId: string; }
 export interface Deployment { id: string; siteId: string; version: number; status: DeploymentStatus; bundleRef: string; unpackedPath: string; manifestJson: string; validationJson: string; createdByType: string; createdById: string; createdAt: string; activatedAt?: string; }
 export interface RuntimeStatus { siteId: string; orgId?: string; deploymentId?: string; hosts?: string[]; status: RuntimeState; startedAt?: string; lastError?: string; requestsTotal?: number; errorsTotal?: number; }

@@ -1,0 +1,6 @@
+.runtime-status-dot { display: inline-block; width: 0.75rem; height: 0.75rem; border-radius: 999px; box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 18%, transparent); }
+.runtime-status-dot[data-tone='success'] { color: var(--os-color-success-500); background: var(--os-color-success-500); }
+.runtime-status-dot[data-tone='danger'] { color: var(--os-color-danger-500); background: var(--os-color-danger-500); }
+.runtime-status-dot[data-tone='warning'] { color: var(--os-color-warning-500); background: var(--os-color-warning-500); }
+.runtime-status-dot[data-tone='info'] { color: var(--os-color-info-500); background: var(--os-color-info-500); }
+.runtime-status-dot[data-tone='neutral'] { color: var(--os-color-neutral-500); background: var(--os-color-neutral-500); }

@@ -1,0 +1,2 @@
+.code-block { overflow: auto; padding: var(--os-space-4); background: #020617; border: 1px solid var(--os-border-subtle); border-radius: var(--os-radius-md); color: var(--os-text-primary); }
+.code-block code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.875rem; }

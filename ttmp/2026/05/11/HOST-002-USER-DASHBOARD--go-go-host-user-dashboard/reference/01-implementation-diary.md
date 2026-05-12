@@ -166,3 +166,76 @@ devctl status --tail-lines 20
 devctl logs --service storybook
 devctl logs --service web-admin
 ```
+
+## Step 3: Fixed MSW worker registration and completed initial atom set
+
+I fixed the Storybook MSW registration error by installing the MSW service worker into `web/admin/public` and serving that directory through Storybook. Then I continued Phase 3 by adding the initial atom set with stories.
+
+### Prompt Context
+
+**User prompt (verbatim):** "[MSW] Failed to register the Service Worker: on storybook" followed by "continue"
+
+**Assistant interpretation:** First fix the visible Storybook/MSW runtime issue, then continue implementing dashboard components while keeping Storybook live.
+
+**Inferred user intent:** Keep the live Storybook environment healthy and continue building reviewable component increments.
+
+### What I did
+
+- Ran `pnpm exec msw init public --save` in `web/admin`.
+- Added `web/admin/public/mockServiceWorker.js`.
+- Added `staticDirs: ['../public']` to Storybook config so the worker is served from Storybook.
+- Restarted Storybook through devctl.
+- Added atom components and stories:
+  - `RuntimeStatusDot`
+  - `RoleBadge`
+  - `CopyButton`
+  - `EmptyState`
+  - `ErrorCallout`
+  - `LoadingBlock`
+  - `Timestamp`
+  - `CodeBlock`
+  - `JsonTree`
+- Added `components/atoms/index.ts` barrel exports.
+- Added the missing `Org` TypeScript type.
+- Expanded fixtures to cover ready/stopped/failed runtime states and active/superseded/rejected deployments.
+- Updated Phase 2/3 task checkboxes.
+
+### Why
+
+MSW page stories need the service worker to be available at runtime; otherwise page stories fail even if `storybook:build` succeeds. The atom set establishes the low-level UI vocabulary required before molecules and page layouts.
+
+### What worked
+
+- `make web-build` passes.
+- `make storybook-build` passes.
+- Storybook was restarted and is alive at `http://127.0.0.1:6007`.
+- Vite dev server remains alive at `http://127.0.0.1:5173`.
+
+### What didn't work
+
+- The MSW worker was initially missing because Storybook does not automatically serve the worker unless it exists in a static directory. Adding `public/mockServiceWorker.js` and Storybook `staticDirs` fixed it.
+
+### What I learned
+
+- For this Storybook/MSW setup, `public` must be treated as part of the Storybook static asset contract, not just a Vite app convention.
+
+### What was tricky
+
+- Keeping atoms small and non-data-fetching while still making stories useful required story variants for states rather than embedding API behavior.
+
+### What warrants review
+
+- `CopyButton` relies on `navigator.clipboard`; if Storybook browser permissions are restrictive, we may want an injectable `copyText` helper for tests.
+- `Timestamp` uses browser locale rendering; if deterministic screenshots become important, we should add a formatter abstraction.
+
+### Validation
+
+Commands run:
+
+```bash
+cd web/admin && pnpm exec msw init public --save
+make web-build
+make storybook-build
+devctl restart storybook
+devctl status --tail-lines 10
+```

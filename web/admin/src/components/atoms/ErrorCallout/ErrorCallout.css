@@ -1,0 +1,3 @@
+.error-callout { border: 1px solid color-mix(in srgb, var(--os-color-danger-500) 70%, transparent); background: color-mix(in srgb, var(--os-color-danger-500) 12%, transparent); border-radius: var(--os-radius-md); padding: var(--os-space-4); }
+.error-callout h2 { margin-top: 0; color: var(--os-color-danger-500); }
+.error-callout p { color: var(--os-text-secondary); }
