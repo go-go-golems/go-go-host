@@ -325,6 +325,26 @@ Exit criteria:
 - [x] Same agent is denied for ungranted site/path/channel.
 - [x] Replayed signed request is denied.
 
+### Phase 9A: Scoped agent auto-activation
+
+Goal: let explicitly trusted agents promote their own validated deployments without giving every deploy agent traffic-swap power.
+
+- [x] Add `can_activate` to `agent_site_grants`.
+- [x] Expose `canActivate` on human agent creation and grant update APIs.
+- [x] Add human CLI flag `go-go-host agents create --can-activate` for immediate grants.
+- [x] Add agent CLI flag `go-go-host-agent deploy --activate`.
+- [x] Store `activate` in deploy-run `allowed_actions` only when the agent grant permits it.
+- [x] Auto-activate after a valid agent upload only when the deploy run includes `activate`.
+- [x] Audit scoped agent activation as `actor_type=agent` / `deployment.activate`.
+- [x] Add automated coverage for auto-activated agent uploads.
+- [x] Run live devctl smoke for scoped auto-activation.
+
+Exit criteria:
+
+- [x] Agent with `can_activate` can upload and activate in one signed deploy flow.
+- [x] Public Host-header route serves the auto-activated deployment.
+- [x] Audit clearly attributes activation to the agent.
+
 ### Phase 10: Capability hardening, quotas, and observability
 
 Goal: make hosted execution boundaries visible and enforceable.

@@ -40,4 +40,16 @@ go-go-host-agent deploy \
   --path bundles/site.tar.gz
 ```
 
+If the grant was created with `canActivate`, the agent can request scoped auto-activation:
+
+```bash
+go-go-host-agent deploy \
+  --config ./agent.json \
+  --bundle ./site.tar.gz \
+  --site-id site_123 \
+  --channel default \
+  --path bundles/site.tar.gz \
+  --activate
+```
+
 Signed requests include `X-Go-Go-Agent-ID`, `X-Go-Go-Agent-Key-ID`, `X-Go-Go-Agent-Timestamp`, `X-Go-Go-Agent-Nonce`, and `X-Go-Go-Agent-Signature`. The server rejects bad signatures, old/future timestamps, replayed nonces, revoked agents/keys, and deploy runs outside the agent's site/channel/path grant.
