@@ -616,3 +616,73 @@ go-go-host-agent enroll ...
 go-go-host-agent deploy --activate ...
 scripts/beta-smoke.sh
 ```
+
+## Step 6: Decide naming for agent logical bundle paths
+
+After the live agent publishing smoke exposed the confusing `path` behavior, the user clarified that we likely do not need archive-entry allowlists for beta. The useful CI/CD authorization concept is the logical deployment artifact path. We agreed to name that concept `bundlePath` / `allowedBundlePaths` rather than adding `allowedArchivePaths`.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Add tasks to fix the paths semantics, and call it allowedBundlePaths maybe? and maybe rename the flag to --bundle-path as well?"
+
+**Assistant interpretation:** Add concrete implementation tasks to rename and fix the agent path policy so it authorizes logical bundle/artifact paths, not files inside the uploaded archive.
+
+**Inferred user intent:** Make the agent authorization model understandable for CI/CD levels of access and avoid over-engineering archive-entry policies.
+
+### What I did
+
+- Added a new task section: `P0: Agent bundle-path semantics fix`.
+- Captured the preferred naming:
+  - `allowedBundlePaths` for grant policy.
+  - `bundlePath` for deploy-run request JSON.
+  - `--bundle-path` for CLI flag.
+- Captured compatibility tasks for existing `allowedPaths` / `path` API clients and `--path` CLI usage.
+- Captured the actual behavior change needed: stop passing deploy-run allowed paths into bundle archive validation.
+- Captured acceptance tests for both allowed and denied logical bundle paths.
+
+### Why
+
+`--path bundles/foo.tar.gz` should answer: "Is this agent allowed to publish an artifact at this logical bundle path?" It should not answer: "Do all files inside the tarball live under `bundles/`?" Normal go-go-host bundles intentionally have root-level `go-go-host.json`, `scripts/**`, and `assets/**` entries.
+
+### What worked
+
+The naming `bundlePath` is clearer than generic `path` because the CLI already has `--bundle` for the local file. The pair becomes:
+
+```text
+--bundle       local tar/zip file to upload
+--bundle-path  logical artifact path authorized by the agent grant
+```
+
+### What didn't work
+
+No code change was made in this step. The live system still has the old semantics until the new tasks are implemented.
+
+### What I learned
+
+The term "logical artifact path" is accurate but too abstract for CLI UX. `bundlePath` is a better product/API name because go-go-host's deployable artifact is a bundle.
+
+### What was tricky to build
+
+N/A for this planning step. The tricky implementation piece will be compatibility: the database column is still `allowed_paths`, while the external API and CLI should move toward `allowedBundlePaths` and `bundlePath`.
+
+### What warrants a second pair of eyes
+
+- Whether to keep `--path` as a hidden/deprecated alias or remove it while still in beta.
+- Whether API responses should immediately expose both `allowedPaths` and `allowedBundlePaths`, or only accept both in requests and document the new name.
+
+### What should be done in the future
+
+Implement the `P0: Agent bundle-path semantics fix` tasks and then repeat the live agent publishing smoke with a narrow `bundles/**` grant.
+
+### Code review instructions
+
+When implementing, start with:
+
+```text
+internal/control/agent_runs.go
+internal/httpapi/agents_audit.go
+internal/httpapi/deployments.go
+cmd/go-go-host/cmds/agents.go
+cmd/go-go-host-agent/cmds/deploy.go
+internal/httpapi/agent_signed_integration_test.go
+```

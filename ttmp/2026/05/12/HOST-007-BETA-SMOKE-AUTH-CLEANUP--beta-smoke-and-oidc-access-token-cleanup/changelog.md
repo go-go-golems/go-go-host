@@ -48,3 +48,13 @@ Linked the demo CSS from the root page, redeployed the demo, tested live signed 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/examples/hello-beta/scripts/app.js — demo page now links stylesheet
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/12/HOST-007-BETA-SMOKE-AUTH-CLEANUP--beta-smoke-and-oidc-access-token-cleanup/reference/01-investigation-diary.md — agent publishing smoke details
 
+
+## 2026-05-12
+
+Added P0 tasks to rename/fix agent path semantics around allowedBundlePaths, bundlePath, and --bundle-path so grants authorize logical bundle paths rather than archive entries.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/12/HOST-007-BETA-SMOKE-AUTH-CLEANUP--beta-smoke-and-oidc-access-token-cleanup/reference/01-investigation-diary.md — bundle path naming decision
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/12/HOST-007-BETA-SMOKE-AUTH-CLEANUP--beta-smoke-and-oidc-access-token-cleanup/tasks.md — agent bundle-path semantics tasks
+
