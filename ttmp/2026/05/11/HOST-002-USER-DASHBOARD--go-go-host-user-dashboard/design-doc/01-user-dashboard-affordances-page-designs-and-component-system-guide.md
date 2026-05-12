@@ -31,12 +31,23 @@ RelatedFiles:
       Note: Runtime status schema for dashboard counters
     - Path: internal/webadmin/handler.go
       Note: Current placeholder dashboard handler to replace with embedded SPA
+    - Path: plugins/go-go-host-devctl.py
+      Note: devctl launch plan for Storybook and Vite
+    - Path: web/admin/.storybook/preview.tsx
+      Note: Storybook MSW and mock provider setup
+    - Path: web/admin/package.json
+      Note: Dashboard package scripts and dependencies
+    - Path: web/admin/src/services/goGoHostApi.ts
+      Note: Initial RTK Query API slice
+    - Path: web/admin/src/services/msw/handlers.ts
+      Note: MSW handlers for page stories
 ExternalSources: []
 Summary: 'Design for the /app user dashboard: affordances, pages, ASCII wireframes, component taxonomy, Storybook/MSW requirements, and intern-oriented implementation plan.'
 LastUpdated: 2026-05-11T18:51:11.491639125-04:00
 WhatFor: Use this as the implementation guide for the Phase 7 React dashboard and Storybook component system.
 WhenToUse: Read before creating web/admin or implementing any /app dashboard page, widget, RTK Query endpoint, MSW handler, or Storybook story.
 ---
+
 
 
 # User Dashboard Affordances, Page Designs, and Component System Guide

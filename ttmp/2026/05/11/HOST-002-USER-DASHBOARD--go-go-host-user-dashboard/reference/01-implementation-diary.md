@@ -70,3 +70,99 @@ The dashboard is large enough to deserve its own ticket. It spans React, Storybo
 - Relate the new dashboard design doc to backend API files.
 - Run `docmgr doctor` for the new ticket.
 - Upload the new ticket bundle to reMarkable if requested or after validation.
+
+## Step 2: Scaffolded Vite/React dashboard, Storybook, MSW, and devctl services
+
+I started implementation for `HOST-002-USER-DASHBOARD` by building the minimal frontend scaffold and making Storybook runnable through devctl so progress can be watched live.
+
+### Prompt Context
+
+**User prompt (verbatim):** "go ahead, commit at appropriate intervals, keep a detailed diary" followed by "Create a devctl setup to run storybook as well" and "then run storybook, so i can track your progress."
+
+**Assistant interpretation:** Begin Phase 1/2 implementation, add devctl supervision for Storybook, run Storybook in the background, validate build/storybook, update docs, and commit a focused slice.
+
+**Inferred user intent:** The user wants an observable frontend development loop, not just static code changes.
+
+### What I did
+
+- Created `web/admin` Vite/React/TypeScript scaffold.
+- Added Storybook 8 with React/Vite.
+- Added RTK Query store and initial `goGoHostApi` service.
+- Added MSW fixtures and handlers for current backend routes.
+- Added Storybook MSW setup and mock Redux provider.
+- Added a local `@go-go-golems/os-core` shim package under `web/admin/vendor/os-core` because the real private package is currently inaccessible to npm in this environment.
+- Added the first atom:
+  - `components/atoms/StatusPill`
+- Added the first page story:
+  - `pages/AppBootstrapPage`
+- Added Makefile targets for install/dev/build/storybook/storybook-build.
+- Added a devctl plugin and `.devctl.yaml` with services:
+  - `storybook` on `http://127.0.0.1:6007`
+  - `web-admin` on `http://127.0.0.1:5173`
+- Ran Storybook through devctl.
+
+### Why
+
+This gives the frontend work a working inner loop immediately. The first Storybook page already exercises RTK Query + MSW + fake store, which is the pattern every later page should follow.
+
+### What worked
+
+- `pnpm install` completed successfully.
+- `make web-build` passes.
+- `make storybook-build` passes.
+- `devctl plugins list` and `devctl plan` work.
+- `devctl up --force` started both services.
+- Storybook is reachable at `http://127.0.0.1:6007`.
+- Vite dev server is reachable at `http://127.0.0.1:5173`.
+
+### What didn't work
+
+- `npm view @go-go-golems/os-core version` failed with a GitHub Packages 403. I added a local package shim named `@go-go-golems/os-core` that exports `theme.css` and `themes/desktop.css`. This keeps imports and theming shape compatible while allowing local Storybook to run. The shim should be replaced with the real package once credentials/package access are available.
+- Storybook initially tried port `6006`, but another node process was already listening there. I changed this project to use `6007` and updated the devctl health check accordingly.
+- The first `pnpm build` failed because the stories imported `@storybook/react` types but only `@storybook/react-vite` was installed. Adding `@storybook/react` fixed TypeScript.
+
+### What I learned
+
+- Storybook 8 builds cleanly with Vite 6 and React 19 in this repo.
+- The devctl plugin protocol is enough for a repo-local Storybook/Vite supervision setup with no custom daemon code.
+
+### What was tricky
+
+- Keeping the os-core dependency requirement while avoiding a blocked private package install required a local shim. I intentionally kept the import paths as `@go-go-golems/os-core/theme.css` so replacing the shim later should be mechanical.
+
+### What warrants review
+
+- Confirm whether using Storybook port `6007` is acceptable given the existing process on `6006`.
+- Confirm whether the local os-core shim should be committed short-term or replaced immediately with a proper private registry setup.
+- Review whether devctl should launch only Storybook or both Storybook and Vite; I included both so dashboard and component work can be watched separately.
+
+### Validation
+
+Commands run:
+
+```bash
+pnpm install
+make web-build
+make storybook-build
+devctl plugins list
+devctl plan
+devctl up --force
+devctl status --tail-lines 20
+curl -I http://127.0.0.1:6007
+curl -I http://127.0.0.1:5173
+go test ./...
+```
+
+### Current running services
+
+- Storybook: `http://127.0.0.1:6007`
+- Vite dashboard dev server: `http://127.0.0.1:5173`
+
+Use:
+
+```bash
+cd go-go-host
+devctl status --tail-lines 20
+devctl logs --service storybook
+devctl logs --service web-admin
+```

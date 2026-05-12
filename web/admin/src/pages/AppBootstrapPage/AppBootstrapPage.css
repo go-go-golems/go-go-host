@@ -1,0 +1,8 @@
+.dashboard-shell { min-height: 100vh; background: var(--os-surface-canvas); color: var(--os-text-primary); }
+.dashboard-topbar { display: flex; gap: var(--os-space-4); align-items: center; padding: var(--os-space-4) var(--os-space-6); border-bottom: 1px solid var(--os-border-subtle); background: var(--os-surface-panel); }
+.dashboard-panel { margin: var(--os-space-6); padding: var(--os-space-6); background: var(--os-surface-panel); border: 1px solid var(--os-border-subtle); border-radius: var(--os-radius-lg); }
+.dashboard-error { color: var(--os-color-danger-500); }
+.muted { color: var(--os-text-secondary); }
+.site-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--os-space-4); margin-top: var(--os-space-4); }
+.site-card { padding: var(--os-space-4); border-radius: var(--os-radius-md); border: 1px solid var(--os-border-subtle); background: var(--os-surface-elevated); }
+.site-card h2 { margin: 0 0 var(--os-space-2); }

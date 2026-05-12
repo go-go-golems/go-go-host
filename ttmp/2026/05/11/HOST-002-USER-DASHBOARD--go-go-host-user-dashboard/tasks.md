@@ -9,8 +9,8 @@ Goal: make the dashboard work trackable independently from the backend/platform 
 - [x] Create dedicated ticket `HOST-002-USER-DASHBOARD`.
 - [x] Move dashboard design guide from `HOST-001-GO-GO-HOST-V1` into this ticket.
 - [x] Add this phased task plan.
-- [ ] Relate all dashboard implementation files as they are created.
-- [ ] Keep `reference/01-implementation-diary.md` updated after every implementation slice.
+- [x] Relate initial dashboard implementation files as they are created.
+- [x] Keep `reference/01-implementation-diary.md` updated after every implementation slice.
 - [ ] Upload major design/task updates to reMarkable when they materially change.
 
 Exit criteria:
@@ -22,69 +22,69 @@ Exit criteria:
 
 Goal: create the smallest Vite/React/Storybook project that can build and be served later.
 
-- [ ] Create `web/admin/package.json` with React, Vite, TypeScript, RTK Query, Storybook, MSW, and `@go-go-golems/os-core` dependencies.
-- [ ] Create `web/admin/pnpm-lock.yaml` or align with workspace package manager if one exists.
-- [ ] Create `web/admin/tsconfig.json` and `tsconfig.node.json`.
-- [ ] Create `web/admin/vite.config.ts` with `/api` dev proxy to `go-go-hostd`.
-- [ ] Create `web/admin/index.html`.
-- [ ] Create `web/admin/src/main.tsx`.
-- [ ] Create `web/admin/src/app/App.tsx` with a minimal placeholder route.
-- [ ] Create `web/admin/.storybook/main.ts`.
-- [ ] Create `web/admin/.storybook/preview.tsx`.
-- [ ] Import `@go-go-golems/os-core` theme CSS or document exact package exports if import names differ.
-- [ ] Add root Makefile targets:
-  - [ ] `make web-install`
-  - [ ] `make web-dev`
-  - [ ] `make web-build`
-  - [ ] `make storybook`
-  - [ ] `make storybook-build`
-- [ ] Add CI or local validation docs for `pnpm build` and `pnpm storybook:build`.
+- [x] Create `web/admin/package.json` with React, Vite, TypeScript, RTK Query, Storybook, MSW, and `@go-go-golems/os-core` dependencies.
+- [x] Create `web/admin/pnpm-lock.yaml` or align with workspace package manager if one exists.
+- [x] Create `web/admin/tsconfig.json` and `tsconfig.node.json`.
+- [x] Create `web/admin/vite.config.ts` with `/api` dev proxy to `go-go-hostd`.
+- [x] Create `web/admin/index.html`.
+- [x] Create `web/admin/src/main.tsx`.
+- [x] Create `web/admin/src/app/App.tsx` with a minimal placeholder route.
+- [x] Create `web/admin/.storybook/main.ts`.
+- [x] Create `web/admin/.storybook/preview.tsx`.
+- [x] Import `@go-go-golems/os-core` theme CSS or document exact package exports if import names differ.
+- [x] Add root Makefile targets:
+  - [x] `make web-install`
+  - [x] `make web-dev`
+  - [x] `make web-build`
+  - [x] `make storybook`
+  - [x] `make storybook-build`
+- [x] Add local validation via Makefile targets for `pnpm build` and `pnpm storybook:build`.
 
 Exit criteria:
 
-- [ ] `cd web/admin && pnpm build` passes.
-- [ ] `cd web/admin && pnpm storybook:build` passes.
-- [ ] At least one placeholder story renders.
+- [x] `cd web/admin && pnpm build` passes.
+- [x] `cd web/admin && pnpm storybook:build` passes.
+- [x] At least one placeholder story renders.
 
 ## Phase 2: API types, RTK Query, MSW fixtures, and fake store
 
 Goal: establish data contracts before building pages.
 
-- [ ] Create `web/admin/src/services/types.ts`.
+- [x] Create `web/admin/src/services/types.ts`.
 - [ ] Add TypeScript types for:
-  - [ ] `ConfigResponse`
-  - [ ] `MeResponse`
-  - [ ] `Membership`
+  - [x] `ConfigResponse`
+  - [x] `MeResponse`
+  - [x] `Membership`
   - [ ] `Org`
-  - [ ] `Site`
-  - [ ] `Deployment`
-  - [ ] `ValidationReport`
-  - [ ] `RuntimeStatus`
-  - [ ] `Agent`
-  - [ ] `AuditEvent`
-- [ ] Create `web/admin/src/services/goGoHostApi.ts` with RTK Query endpoints for current backend APIs.
-- [ ] Add API tags for cache invalidation: `Me`, `Org`, `Site`, `Deployment`, `Runtime`, `Agent`, `Audit`, `Config`.
-- [ ] Create `web/admin/src/app/store.ts`.
-- [ ] Create `web/admin/src/app/providers/AppProviders.tsx`.
-- [ ] Create `web/admin/src/app/providers/MockAppProviders.tsx` for Storybook.
-- [ ] Create `web/admin/src/services/msw/fixtures.ts` with realistic org/site/deployment/runtime/agent/audit data.
-- [ ] Create `web/admin/src/services/msw/handlers.ts` matching Go routes.
-- [ ] Create `web/admin/src/services/msw/browser.ts` and `server.ts` if needed by Storybook/tests.
-- [ ] Configure Storybook MSW addon.
-- [ ] Add story-level handler override examples for loading/error/empty states.
+  - [x] `Site`
+  - [x] `Deployment`
+  - [x] `ValidationReport`
+  - [x] `RuntimeStatus`
+  - [x] `Agent`
+  - [x] `AuditEvent`
+- [x] Create `web/admin/src/services/goGoHostApi.ts` with RTK Query endpoints for current backend APIs.
+- [x] Add API tags for cache invalidation: `Me`, `Org`, `Site`, `Deployment`, `Runtime`, `Agent`, `Audit`, `Config`.
+- [x] Create `web/admin/src/app/store.ts`.
+- [x] Create `web/admin/src/app/providers/AppProviders.tsx`.
+- [x] Create `web/admin/src/app/providers/MockAppProviders.tsx` for Storybook.
+- [x] Create `web/admin/src/services/msw/fixtures.ts` with realistic org/site/deployment/runtime/agent/audit data.
+- [x] Create `web/admin/src/services/msw/handlers.ts` matching Go routes.
+- [x] Create `web/admin/src/services/msw/browser.ts` and `server.ts` if needed by Storybook/tests.
+- [x] Configure Storybook MSW addon.
+- [x] Add story-level handler override examples for loading/error/empty states.
 
 Exit criteria:
 
-- [ ] Page stories can fetch `/api/v1/me` through MSW.
+- [x] Page stories can fetch `/api/v1/me` through MSW.
 - [ ] Fixtures cover ready/stopped/failed runtime states and validated/rejected/active deployments.
-- [ ] No Storybook story requires a live daemon.
+- [x] No Storybook story requires a live daemon.
 
 ## Phase 3: Design tokens, atoms, and primitive stories
 
 Goal: build the visual vocabulary before page composition.
 
 - [ ] Create `components/atoms/RuntimeStatusDot` with story states: ready, failed, stopped, starting, draining.
-- [ ] Create `components/atoms/StatusPill` with story states for site/deployment/agent statuses.
+- [x] Create `components/atoms/StatusPill` with story states for site/deployment/agent statuses.
 - [ ] Create `components/atoms/RoleBadge` with owner/developer/viewer stories.
 - [ ] Create `components/atoms/CopyButton` with idle/copied/error stories.
 - [ ] Create `components/atoms/EmptyState` with and without action.
@@ -97,7 +97,7 @@ Goal: build the visual vocabulary before page composition.
   - [ ] `Component.tsx`
   - [ ] `Component.stories.tsx`
   - [ ] `index.ts`
-- [ ] Use os-core tokens/CSS variables instead of hardcoded colors wherever possible.
+- [x] Use os-core tokens/CSS variables instead of hardcoded colors wherever possible.
 
 Exit criteria:
 
