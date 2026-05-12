@@ -3,6 +3,7 @@ package control
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/go-go-golems/go-go-host/internal/store"
 )
@@ -31,6 +32,45 @@ func (s *AgentService) List(ctx context.Context, actorUserID, orgID string) ([]s
 		return nil, err
 	}
 	return s.store.ListAgentsByOrg(ctx, orgID)
+}
+
+func (s *AgentService) ListKeys(ctx context.Context, actorUserID, orgID, agentID string) ([]store.AgentKey, error) {
+	if err := ensureViewRole(ctx, s.store, actorUserID, orgID); err != nil {
+		return nil, err
+	}
+	agent, err := s.store.GetAgent(ctx, agentID)
+	if err != nil {
+		return nil, err
+	}
+	if agent.OrgID != orgID {
+		return nil, ErrPermissionDenied
+	}
+	return s.store.ListAgentKeys(ctx, agentID)
+}
+
+func (s *AgentService) RevokeKey(ctx context.Context, actorUserID, orgID, agentID, keyID, reason string) error {
+	if err := ensureDeployRole(ctx, s.store, actorUserID, orgID); err != nil {
+		return err
+	}
+	agent, err := s.store.GetAgent(ctx, agentID)
+	if err != nil {
+		return err
+	}
+	if agent.OrgID != orgID {
+		return ErrPermissionDenied
+	}
+	key, err := s.store.GetAgentKey(ctx, keyID)
+	if err != nil {
+		return err
+	}
+	if key.AgentID != agentID {
+		return ErrPermissionDenied
+	}
+	if err := s.store.RevokeAgentKey(ctx, keyID); err != nil {
+		return err
+	}
+	_, _ = s.store.InsertAuditEvent(ctx, store.AuditEvent{OrgID: orgID, ActorType: "user", ActorID: actorUserID, Action: "agent.key.revoke", ResourceType: "agent_key", ResourceID: keyID, MetadataJSON: fmt.Sprintf(`{"reason":%q}`, reason)})
+	return nil
 }
 
 func (s *AgentService) Revoke(ctx context.Context, actorUserID, orgID, agentID string) error {

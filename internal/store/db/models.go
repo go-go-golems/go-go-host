@@ -29,12 +29,13 @@ type AgentEnrollmentToken struct {
 }
 
 type AgentKey struct {
-	ID        string             `json:"id"`
-	AgentID   string             `json:"agent_id"`
-	PublicKey string             `json:"public_key"`
-	Status    string             `json:"status"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
-	RevokedAt pgtype.Timestamptz `json:"revoked_at"`
+	ID         string             `json:"id"`
+	AgentID    string             `json:"agent_id"`
+	PublicKey  string             `json:"public_key"`
+	Status     string             `json:"status"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	RevokedAt  pgtype.Timestamptz `json:"revoked_at"`
+	LastUsedAt pgtype.Timestamptz `json:"last_used_at"`
 }
 
 type AgentNonce struct {

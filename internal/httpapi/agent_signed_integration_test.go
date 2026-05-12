@@ -80,6 +80,20 @@ func TestAgentSignedDeployRunSecurity(t *testing.T) {
 	if !upload.Activated || upload.Deployment.Status != "active" {
 		t.Fatalf("expected auto-activated upload, got %#v", upload)
 	}
+	keysReq := httptest.NewRequest(http.MethodGet, "/api/v1/orgs/"+org.ID+"/agents/"+created.Agent.ID+"/keys", nil)
+	keysReq.Header.Set("X-Go-Go-Host-User", user)
+	keysRec := httptest.NewRecorder()
+	h.ServeHTTP(keysRec, keysReq)
+	if keysRec.Code != http.StatusOK {
+		t.Fatalf("list keys: %d %s", keysRec.Code, keysRec.Body.String())
+	}
+	var keys []agentKeyDTO
+	if err := json.Unmarshal(keysRec.Body.Bytes(), &keys); err != nil {
+		t.Fatal(err)
+	}
+	if len(keys) != 1 || keys[0].LastUsedAt == "" || keys[0].Fingerprint == "" {
+		t.Fatalf("expected one used key with fingerprint, got %#v", keys)
+	}
 
 	replayReq := signedAgentRequest(t, http.MethodPost, "/api/v1/agent/deploy-runs", goodBody, created.Agent.ID, enrolled.KeyID, priv, time.Now().UTC(), "nonce-good")
 	replayRec := httptest.NewRecorder()
@@ -109,6 +123,21 @@ func TestAgentSignedDeployRunSecurity(t *testing.T) {
 	h.ServeHTTP(wrongSiteRec, wrongSiteReq)
 	if wrongSiteRec.Code != http.StatusForbidden {
 		t.Fatalf("expected wrong site denial, got %d %s", wrongSiteRec.Code, wrongSiteRec.Body.String())
+	}
+
+	revokeKeyReq := httptest.NewRequest(http.MethodPost, "/api/v1/orgs/"+org.ID+"/agents/"+created.Agent.ID+"/keys/"+enrolled.KeyID+"/revoke", bytes.NewReader([]byte(`{"reason":"integration test"}`)))
+	revokeKeyReq.Header.Set("X-Go-Go-Host-User", user)
+	revokeKeyReq.Header.Set("Content-Type", "application/json")
+	revokeKeyRec := httptest.NewRecorder()
+	h.ServeHTTP(revokeKeyRec, revokeKeyReq)
+	if revokeKeyRec.Code != http.StatusOK {
+		t.Fatalf("revoke key: %d %s", revokeKeyRec.Code, revokeKeyRec.Body.String())
+	}
+	revokedKeyReq := signedAgentRequest(t, http.MethodPost, "/api/v1/agent/deploy-runs", goodBody, created.Agent.ID, enrolled.KeyID, priv, time.Now().UTC(), "nonce-revoked-key")
+	revokedKeyRec := httptest.NewRecorder()
+	h.ServeHTTP(revokedKeyRec, revokedKeyReq)
+	if revokedKeyRec.Code != http.StatusForbidden {
+		t.Fatalf("expected revoked key denial, got %d %s", revokedKeyRec.Code, revokedKeyRec.Body.String())
 	}
 
 	badSigReq := signedAgentRequest(t, http.MethodPost, "/api/v1/agent/deploy-runs", goodBody, created.Agent.ID, enrolled.KeyID, priv, time.Now().UTC(), "nonce-bad-sig")

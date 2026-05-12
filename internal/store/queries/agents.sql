@@ -49,18 +49,28 @@ WHERE token_hash = $1;
 -- name: CreateAgentKey :one
 INSERT INTO agent_keys (id, agent_id, public_key, status, created_at)
 VALUES ($1, $2, $3, $4, $5)
-RETURNING id, agent_id, public_key, status, created_at, revoked_at;
+RETURNING id, agent_id, public_key, status, created_at, revoked_at, last_used_at;
 
 -- name: GetAgentKey :one
-SELECT id, agent_id, public_key, status, created_at, revoked_at
+SELECT id, agent_id, public_key, status, created_at, revoked_at, last_used_at
 FROM agent_keys
 WHERE id = $1;
 
 -- name: ListAgentKeys :many
-SELECT id, agent_id, public_key, status, created_at, revoked_at
+SELECT id, agent_id, public_key, status, created_at, revoked_at, last_used_at
 FROM agent_keys
 WHERE agent_id = $1
 ORDER BY created_at DESC;
+
+-- name: RevokeAgentKey :exec
+UPDATE agent_keys
+SET status = 'revoked', revoked_at = $2
+WHERE id = $1;
+
+-- name: TouchAgentKeyLastUsed :exec
+UPDATE agent_keys
+SET last_used_at = $2
+WHERE id = $1;
 
 -- name: TouchAgentLastSeen :exec
 UPDATE agents

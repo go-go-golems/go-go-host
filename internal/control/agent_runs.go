@@ -101,6 +101,11 @@ func (s *AgentService) UpsertGrant(ctx context.Context, actorUserID, orgID strin
 	if err := ensureDeployRole(ctx, s.store, actorUserID, orgID); err != nil {
 		return nil, err
 	}
+	if input.CanActivate {
+		if err := ensureOwnerRole(ctx, s.store, actorUserID, orgID); err != nil {
+			return nil, err
+		}
+	}
 	agent, err := s.store.GetAgent(ctx, input.AgentID)
 	if err != nil {
 		return nil, err
@@ -198,6 +203,7 @@ func (s *AgentService) VerifySignedRequest(ctx context.Context, req SignedAgentR
 		return nil, fmt.Errorf("agent nonce replay detected")
 	}
 	_ = s.store.TouchAgentLastSeen(ctx, agent.ID)
+	_ = s.store.TouchAgentKeyLastUsed(ctx, key.ID)
 	return agent, nil
 }
 

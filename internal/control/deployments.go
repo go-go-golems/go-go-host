@@ -246,6 +246,17 @@ func manifestFromDeployment(dep *store.Deployment) (deploy.Manifest, error) {
 	return manifest, nil
 }
 
+func ensureOwnerRole(ctx context.Context, st *store.Store, userID, orgID string) error {
+	role, err := st.MembershipRole(ctx, orgID, userID)
+	if err != nil {
+		return err
+	}
+	if role == store.RoleOrgOwner {
+		return nil
+	}
+	return ErrPermissionDenied
+}
+
 func ensureDeployRole(ctx context.Context, st *store.Store, userID, orgID string) error {
 	role, err := st.MembershipRole(ctx, orgID, userID)
 	if err != nil {

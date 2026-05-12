@@ -2,6 +2,9 @@ package httpapi
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -30,6 +33,20 @@ type upsertAgentGrantRequest struct {
 	AllowedChannels []string `json:"allowedChannels"`
 	AllowedPaths    []string `json:"allowedPaths"`
 	ExpiresAt       string   `json:"expiresAt"`
+}
+
+type revokeAgentKeyRequest struct {
+	Reason string `json:"reason"`
+}
+
+type agentKeyDTO struct {
+	ID          string `json:"id"`
+	AgentID     string `json:"agentId"`
+	Fingerprint string `json:"fingerprint"`
+	Status      string `json:"status"`
+	CreatedAt   string `json:"createdAt"`
+	RevokedAt   string `json:"revokedAt,omitempty"`
+	LastUsedAt  string `json:"lastUsedAt,omitempty"`
 }
 
 type createAgentResponse struct {
@@ -141,6 +158,45 @@ func handleCreateAgent(core *control.Core) http.HandlerFunc {
 			return
 		}
 		writeJSON(w, http.StatusCreated, createAgentResponse{Agent: agentToDTO(*result.Agent), EnrollmentToken: result.EnrollmentToken, Grant: grantToDTO(result.Grant)})
+	}
+}
+
+func handleListAgentKeys(core *control.Core) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		p, err := requirePrincipal(r)
+		if err != nil {
+			writeError(w, http.StatusUnauthorized, err.Error())
+			return
+		}
+		keys, err := core.Agents.ListKeys(r.Context(), p.User.ID, r.PathValue("org_id"), r.PathValue("agent_id"))
+		if err != nil {
+			writeDeploymentError(w, err)
+			return
+		}
+		out := make([]agentKeyDTO, 0, len(keys))
+		for _, key := range keys {
+			out = append(out, agentKeyToDTO(key))
+		}
+		writeJSON(w, http.StatusOK, out)
+	}
+}
+
+func handleRevokeAgentKey(core *control.Core) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		p, err := requirePrincipal(r)
+		if err != nil {
+			writeError(w, http.StatusUnauthorized, err.Error())
+			return
+		}
+		var req revokeAgentKeyRequest
+		if r.Body != nil {
+			_ = json.NewDecoder(r.Body).Decode(&req)
+		}
+		if err := core.Agents.RevokeKey(r.Context(), p.User.ID, r.PathValue("org_id"), r.PathValue("agent_id"), r.PathValue("key_id"), req.Reason); err != nil {
+			writeDeploymentError(w, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"status": "revoked", "keyId": r.PathValue("key_id")})
 	}
 }
 
@@ -269,6 +325,19 @@ func verifyAgentRequest(core *control.Core, r *http.Request, body []byte) (*stor
 
 func agentToDTO(agent store.Agent) agentDTO {
 	return agentDTO{ID: agent.ID, OrgID: agent.OrgID, Name: agent.Name, Status: agent.Status, CreatedByUserID: agent.CreatedByUserID, CreatedAt: agent.CreatedAt.Format(time.RFC3339), LastSeenAt: agent.LastSeenAt.Format(time.RFC3339)}
+}
+
+func agentKeyToDTO(key store.AgentKey) agentKeyDTO {
+	return agentKeyDTO{ID: key.ID, AgentID: key.AgentID, Fingerprint: keyFingerprint(key.PublicKey), Status: key.Status, CreatedAt: key.CreatedAt.Format(time.RFC3339), RevokedAt: key.RevokedAt.Format(time.RFC3339), LastUsedAt: key.LastUsedAt.Format(time.RFC3339)}
+}
+
+func keyFingerprint(publicKey string) string {
+	decoded, err := base64.StdEncoding.DecodeString(publicKey)
+	if err != nil {
+		decoded = []byte(publicKey)
+	}
+	sum := sha256.Sum256(decoded)
+	return "SHA256:" + hex.EncodeToString(sum[:8])
 }
 
 func grantToDTO(grant *store.AgentSiteGrant) *agentGrantDTO {

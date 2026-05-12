@@ -22,8 +22,12 @@ export interface AdminQuota { siteId: string; siteSlug: string; primaryHost: str
 export interface AdminCapability { siteId: string; siteSlug: string; orgId: string; orgSlug: string; orgName: string; capability: string; enabled: boolean; configJson: string; updatedAt: string; }
 export interface AdminDomain { id: string; siteId: string; siteSlug: string; orgId: string; orgSlug: string; orgName: string; hostname: string; status: string; verificationToken: string; verifiedAt?: string; createdAt: string; }
 export interface Agent { id: string; orgId: string; name: string; status: 'active' | 'revoked'; createdByUserId: string; createdAt: string; lastSeenAt?: string; }
-export interface CreateAgentRequest { orgId: string; name: string; }
+export interface AgentKey { id: string; agentId: string; fingerprint: string; status: 'active' | 'revoked'; createdAt: string; revokedAt?: string; lastUsedAt?: string; }
+export interface AgentGrant { agentId: string; siteId: string; canDeploy: boolean; canRollback: boolean; canActivate: boolean; allowedChannels: string[]; allowedPaths: string[]; expiresAt?: string; createdAt: string; updatedAt: string; }
+export interface CreateAgentRequest { orgId: string; name: string; siteId?: string; allowedChannels?: string[]; allowedPaths?: string[]; canActivate?: boolean; }
+export interface CreateAgentResponse { agent: Agent; enrollmentToken?: string; grant?: AgentGrant; }
 export interface RevokeAgentRequest { orgId: string; agentId: string; }
+export interface RevokeAgentKeyRequest { orgId: string; agentId: string; keyId: string; reason?: string; }
 export interface AuditEvent { id: string; orgId: string; actorType: string; actorId: string; action: string; resourceType: string; resourceId: string; ipAddress: string; userAgent: string; metadataJson: string; createdAt: string; }
 export interface ValidationReport { valid: boolean; errors?: string[]; warnings?: string[]; files: number; bytes: number; requestedCapabilities?: string[]; effectiveCapabilities?: string[]; }
 export interface UploadDeploymentResponse { deployment: Deployment; report: ValidationReport; manifest: Record<string, unknown>; }

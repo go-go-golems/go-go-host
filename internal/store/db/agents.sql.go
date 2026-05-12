@@ -77,7 +77,7 @@ func (q *Queries) CreateAgentEnrollmentToken(ctx context.Context, arg CreateAgen
 const createAgentKey = `-- name: CreateAgentKey :one
 INSERT INTO agent_keys (id, agent_id, public_key, status, created_at)
 VALUES ($1, $2, $3, $4, $5)
-RETURNING id, agent_id, public_key, status, created_at, revoked_at
+RETURNING id, agent_id, public_key, status, created_at, revoked_at, last_used_at
 `
 
 type CreateAgentKeyParams struct {
@@ -104,6 +104,7 @@ func (q *Queries) CreateAgentKey(ctx context.Context, arg CreateAgentKeyParams) 
 		&i.Status,
 		&i.CreatedAt,
 		&i.RevokedAt,
+		&i.LastUsedAt,
 	)
 	return i, err
 }
@@ -220,7 +221,7 @@ func (q *Queries) GetAgentEnrollmentToken(ctx context.Context, tokenHash string)
 }
 
 const getAgentKey = `-- name: GetAgentKey :one
-SELECT id, agent_id, public_key, status, created_at, revoked_at
+SELECT id, agent_id, public_key, status, created_at, revoked_at, last_used_at
 FROM agent_keys
 WHERE id = $1
 `
@@ -235,6 +236,7 @@ func (q *Queries) GetAgentKey(ctx context.Context, id string) (AgentKey, error) 
 		&i.Status,
 		&i.CreatedAt,
 		&i.RevokedAt,
+		&i.LastUsedAt,
 	)
 	return i, err
 }
@@ -284,7 +286,7 @@ func (q *Queries) InsertAgentNonce(ctx context.Context, arg InsertAgentNoncePara
 }
 
 const listAgentKeys = `-- name: ListAgentKeys :many
-SELECT id, agent_id, public_key, status, created_at, revoked_at
+SELECT id, agent_id, public_key, status, created_at, revoked_at, last_used_at
 FROM agent_keys
 WHERE agent_id = $1
 ORDER BY created_at DESC
@@ -306,6 +308,7 @@ func (q *Queries) ListAgentKeys(ctx context.Context, agentID string) ([]AgentKey
 			&i.Status,
 			&i.CreatedAt,
 			&i.RevokedAt,
+			&i.LastUsedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -416,6 +419,38 @@ type MarkAgentEnrollmentTokenUsedParams struct {
 
 func (q *Queries) MarkAgentEnrollmentTokenUsed(ctx context.Context, arg MarkAgentEnrollmentTokenUsedParams) error {
 	_, err := q.db.Exec(ctx, markAgentEnrollmentTokenUsed, arg.TokenHash, arg.UsedAt)
+	return err
+}
+
+const revokeAgentKey = `-- name: RevokeAgentKey :exec
+UPDATE agent_keys
+SET status = 'revoked', revoked_at = $2
+WHERE id = $1
+`
+
+type RevokeAgentKeyParams struct {
+	ID        string             `json:"id"`
+	RevokedAt pgtype.Timestamptz `json:"revoked_at"`
+}
+
+func (q *Queries) RevokeAgentKey(ctx context.Context, arg RevokeAgentKeyParams) error {
+	_, err := q.db.Exec(ctx, revokeAgentKey, arg.ID, arg.RevokedAt)
+	return err
+}
+
+const touchAgentKeyLastUsed = `-- name: TouchAgentKeyLastUsed :exec
+UPDATE agent_keys
+SET last_used_at = $2
+WHERE id = $1
+`
+
+type TouchAgentKeyLastUsedParams struct {
+	ID         string             `json:"id"`
+	LastUsedAt pgtype.Timestamptz `json:"last_used_at"`
+}
+
+func (q *Queries) TouchAgentKeyLastUsed(ctx context.Context, arg TouchAgentKeyLastUsedParams) error {
+	_, err := q.db.Exec(ctx, touchAgentKeyLastUsed, arg.ID, arg.LastUsedAt)
 	return err
 }
 

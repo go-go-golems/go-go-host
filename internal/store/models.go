@@ -101,12 +101,13 @@ type AgentEnrollmentToken struct {
 }
 
 type AgentKey struct {
-	ID        string
-	AgentID   string
-	PublicKey string
-	Status    string
-	CreatedAt time.Time
-	RevokedAt time.Time
+	ID         string
+	AgentID    string
+	PublicKey  string
+	Status     string
+	CreatedAt  time.Time
+	RevokedAt  time.Time
+	LastUsedAt time.Time
 }
 
 type DeployRun struct {

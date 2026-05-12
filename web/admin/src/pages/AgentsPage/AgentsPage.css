@@ -3,3 +3,5 @@
 .agents-page__notice, .agents-page__create { display: grid; gap: 0.75rem; }
 .agents-page__create form { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 .agents-page__create input { flex: 1 1 16rem; font-family: var(--hc-font-family); border: 1px solid var(--hc-color-border); background: var(--hc-color-bg); color: var(--hc-color-fg); padding: 0.4rem; }
+.agents-page__danger { display: flex; gap: 0.5rem; align-items: center; border: 1px solid var(--hc-border, #111); padding: 0.5rem; background: color-mix(in srgb, var(--os-color-warning, #ffd966) 35%, transparent); }
+.agents-page code { word-break: break-all; }

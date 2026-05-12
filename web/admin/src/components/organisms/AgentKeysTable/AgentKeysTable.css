@@ -1,0 +1,6 @@
+.agent-keys-table { width: 100%; border-collapse: collapse; }
+.agent-keys-table th, .agent-keys-table td { border-bottom: 1px solid var(--hc-border, #111); padding: var(--os-space-2, 0.5rem); text-align: left; vertical-align: top; }
+.agent-keys-table small { opacity: 0.75; word-break: break-all; }
+.agent-keys-table__status { border: 1px solid currentColor; padding: 0.1rem 0.35rem; text-transform: uppercase; font-size: 0.75rem; }
+.agent-keys-table__status--active { color: #115c18; }
+.agent-keys-table__status--revoked { color: #8a1111; }

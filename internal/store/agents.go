@@ -130,6 +130,14 @@ func (s *Store) ListAgentKeys(ctx context.Context, agentID string) ([]AgentKey, 
 	return out, nil
 }
 
+func (s *Store) RevokeAgentKey(ctx context.Context, id string) error {
+	return s.q.RevokeAgentKey(ctx, storedb.RevokeAgentKeyParams{ID: id, RevokedAt: pgTime(now())})
+}
+
+func (s *Store) TouchAgentKeyLastUsed(ctx context.Context, keyID string) error {
+	return s.q.TouchAgentKeyLastUsed(ctx, storedb.TouchAgentKeyLastUsedParams{ID: keyID, LastUsedAt: pgTime(now())})
+}
+
 func (s *Store) TouchAgentLastSeen(ctx context.Context, agentID string) error {
 	return s.q.TouchAgentLastSeen(ctx, storedb.TouchAgentLastSeenParams{ID: agentID, LastSeenAt: pgTime(now())})
 }
@@ -175,7 +183,7 @@ func enrollmentTokenFromDB(row storedb.AgentEnrollmentToken) *AgentEnrollmentTok
 }
 
 func agentKeyFromDB(row storedb.AgentKey) *AgentKey {
-	return &AgentKey{ID: row.ID, AgentID: row.AgentID, PublicKey: row.PublicKey, Status: row.Status, CreatedAt: fromPgTime(row.CreatedAt), RevokedAt: fromPgTime(row.RevokedAt)}
+	return &AgentKey{ID: row.ID, AgentID: row.AgentID, PublicKey: row.PublicKey, Status: row.Status, CreatedAt: fromPgTime(row.CreatedAt), RevokedAt: fromPgTime(row.RevokedAt), LastUsedAt: fromPgTime(row.LastUsedAt)}
 }
 
 func deployRunFromDB(row storedb.DeployRun) *DeployRun {
