@@ -21,6 +21,14 @@ export const goGoHostApi = createApi({
     }),
     getRuntime: build.query<RuntimeStatus, string>({ query: (siteId) => `/sites/${siteId}/runtime`, providesTags: (_r, _e, siteId) => [{ type: 'Runtime', id: siteId }] }),
     getAdminRuntimeSummary: build.query<AdminRuntimeSummary, void>({ query: () => '/admin/runtimes/summary', providesTags: ['AdminRuntime'] }),
+    restartAdminRuntime: build.mutation<RuntimeStatus, string>({
+      query: (siteId) => ({ url: `/admin/runtimes/${siteId}/restart`, method: 'POST' }),
+      invalidatesTags: ['AdminRuntime', 'Audit', { type: 'AdminInventory', id: 'AUDIT' }],
+    }),
+    stopAdminRuntime: build.mutation<RuntimeStatus, string>({
+      query: (siteId) => ({ url: `/admin/runtimes/${siteId}/stop`, method: 'POST' }),
+      invalidatesTags: ['AdminRuntime', 'Audit', { type: 'AdminInventory', id: 'AUDIT' }],
+    }),
     listAdminOrgs: build.query<AdminOrg[], void>({ query: () => '/admin/orgs', providesTags: [{ type: 'AdminInventory', id: 'ORGS' }] }),
     listAdminUsers: build.query<AdminUser[], void>({ query: () => '/admin/users', providesTags: [{ type: 'AdminInventory', id: 'USERS' }] }),
     listAdminSites: build.query<AdminSite[], void>({ query: () => '/admin/sites', providesTags: [{ type: 'AdminInventory', id: 'SITES' }] }),
@@ -80,4 +88,4 @@ export const goGoHostApi = createApi({
   }),
 });
 
-export const { useGetConfigQuery, useGetMeQuery, useCreateOrgMutation, useListSitesQuery, useCreateSiteMutation, useGetRuntimeQuery, useGetAdminRuntimeSummaryQuery, useListAdminOrgsQuery, useListAdminUsersQuery, useListAdminSitesQuery, useListAdminDeploymentsQuery, useGetAdminDeploymentQuery, useListAdminAgentsQuery, useListAdminAuditQuery, useListDeploymentsQuery, useGetDeploymentQuery, useUploadDeploymentMutation, useActivateDeploymentMutation, useRollbackDeploymentMutation, useListAgentsQuery, useCreateAgentMutation, useRevokeAgentMutation, useListAuditQuery } = goGoHostApi;
+export const { useGetConfigQuery, useGetMeQuery, useCreateOrgMutation, useListSitesQuery, useCreateSiteMutation, useGetRuntimeQuery, useGetAdminRuntimeSummaryQuery, useRestartAdminRuntimeMutation, useStopAdminRuntimeMutation, useListAdminOrgsQuery, useListAdminUsersQuery, useListAdminSitesQuery, useListAdminDeploymentsQuery, useGetAdminDeploymentQuery, useListAdminAgentsQuery, useListAdminAuditQuery, useListDeploymentsQuery, useGetDeploymentQuery, useUploadDeploymentMutation, useActivateDeploymentMutation, useRollbackDeploymentMutation, useListAgentsQuery, useCreateAgentMutation, useRevokeAgentMutation, useListAuditQuery } = goGoHostApi;

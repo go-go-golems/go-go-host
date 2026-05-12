@@ -56,12 +56,12 @@
 
 ## Phase 6 — Runtime operations and safety controls
 
-- [ ] Design admin runtime stop/restart API with explicit audit logging.
-- [ ] Add backend stop/restart endpoints gated to platform admins.
-- [ ] Add themed confirmation dialog for destructive runtime actions.
-- [ ] Add `AdminRuntimeActions` component and stories for success/failure/disabled states.
-- [ ] Ensure operations update runtime summary cache and audit logs.
-- [ ] Add tests for forbidden runtime operation by non-admin users.
+- [x] Design admin runtime stop/restart API with explicit audit logging.
+- [x] Add backend stop/restart endpoints gated to platform admins.
+- [x] Add themed confirmation dialog for destructive runtime actions.
+- [x] Add `AdminRuntimeActions` component and stories for success/failure/disabled states.
+- [x] Ensure operations update runtime summary cache and audit logs.
+- [x] Add tests for forbidden runtime operation by non-admin users.
 
 ## Phase 7 — Quotas, capabilities, domains, and policy pages
 

@@ -4,3 +4,5 @@
 .admin-runtime-table tr[data-state="failed"] td { background: color-mix(in srgb, var(--hc-color-error) 12%, var(--hc-color-bg)); }
 .admin-runtime-table code { font-family: var(--hc-font-family); font-size: 0.95em; }
 .admin-runtime-table__error { max-width: 22rem; overflow-wrap: anywhere; }
+.admin-runtime-table__actions { white-space: nowrap; }
+.admin-runtime-table__actions button + button { margin-left: 0.35rem; }

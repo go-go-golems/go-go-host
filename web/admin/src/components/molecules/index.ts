@@ -1,4 +1,5 @@
 export * from './AgentStatusBadge';
+export * from './ConfirmActionDialog';
 export * from './DeploymentStatusPill';
 export * from './ManifestSummary';
 export * from './MetricCard';

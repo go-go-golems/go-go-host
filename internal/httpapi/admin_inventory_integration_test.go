@@ -47,13 +47,20 @@ func TestAdminInventoryRequiresPlatformAdminAndListsTenants(t *testing.T) {
 	org := createTestOrgViaAPI(t, h, tenantUser, "admin-inv-org-"+suffix)
 	_ = createTestSiteViaAPI(t, h, tenantUser, org.ID, "admin-inv-site-"+suffix)
 
-	for _, path := range []string{"/api/v1/admin/orgs", "/api/v1/admin/users", "/api/v1/admin/sites", "/api/v1/admin/deployments"} {
-		req := httptest.NewRequest(http.MethodGet, path, nil)
+	for _, tc := range []struct{ method, path string }{
+		{http.MethodGet, "/api/v1/admin/orgs"},
+		{http.MethodGet, "/api/v1/admin/users"},
+		{http.MethodGet, "/api/v1/admin/sites"},
+		{http.MethodGet, "/api/v1/admin/deployments"},
+		{http.MethodPost, "/api/v1/admin/runtimes/site_missing/restart"},
+		{http.MethodPost, "/api/v1/admin/runtimes/site_missing/stop"},
+	} {
+		req := httptest.NewRequest(tc.method, tc.path, nil)
 		req.Header.Set("X-Go-Go-Host-User", tenantUser)
 		rec := httptest.NewRecorder()
 		h.ServeHTTP(rec, req)
 		if rec.Code != http.StatusForbidden {
-			t.Fatalf("%s non-admin: expected 403, got %d body=%s", path, rec.Code, rec.Body.String())
+			t.Fatalf("%s %s non-admin: expected 403, got %d body=%s", tc.method, tc.path, rec.Code, rec.Body.String())
 		}
 	}
 

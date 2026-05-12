@@ -46,6 +46,8 @@ func NewHandler(core *control.Core) http.Handler {
 	api.HandleFunc("GET /api/v1/deployments/{deployment_id}", handleGetDeployment(core))
 	api.HandleFunc("POST /api/v1/deployments/{deployment_id}/activate", handleActivateDeployment(core))
 	api.HandleFunc("GET /api/v1/admin/runtimes/summary", handleAdminRuntimeSummary(core))
+	api.HandleFunc("POST /api/v1/admin/runtimes/{site_id}/restart", handleAdminRuntimeRestart(core))
+	api.HandleFunc("POST /api/v1/admin/runtimes/{site_id}/stop", handleAdminRuntimeStop(core))
 	api.HandleFunc("GET /api/v1/admin/orgs", handleAdminListOrgs(core))
 	api.HandleFunc("GET /api/v1/admin/users", handleAdminListUsers(core))
 	api.HandleFunc("GET /api/v1/admin/sites", handleAdminListSites(core))

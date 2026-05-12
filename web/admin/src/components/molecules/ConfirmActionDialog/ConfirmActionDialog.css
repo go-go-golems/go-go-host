@@ -1,0 +1,5 @@
+.confirm-action-dialog { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; background: color-mix(in srgb, var(--hc-color-desktop-bg) 70%, transparent); }
+.confirm-action-dialog__window { width: min(28rem, calc(100vw - 2rem)); background: var(--hc-color-bg); color: var(--hc-color-fg); border: 1px solid var(--hc-color-border); box-shadow: var(--hc-window-shadow); padding: 1rem; }
+.confirm-action-dialog__window h2 { margin: 0 0 0.5rem; }
+.confirm-action-dialog__window p { margin: 0 0 1rem; color: var(--hc-color-muted); }
+.confirm-action-dialog__window footer { display: flex; justify-content: end; gap: 0.5rem; }

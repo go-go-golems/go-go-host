@@ -377,3 +377,74 @@ Screenshot:
 
 - Add a richer activation timeline once runtime events or audit correlation is formalized.
 - Add filters for actor ID/resource ID/time range to the global audit UI.
+
+## Step 7: Safe admin runtime stop/restart controls
+
+I implemented the Phase 6 runtime operation slice with backend API controls, audit logging, frontend mutations, and a themed confirmation dialog.
+
+### What changed
+
+Backend:
+
+- Added platform-admin-gated endpoints:
+  - `POST /api/v1/admin/runtimes/{site_id}/restart`,
+  - `POST /api/v1/admin/runtimes/{site_id}/stop`.
+- Runtime operations call the supervisor `Restart`/`Stop` methods.
+- Successful operations insert audit events:
+  - `runtime.restart`,
+  - `runtime.stop`.
+- Added integration coverage proving non-admin users get `403` for runtime operation endpoints.
+- Fixed a fallback handler bug where suppressed API 404 responses could appear as empty 200 responses when no hosted-site fallback should run. API 404s now flush correctly.
+
+Frontend:
+
+- Added `ConfirmActionDialog` molecule with Storybook coverage.
+- Added RTK Query mutations:
+  - `useRestartAdminRuntimeMutation`,
+  - `useStopAdminRuntimeMutation`.
+- Added Restart/Stop action buttons to `AdminRuntimeTable`.
+- Wired `AdminRuntimesPage` to open the confirmation dialog, run the mutation, invalidate runtime/audit caches, and disable controls while busy.
+- Added MSW handlers for runtime operation endpoints.
+
+### Validation
+
+Commands run:
+
+```bash
+make web-build
+go test ./...
+make storybook-build
+go run ./cmd/build-web
+devctl restart go-go-hostd
+curl -i -X POST http://127.0.0.1:8080/api/v1/admin/runtimes/nope/stop
+```
+
+Results:
+
+- Web build passed.
+- Go tests passed.
+- Storybook build passed.
+- Dagger embedded build passed.
+- Missing runtime stop now returns a correct JSON 404 instead of an empty 200:
+
+```http
+HTTP/1.1 404 Not Found
+{"error":"runtime not found"}
+```
+
+### Browser verification
+
+Playwright checked:
+
+- Embedded `/admin/runtimes` empty-state page after daemon restart.
+- Storybook `AdminRuntimesPage -- Populated`, showing Restart/Stop controls.
+
+Screenshots:
+
+- `embedded-admin-runtimes-actions.png`
+- `storybook-admin-runtimes-actions.png`
+
+### Follow-ups
+
+- Add an actual runtime-running E2E path before testing a real restart/stop against a live hosted site.
+- Consider making confirmation dialog focus-trapping and Escape-key aware during accessibility polish.

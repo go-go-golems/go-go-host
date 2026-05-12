@@ -72,3 +72,15 @@ Added admin deployment detail endpoint and page with manifest, validation, actor
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/store/queries/admin.sql — GetAdminDeployment query
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/AdminDeploymentDetailPage/AdminDeploymentDetailPage.tsx — admin deployment detail page
 
+
+## 2026-05-11
+
+Added platform-admin runtime restart/stop endpoints with audit logging, themed confirmation dialog, admin runtime action buttons, RTK Query mutations, MSW handlers, and fixed API 404 fallback flushing.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/fallback.go — API 404 fallback flush fix
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/runtime.go — admin runtime operation endpoints
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/components/molecules/ConfirmActionDialog/ConfirmActionDialog.tsx — themed confirmation dialog
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/AdminRuntimesPage/AdminRuntimesPage.tsx — runtime operation UI wiring
+

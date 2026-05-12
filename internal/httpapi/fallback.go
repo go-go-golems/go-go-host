@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"bytes"
 	"net/http"
 	"strings"
 )
@@ -22,6 +23,10 @@ func (h fallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.primary.ServeHTTP(rec, r)
 	if rec.statusCode == http.StatusNotFound && shouldFallbackToHostedSite(r.URL.Path) {
 		h.fallback.ServeHTTP(w, r)
+		return
+	}
+	if rec.statusCode == http.StatusNotFound {
+		rec.flushNotFound()
 	}
 }
 
@@ -43,6 +48,7 @@ type fallbackRecorder struct {
 	http.ResponseWriter
 	statusCode int
 	wroteBody  bool
+	notFound   bytes.Buffer
 }
 
 func (r *fallbackRecorder) WriteHeader(statusCode int) {
@@ -55,8 +61,15 @@ func (r *fallbackRecorder) WriteHeader(statusCode int) {
 func (r *fallbackRecorder) Write(b []byte) (int, error) {
 	if r.statusCode == http.StatusNotFound {
 		r.wroteBody = true
-		return len(b), nil
+		return r.notFound.Write(b)
 	}
 	r.wroteBody = true
 	return r.ResponseWriter.Write(b)
+}
+
+func (r *fallbackRecorder) flushNotFound() {
+	r.ResponseWriter.WriteHeader(http.StatusNotFound)
+	if r.notFound.Len() > 0 {
+		_, _ = r.ResponseWriter.Write(r.notFound.Bytes())
+	}
 }

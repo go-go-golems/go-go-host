@@ -6,13 +6,16 @@ import './AdminRuntimeTable.css';
 
 export interface AdminRuntimeTableProps {
   runtimes: RuntimeStatus[];
+  onRestart?: (runtime: RuntimeStatus) => void;
+  onStop?: (runtime: RuntimeStatus) => void;
+  actionBusySiteId?: string;
 }
 
-export function AdminRuntimeTable({ runtimes }: AdminRuntimeTableProps) {
+export function AdminRuntimeTable({ runtimes, onRestart, onStop, actionBusySiteId }: AdminRuntimeTableProps) {
   if (runtimes.length === 0) return <EmptyState title="No runtimes yet" body="No site runtimes have reported status in this daemon process." />;
   return (
     <table className="admin-runtime-table">
-      <thead><tr><th>Site</th><th>Org</th><th>Status</th><th>Deployment</th><th>Hosts</th><th>Requests</th><th>Errors</th><th>Started</th><th>Last error</th></tr></thead>
+      <thead><tr><th>Site</th><th>Org</th><th>Status</th><th>Deployment</th><th>Hosts</th><th>Requests</th><th>Errors</th><th>Started</th><th>Last error</th><th>Actions</th></tr></thead>
       <tbody>{runtimes.map((runtime) => (
         <tr key={runtime.siteId} data-state={runtime.status}>
           <td><code>{runtime.siteId}</code></td>
@@ -24,6 +27,7 @@ export function AdminRuntimeTable({ runtimes }: AdminRuntimeTableProps) {
           <td>{runtime.errorsTotal ?? 0}</td>
           <td><Timestamp value={runtime.startedAt} /></td>
           <td className="admin-runtime-table__error">{runtime.lastError || '—'}</td>
+          <td className="admin-runtime-table__actions"><button type="button" data-part="btn" disabled={!onRestart || actionBusySiteId === runtime.siteId} onClick={() => onRestart?.(runtime)}>Restart</button><button type="button" data-part="btn" disabled={!onStop || runtime.status === 'stopped' || actionBusySiteId === runtime.siteId} onClick={() => onStop?.(runtime)}>Stop</button></td>
         </tr>
       ))}</tbody>
     </table>
