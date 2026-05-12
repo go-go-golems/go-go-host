@@ -360,11 +360,11 @@ Goal: make hosted execution boundaries visible and enforceable.
 - [ ] Add DB stats endpoint.
 - [ ] Add usage collector for request count, error count, DB size, bundle bytes, deployment count.
 - [ ] Add dashboard quota warnings.
-- [ ] Add dashboard agent grant UI for `canActivate`, with clear warnings that it permits traffic promotion.
-- [ ] Add agent key inventory UI showing key IDs, created/revoked timestamps, and active/revoked status.
+- [x] Add dashboard agent grant UI for `canActivate`, with clear warnings that it permits traffic promotion. (Covered by Phase 10A initial slice; replacement-key success remains for full rotation.)
+- [x] Add agent key inventory UI showing key IDs, created/revoked timestamps, and active/revoked status. (Covered by Phase 10A initial slice; replacement-key success remains for full rotation.)
 - [ ] Add agent key rotation workflow: generate/register replacement key, verify it, then retire old key.
-- [ ] Add agent key revoke endpoint and UI action distinct from whole-agent revoke.
-- [ ] Add tests for revoked-key signed request denial and replacement-key success.
+- [x] Add agent key revoke endpoint and UI action distinct from whole-agent revoke. (Covered by Phase 10A initial slice; replacement-key success remains for full rotation.)
+- [x] Add tests for revoked-key signed request denial and replacement-key success. (Covered by Phase 10A initial slice; replacement-key success remains for full rotation.)
 - [ ] Add structured logs with request ID/site ID/deployment ID.
 - [ ] Add runtime event table or log stream for start/stop/fail/activate events.
 - [ ] Add tests for DB hard-limit write failure.
@@ -374,6 +374,31 @@ Exit criteria:
 
 - [ ] Capabilities are explicit in deployment validation and runtime construction.
 - [ ] Users and admins can see quota state and runtime errors.
+
+### Phase 10A: Immediate agent hardening and operator UX
+
+Goal: make scoped auto-activation safer and easier to operate before broader production hardening.
+
+- [x] Add dashboard agent grant UI for `canActivate`, with warnings that it permits traffic promotion.
+- [x] Add backend owner-only enforcement for granting `canActivate`.
+- [x] Add agent key inventory API showing key IDs, fingerprints, created/revoked timestamps, last-used timestamp, and active/revoked status.
+- [x] Add dashboard key inventory table.
+- [x] Add agent key revoke endpoint distinct from whole-agent revoke.
+- [x] Add dashboard key revoke action.
+- [x] Add signed-request last-used tracking for keys.
+- [x] Add revoked-key signed request denial coverage.
+- [ ] Add structured security failure audit events for bad signature, timestamp skew, replay, revoked key, and grant denied.
+- [ ] Add upload token one-time/in-progress semantics.
+- [ ] Add bundle SHA256 storage and expose it in deployment API/dashboard/audit.
+
+Exit criteria:
+
+- [x] Operators can see and revoke individual agent signing keys.
+- [x] `canActivate` is visible in the dashboard and protected by backend role checks.
+- [x] Revoked keys can no longer create signed deploy runs.
+- [ ] Security failures are visible in audit with stable reason codes.
+- [ ] Upload tokens cannot be reused or raced.
+- [ ] Deployments expose bundle hashes for traceability.
 
 ### Phase 11: Domains, configuration, and site settings
 

@@ -2448,3 +2448,70 @@ Agent deploy output:
   "valid": true
 }
 ```
+
+## Step 25: Phase 10A immediate agent hardening slice
+
+I added a new Phase 10A to capture the hardening items that make the just-built agent auto-activation workflow easier and safer to operate immediately. Then I implemented the first slice: `canActivate` is now visible in the user dashboard, backend grant creation enforces owner-only auto-activation grants, agent keys can be listed with fingerprints and last-used timestamps, and operators can revoke individual signing keys without revoking the whole agent.
+
+This is deliberately not the whole hardening guide. Security-failure audit events, upload token one-time transitions, and bundle SHA256 traceability remain open in Phase 10A. The committed slice focuses on operator control over the highest-risk thing we just added: agents that can activate live traffic.
+
+### Prompt Context
+
+**User prompt (verbatim):** "add these as phase 10A, with the same detailed tickets. Then get to work on phase 10."
+
+**Assistant interpretation:** Add a detailed HOST-001 Phase 10A for the immediate hardening recommendations from HOST-004, then begin implementation rather than leaving it as planning only.
+
+**Inferred user intent:** Turn the hardening guide into actionable project tasks and immediately make the agent/auto-activation system safer to use.
+
+**Commit (code):** f31621773be37f26612d923782a85a61d2f1ecb9 — "Add agent key inventory and revoke controls"
+
+### What I did
+
+- Added migration `006_agent_key_inventory.sql` with `agent_keys.last_used_at`.
+- Added key list/revoke sqlc queries and store wrappers.
+- Added backend APIs:
+  - `GET /api/v1/orgs/{org_id}/agents/{agent_id}/keys`,
+  - `POST /api/v1/orgs/{org_id}/agents/{agent_id}/keys/{key_id}/revoke`.
+- Added key fingerprints derived from SHA256 of the public key.
+- Touched key `last_used_at` after successful signed request verification.
+- Added owner-only enforcement when a human creates/updates a grant with `canActivate`.
+- Added dashboard pieces:
+  - `AgentKeysTable`,
+  - key list/revoke actions on `AgentsPage`,
+  - `canActivate` create-agent warning checkbox,
+  - one-time enrollment token display from create response.
+- Extended signed-agent integration coverage to list keys, assert last-used/fingerprint, revoke key, and prove revoked keys are denied.
+
+### What worked
+
+- `go test ./...` passes.
+- `pnpm --dir web/admin build` passes.
+- Storybook has an `AgentKeysTable` story.
+
+### What didn't work
+
+- The first web build failed because the new story imported `Meta`/`StoryObj` from `@storybook/react-vite`; existing project stories import from `@storybook/react`. I changed the import to match the repo convention.
+- Adding `last_used_at` changed sqlc row shapes for key queries. I fixed the generated-query alignment by selecting/returning `last_used_at` consistently.
+
+### What warrants a second pair of eyes
+
+- The dashboard create-agent form currently exposes `canActivate` without selecting an immediate site grant. The backend only creates an activation-capable grant when a `siteId` is provided, so a fuller grant editor/detail page should follow.
+- Key revoke uses developer/owner deploy role today. Decide whether key revoke should be owner-only when the agent has activation grants.
+- The fingerprint format is short (`SHA256:` plus first 8 bytes of digest). Review whether to display a longer fingerprint.
+
+### What should be done in the future
+
+- Finish Phase 10A open items: security-failure audit events, upload token one-time semantics, bundle SHA256.
+- Add a proper AgentDetailPage with grant editor instead of expanding the list page further.
+- Add key rotation/replacement-key success flow.
+
+### Code review instructions
+
+- Start with `internal/control/agents.go`, `internal/control/agent_runs.go`, and `internal/httpapi/agents_audit.go`.
+- Review `web/admin/src/pages/AgentsPage/AgentsPage.tsx` and `AgentKeysTable` for operator UX.
+- Validate with:
+
+```bash
+go test ./...
+pnpm --dir web/admin build
+```

@@ -309,3 +309,15 @@ Added Phase 10 follow-up tasks for dashboard canActivate grant UI and agent key 
 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/11/HOST-001-GO-GO-HOST-V1--go-go-host-v1-hosting-platform-design/tasks.md — Phase 10 agent grant/key hardening tasks
 
+
+## 2026-05-12
+
+Added Phase 10A and implemented initial agent hardening slice: owner-only canActivate grants, key inventory API/UI, last-used tracking, key revoke endpoint/UI, and revoked-key coverage.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/control/agents.go — key list/revoke service methods
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/agents_audit.go — key inventory/revoke handlers
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/11/HOST-001-GO-GO-HOST-V1--go-go-host-v1-hosting-platform-design/tasks.md — new Phase 10A tasks
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/AgentsPage/AgentsPage.tsx — operator key inventory and canActivate warning UI
+
