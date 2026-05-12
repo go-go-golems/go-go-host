@@ -16,12 +16,18 @@ RelatedFiles:
     - Path: ../../../../../../../../../../code/wesen/go-go-golems/go-go-parc/Research/Institute/Proposals/2026/05/11/PROPOSAL - Goja Sites Hosting Service.md
     - Path: ../../../../../../../2026-05-01--wish-git/internal/policy/authorize.go
       Note: New local Wish Git evidence recorded in Step 4
+    - Path: Dockerfile
+      Note: Phase 12 production image recipe
     - Path: cmd/go-go-host-agent/cmds/support.go
       Note: agent CLI signing
+    - Path: cmd/go-go-host/cmds/maintenance.go
+      Note: Phase 12 operator CLI
     - Path: internal/control/agent_runs.go
       Note: Phase 9 service logic for enrollment
     - Path: internal/control/deployments.go
       Note: Activation now includes verified custom domains
+    - Path: internal/control/maintenance.go
+      Note: Phase 12 export/prune/retention service
     - Path: internal/control/services.go
       Note: Phase 11 site config
     - Path: internal/httpapi/agent_signed_integration_test.go
@@ -32,6 +38,8 @@ RelatedFiles:
       Note: Phase 11 site settings API handlers and DTOs
     - Path: internal/store/queries/sites.sql
       Note: Phase 11 sqlc queries for config and domains
+    - Path: scripts/final-e2e-playwright.mjs
+      Note: Phase 12 gated final E2E script
     - Path: ttmp/2026/05/11/HOST-001-GO-GO-HOST-V1--go-go-host-v1-hosting-platform-design/design-doc/01-go-go-host-v1-hosting-platform-intern-design-and-implementation-guide.md
       Note: Primary design deliverable recorded in diary
     - Path: web/admin/src/pages/SiteSettingsPage/SiteSettingsPage.tsx
@@ -42,6 +50,7 @@ LastUpdated: 2026-05-11T17:05:00-04:00
 WhatFor: Use this to continue the investigation or review how the design was produced.
 WhenToUse: When extending the go-go-host v1 design, implementing phases, or auditing source evidence.
 ---
+
 
 
 
@@ -2824,4 +2833,155 @@ site.capability.update
 site.domain.add
 site.domain.verify
 site.domain.delete
+```
+
+## Step 28: Completed Phase 12 maintenance and production hardening
+
+I continued from Phase 11 into the final Phase 12 operability work. The platform now has operator-facing export and pruning APIs, CLI commands for maintenance workflows, stronger readiness checks, production deployment scaffolding, and runbooks for runtime crashes and capability review.
+
+This step focused on recoverability and safe operations rather than new product features. Operators can export site metadata, SQLite data, and immutable deployment bundles before pruning or incident response, and they have a documented path for runtime restart/rollback and future capability review.
+
+### Prompt Context
+
+**User prompt (verbatim):** "continue"
+
+**Assistant interpretation:** Continue with the next unchecked platform phase, which is Phase 12 backup/export/pruning/production hardening, while preserving the existing diary/commit discipline.
+
+**Inferred user intent:** Carry the HOST-001 implementation through the remaining operability checklist without stopping for another planning prompt.
+
+**Commit (code):** fdfe91022b5b44daca5b29babd7b1faf6fe659b0 — "Add maintenance export and pruning APIs"
+
+**Commit (CLI):** 5b8be383ebab7fe83a1ef307779b20f7e95f3051 — "Add maintenance CLI commands"
+
+**Commit (docs/deploy):** b62f0036b36a66929eb217bf4f6033bc9dc2ed3e — "Add production hardening runbooks"
+
+**Commit (tests/script):** dcbf75c4643493747185be9935f65e4d911e9666 — "Add production smoke coverage"
+
+**Commit (Docker polish):** fb9a43c — "Fix Dockerfile for sqlite CGO runtime"
+
+**Commit (tasks/e2e script):** 35c0c29 — "Complete Phase 12 checklist"
+
+### What I did
+
+- Added maintenance sqlc queries and store wrappers for deployment pruning and audit retention.
+- Added `MaintenanceService` with:
+  - site metadata export,
+  - site SQLite DB export path resolution,
+  - deployment bundle export path resolution,
+  - deployment prune workflow,
+  - platform-admin audit retention workflow.
+- Added HTTP APIs:
+  - `GET /api/v1/sites/{site_id}/export/metadata`,
+  - `GET /api/v1/sites/{site_id}/export/db`,
+  - `GET /api/v1/deployments/{deployment_id}/bundle`,
+  - `POST /api/v1/sites/{site_id}/deployments/prune`,
+  - `POST /api/v1/admin/audit/retention`.
+- Changed `/readyz` from a static response to DB ping plus data-dir writeability checks.
+- Added integration coverage for readiness, metadata export, and prune dry-run.
+- Added `go-go-host maintenance` CLI commands:
+  - `maintenance export metadata`,
+  - `maintenance export db`,
+  - `maintenance export bundle`,
+  - `maintenance prune-deployments`,
+  - `maintenance audit-retention`.
+- Added runtime concurrency/load smoke coverage in `internal/runtime/supervisor_test.go`.
+- Added `scripts/final-e2e-playwright.mjs`, gated by `GO_GO_HOST_E2E=1`, to exercise browser rendering plus API deploy/activate/rollback/audit and signed-agent deploy flow against a live devctl stack.
+- Added runbooks:
+  - `runbooks/02-runtime-crash-restart-runbook.md`,
+  - `runbooks/03-host-capability-security-review-checklist.md`.
+- Added `configs/production.example.yaml`.
+- Added a Dockerfile and fixed it to use CGO because the runtime depends on `github.com/mattn/go-sqlite3`.
+- Marked Phase 12 tasks and exit criteria complete.
+
+### Why
+
+- Phase 12 is about making the MVP operable after development: backup/export, recovery, pruning, readiness, production configuration, and safety checklists.
+- Export endpoints and CLI commands give operators a concrete evidence-preservation path before destructive actions.
+- Pruning and audit retention need explicit APIs because otherwise operators must edit database rows and filesystem artifacts by hand.
+- `/readyz` needs to prove dependencies are usable, not just that the HTTP process is alive.
+
+### What worked
+
+- The maintenance API integrated cleanly with existing site authorization helpers and deployment/store models.
+- Metadata export was straightforward because Phase 11 had already made config/capabilities/domains first-class store surfaces.
+- The runtime supervisor handled 400 concurrent requests in the new smoke test and reported the expected request count.
+- `go test ./...`, `pnpm --dir web/admin build`, and `docmgr doctor` passed after the Phase 12 implementation.
+
+### What didn't work
+
+- The initial Dockerfile used `CGO_ENABLED=0` and a static distroless base. That is wrong for this repo because the hosted runtime uses `github.com/mattn/go-sqlite3`, which requires CGO. I changed the Dockerfile to build with `CGO_ENABLED=1` and run on `debian:bookworm-slim` with certificates and a non-root user.
+
+### What I learned
+
+- The Phase 10/11 work made Phase 12 simpler: bundle hashes, site config, domain rows, and capability policy all export naturally as metadata.
+- Maintenance endpoints need path containment checks because deployment bundle refs and SQLite paths are ultimately filesystem paths.
+- The operator CLI does not need to understand the internal data-dir layout; it can download from authenticated API endpoints.
+
+### What was tricky to build
+
+- `deployment.bundle_ref` is stored as a filesystem path after validation. Export code therefore checks that the resolved path stays inside `dataDir` before serving it.
+- Pruning must never delete the currently active deployment, even if its status or timestamp would otherwise match. The store query excludes the active deployment ID.
+- Audit retention is platform-admin-only and records its own audit event after deletion, so the retention event itself remains visible.
+- The Playwright E2E is intentionally gated by `GO_GO_HOST_E2E=1` because it needs a running devctl stack, a test bundle, and the Playwright package in the operator environment.
+
+### What warrants a second pair of eyes
+
+- Review prune policy semantics: default statuses are `rejected,superseded`; active deployment is excluded; `keepLatest` preserves the newest matching old deployments.
+- Review audit-retention behavior and whether dry-run should count candidate rows instead of only returning a descriptive no-delete response.
+- Review Dockerfile runtime dependencies if the final deployment target is distroless or Alpine; sqlite CGO makes static builds non-trivial.
+- Review export endpoints for filename/content-type expectations and whether large files need streaming-specific limits.
+
+### What should be done in the future
+
+- Add scheduled/background pruning and retention jobs instead of only operator-triggered APIs.
+- Add signed manifests for exported metadata bundles.
+- Add object-storage backup targets once production storage is chosen.
+- Add a real CI job for the Playwright E2E when devctl services can be provisioned in CI.
+
+### Code review instructions
+
+Start with:
+
+1. `internal/control/maintenance.go` — authorization, path containment, prune and retention behavior.
+2. `internal/httpapi/maintenance.go` — API DTOs, downloads, time parsing.
+3. `cmd/go-go-host/cmds/maintenance.go` — operator CLI UX.
+4. `internal/httpapi/handler.go` — `/readyz` dependency checks and maintenance route wiring.
+5. `Dockerfile` and `configs/production.example.yaml` — production packaging/config assumptions.
+6. `scripts/final-e2e-playwright.mjs` — live devctl E2E workflow.
+
+Validate with:
+
+```bash
+go test ./...
+pnpm --dir web/admin build
+docmgr doctor --ticket HOST-001-GO-GO-HOST-V1 --stale-after 30
+```
+
+Optional live E2E:
+
+```bash
+devctl up --force
+GO_GO_HOST_E2E=1 GO_GO_HOST_TEST_BUNDLE=/tmp/go-go-host-test-bundle.tar.gz node scripts/final-e2e-playwright.mjs
+```
+
+### Technical details
+
+New maintenance APIs:
+
+```http
+GET  /api/v1/sites/{site_id}/export/metadata
+GET  /api/v1/sites/{site_id}/export/db
+GET  /api/v1/deployments/{deployment_id}/bundle
+POST /api/v1/sites/{site_id}/deployments/prune
+POST /api/v1/admin/audit/retention
+```
+
+New maintenance CLI examples:
+
+```bash
+go run ./cmd/go-go-host maintenance export metadata --site-id SITE_ID --dev-user OWNER -o site.json
+go run ./cmd/go-go-host maintenance export db --site-id SITE_ID --dev-user OWNER -o site.sqlite
+go run ./cmd/go-go-host maintenance export bundle --deployment-id DEP_ID --dev-user OWNER -o dep.tar.gz
+go run ./cmd/go-go-host maintenance prune-deployments --site-id SITE_ID --dev-user OWNER --older-than 30d --dry-run=false
+go run ./cmd/go-go-host maintenance audit-retention --dev-user dev-user --older-than 90d --dry-run=false
 ```

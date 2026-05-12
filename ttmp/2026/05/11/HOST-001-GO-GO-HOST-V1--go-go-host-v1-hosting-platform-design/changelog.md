@@ -346,3 +346,16 @@ Completed Phase 11 site settings: non-secret config API, custom-domain verificat
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/11/HOST-001-GO-GO-HOST-V1--go-go-host-v1-hosting-platform-design/tasks.md — Phase 11 completion checklist
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/SiteSettingsPage/SiteSettingsPage.tsx — dashboard Settings page for config/domains/capabilities/environment placeholder
 
+
+## 2026-05-12
+
+Completed Phase 12 maintenance and production hardening: export APIs/CLI, deployment prune, audit retention, readyz dependency checks, runtime load smoke, final gated Playwright E2E script, runbooks, production config, Dockerfile, and task completion.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/Dockerfile — production container recipe
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/cmd/go-go-host/cmds/maintenance.go — operator maintenance CLI
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/control/maintenance.go — Phase 12 maintenance service
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/maintenance.go — Phase 12 maintenance HTTP endpoints
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/scripts/final-e2e-playwright.mjs — gated final browser/API/signed-agent smoke
+
