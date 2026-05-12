@@ -199,6 +199,21 @@ func (s *DeploymentService) ActivateAsAgent(ctx context.Context, agentID, deploy
 	return s.activate(ctx, "agent", agentID, dep, site)
 }
 
+func (s *DeploymentService) RestoreActiveRuntimes(ctx context.Context) error {
+	deployments, err := s.store.ListAdminDeployments(ctx, store.AdminDeploymentFilter{Status: store.DeploymentStatusActive, Limit: 1000})
+	if err != nil {
+		return err
+	}
+	for _, row := range deployments {
+		dep := &store.Deployment{ID: row.ID, SiteID: row.SiteID, Version: row.Version, Status: row.Status, BundleRef: row.BundleRef, UnpackedPath: row.UnpackedPath, ManifestJSON: row.ManifestJSON, ValidationJSON: row.ValidationJSON, CreatedByType: row.CreatedByType, CreatedByID: row.CreatedByID, CreatedAt: row.CreatedAt, ActivatedAt: row.ActivatedAt, BundleSHA256: row.BundleSHA256}
+		site := &store.Site{ID: row.SiteID, OrgID: row.OrgID, Slug: row.SiteSlug, Name: row.SiteSlug, PrimaryHost: row.PrimaryHost, Status: store.SiteStatusActive, ActiveDeploymentID: row.ID}
+		if _, err := s.activate(ctx, "system", "startup-restore", dep, site); err != nil {
+			return fmt.Errorf("restore active runtime for site %s deployment %s: %w", row.SiteID, row.ID, err)
+		}
+	}
+	return nil
+}
+
 func (s *DeploymentService) activate(ctx context.Context, actorType, actorID string, dep *store.Deployment, site *store.Site) (*store.Deployment, error) {
 	if dep.Status != store.DeploymentStatusValidated && dep.Status != store.DeploymentStatusSuperseded && dep.Status != store.DeploymentStatusActive {
 		return nil, fmt.Errorf("deployment %s is not activatable from status %q", dep.ID, dep.Status)

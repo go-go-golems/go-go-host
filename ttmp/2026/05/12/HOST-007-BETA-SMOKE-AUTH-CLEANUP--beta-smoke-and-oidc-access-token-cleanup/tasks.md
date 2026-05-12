@@ -41,7 +41,10 @@ Intent: long-term
 
 - [x] Add durable `examples/hello-beta` bundle source matching the live demo site.
 - [x] Add `scripts/beta-smoke.sh` for control-plane and live demo-site smoke.
-- [x] Validate `scripts/beta-smoke.sh` against `https://hosting.yolo.scapegoat.dev` and `https://hello.hosting.yolo.scapegoat.dev`.
+- [x] Validate `scripts/beta-smoke.sh` against `https://hosting.yolo.scapegoat.dev` and `https://hello.hosting.yolo.scapegoat.dev` before image rollout.
+- [x] Discover that pod restart/image rollout drops in-memory active runtime registrations.
+- [x] Add daemon startup restoration for deployments whose database status is `active`.
+- [ ] Validate `scripts/beta-smoke.sh` again after deploying the startup-restore image.
 - [ ] Extend smoke script with optional authenticated create/upload/activate mode after access-token rollout.
 - [ ] Document required environment variables for authenticated mode.
 
@@ -65,5 +68,7 @@ Intent: long-term
 - [x] `BUILD_WEB_LOCAL=1 go run ./cmd/build-web`
 - [x] `scripts/beta-smoke.sh`
 - [x] `go test ./...`
-- [ ] New image deployed to K3s.
-- [ ] Live access-token API verification passes.
+- [x] New access-token image `sha-23b66ec` deployed to K3s.
+- [x] Live access-token API verification passes against `/api/v1/me`.
+- [ ] New startup-restore image deployed to K3s.
+- [ ] Live beta smoke passes after image rollout without manual reactivation.

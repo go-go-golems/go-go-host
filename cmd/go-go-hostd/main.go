@@ -62,6 +62,9 @@ func run(ctx context.Context, cfg config.Config) error {
 	}
 
 	core := control.NewCoreWithStore(cfg, st)
+	if err := core.Deployments.RestoreActiveRuntimes(ctx); err != nil {
+		return err
+	}
 	server := &http.Server{
 		Addr:         cfg.ListenAddr,
 		Handler:      httpapi.NewHandler(core),

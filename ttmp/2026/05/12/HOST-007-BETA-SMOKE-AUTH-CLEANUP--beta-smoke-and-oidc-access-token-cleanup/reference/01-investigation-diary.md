@@ -242,3 +242,138 @@ dep_181c0489-b037-4732-b7b3-3cc99bf4ea52
 ```
 
 The code currently serving live traffic came from an equivalent bundle first built under `/tmp`; `examples/hello-beta` preserves that app source for future rebuilds and redeploys.
+
+## Step 3: Deploy access-token fix and discover restart/runtime restoration gap
+
+I built and pushed the first HOST-007 image, updated the K3s GitOps image pin, and let Argo roll out the new pod. The access-token fix worked live: `/api/v1/me` accepted the browser access token and returned the expected user, memberships, and platform-admin status. The rollout also exposed a separate runtime lifecycle bug: active deployments are stored in the database, but the in-memory runtime supervisor did not automatically restore them after a daemon restart.
+
+This discovery is exactly why the read-only smoke script is useful. After the rollout, the control-plane health checks passed, but `https://hello.hosting.yolo.scapegoat.dev/` returned 404 because the new process had not reactivated the site's active deployment into the supervisor host map.
+
+### Prompt Context
+
+**User prompt (verbatim):** "where is the code for hello.hosting.yolo.scapegoat.dev ? btw ?
+
+then continue"
+
+**Assistant interpretation:** Answer that the demo source is now in `examples/hello-beta`, then continue implementing and deploying the HOST-007 work.
+
+**Inferred user intent:** Keep momentum, make the beta cleanup live, and ensure the demo site remains understandable and reproducible.
+
+**Commit (code):** pending for startup-restore fix at time of diary entry.
+
+### What I did
+
+- Committed and pushed the first HOST-007 source changes as `23b66ec Add beta smoke and OIDC access token support`.
+- Built and pushed:
+
+```text
+ghcr.io/go-go-golems/go-go-host:sha-23b66ec
+```
+
+- Updated K3s GitOps deployment image from `sha-4187ea3` to `sha-23b66ec` and pushed K3s commit:
+
+```text
+5779ad3 Bump go-go-host beta image
+```
+
+- Refreshed Argo and waited for rollout.
+- Verified live access-token API auth:
+
+```bash
+curl -fsS https://hosting.yolo.scapegoat.dev/api/v1/me \
+  -H "Authorization: Bearer <browser access token>"
+```
+
+returned:
+
+```json
+{
+  "email": "wesen@ruinwesen.com",
+  "platformAdmin": true,
+  "memberships": ["beta-demo", "wesen"]
+}
+```
+
+- Ran `scripts/beta-smoke.sh` after rollout and found the demo site root returned 404.
+- Implemented startup active-runtime restoration:
+  - `DeploymentService.RestoreActiveRuntimes(ctx)` lists active deployments and activates their runtime specs into the supervisor.
+  - `cmd/go-go-hostd/main.go` calls restoration after stale runtime-status reconciliation and before starting the HTTP server.
+
+### Why
+
+- The access-token fix needed to be proven live, not just locally.
+- The public demo site should survive normal pod restarts and image rollouts. Requiring manual reactivation after every daemon restart is not acceptable for beta.
+
+### What worked
+
+- The access-token fix worked in the live cluster after deploying `sha-23b66ec`.
+- Argo rolled out the image successfully.
+- The smoke script immediately caught the runtime restoration issue.
+- The codebase already had enough activation logic to reuse for restoration.
+
+### What didn't work
+
+`scripts/beta-smoke.sh` failed after image rollout with:
+
+```text
+== demo site root ==
+curl: (22) The requested URL returned error: 404
+HTTP/2 404
+```
+
+The root cause was not TLS, DNS, or Ingress. `/healthz`, `/readyz`, and `/api/v1/config` passed. The failure was inside go-go-host: the supervisor's host map was empty after process restart.
+
+### What I learned
+
+- Runtime status reconciliation on daemon startup marked stale runtime statuses stopped, but there was no corresponding step to reload database-active deployments into memory.
+- Activation is both a database operation and an in-memory supervisor operation. The database remembered `active_deployment_id`; the new process needed to reconstruct the supervisor state.
+
+### What was tricky to build
+
+The restoration path needed to avoid inventing a second activation implementation. I added a method that lists active deployments and calls the existing internal `activate` helper with a system actor. This reuses manifest parsing, host list construction, quota loading, runtime construction, and supervisor activation.
+
+### What warrants a second pair of eyes
+
+- `RestoreActiveRuntimes` currently uses `ListAdminDeployments` with status `active` and limit `1000`. That is fine for beta but should become a purpose-built store query before broad production use.
+- Startup restoration currently returns the first error and fails daemon startup. Review whether beta should instead log per-site failures and continue serving other active sites.
+
+### What should be done in the future
+
+- Add unit/integration coverage for restart restoration.
+- Consider making runtime status reconciliation and active restoration a single explicit startup phase with structured logs.
+
+### Code review instructions
+
+Review:
+
+```text
+internal/control/deployments.go
+cmd/go-go-hostd/main.go
+```
+
+Validate:
+
+```bash
+go test ./internal/control ./cmd/go-go-hostd ./internal/httpapi
+go test ./...
+```
+
+After deploying the next image, validate:
+
+```bash
+scripts/beta-smoke.sh
+```
+
+### Technical details
+
+The durable source for the demo site is:
+
+```text
+examples/hello-beta/
+```
+
+The live site URL remains:
+
+```text
+https://hello.hosting.yolo.scapegoat.dev/
+```
