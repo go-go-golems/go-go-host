@@ -67,7 +67,8 @@ SELECT
   d.created_by_type,
   d.created_by_id,
   d.created_at,
-  d.activated_at
+  d.activated_at,
+  d.bundle_sha256
 FROM deployments d
 JOIN sites s ON s.id = d.site_id
 JOIN orgs o ON o.id = s.org_id
@@ -95,7 +96,8 @@ SELECT
   d.created_by_type,
   d.created_by_id,
   d.created_at,
-  d.activated_at
+  d.activated_at,
+  d.bundle_sha256
 FROM deployments d
 JOIN sites s ON s.id = d.site_id
 JOIN orgs o ON o.id = s.org_id

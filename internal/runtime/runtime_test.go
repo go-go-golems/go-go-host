@@ -54,6 +54,19 @@ func TestRuntimeHealthCheck(t *testing.T) {
 	}
 }
 
+func TestDBHardLimitCanFailRuntimeWrites(t *testing.T) {
+	ctx := context.Background()
+	spec := fixtureSpec(t, "site_hard_limit", "hard.localhost")
+	spec.DBHardMaxBytes = 1
+	_, err := NewSiteRuntime(ctx, spec)
+	if err == nil {
+		t.Fatalf("expected tiny DB hard limit to fail during fixture writes")
+	}
+	if !strings.Contains(err.Error(), "hard limit") {
+		t.Fatalf("expected hard limit error, got %v", err)
+	}
+}
+
 func TestExecAndFSUnavailableByDefault(t *testing.T) {
 	ctx := context.Background()
 	rt := newFixtureRuntime(t, ctx)

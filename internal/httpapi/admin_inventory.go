@@ -118,6 +118,7 @@ type adminDeploymentDTO struct {
 	CreatedByID    string `json:"createdById"`
 	CreatedAt      string `json:"createdAt"`
 	ActivatedAt    string `json:"activatedAt,omitempty"`
+	BundleSHA256   string `json:"bundleSha256"`
 }
 
 func requirePlatformAdmin(core *control.Core, w http.ResponseWriter, r *http.Request) (principal, bool) {
@@ -193,7 +194,7 @@ func handleAdminListSites(core *control.Core) http.HandlerFunc {
 }
 
 func adminDeploymentToDTO(deployment *store.AdminDeployment) adminDeploymentDTO {
-	return adminDeploymentDTO{ID: deployment.ID, SiteID: deployment.SiteID, SiteSlug: deployment.SiteSlug, PrimaryHost: deployment.PrimaryHost, OrgID: deployment.OrgID, OrgSlug: deployment.OrgSlug, OrgName: deployment.OrgName, Version: deployment.Version, Status: deployment.Status, BundleRef: deployment.BundleRef, UnpackedPath: deployment.UnpackedPath, ManifestJSON: string(deployment.ManifestJSON), ValidationJSON: string(deployment.ValidationJSON), CreatedByType: deployment.CreatedByType, CreatedByID: deployment.CreatedByID, CreatedAt: deployment.CreatedAt, ActivatedAt: deployment.ActivatedAt}
+	return adminDeploymentDTO{ID: deployment.ID, SiteID: deployment.SiteID, SiteSlug: deployment.SiteSlug, PrimaryHost: deployment.PrimaryHost, OrgID: deployment.OrgID, OrgSlug: deployment.OrgSlug, OrgName: deployment.OrgName, Version: deployment.Version, Status: deployment.Status, BundleRef: deployment.BundleRef, UnpackedPath: deployment.UnpackedPath, ManifestJSON: string(deployment.ManifestJSON), ValidationJSON: string(deployment.ValidationJSON), CreatedByType: deployment.CreatedByType, CreatedByID: deployment.CreatedByID, CreatedAt: deployment.CreatedAt, ActivatedAt: deployment.ActivatedAt, BundleSHA256: deployment.BundleSHA256}
 }
 
 func handleAdminGetDeployment(core *control.Core) http.HandlerFunc {

@@ -75,6 +75,7 @@ type AdminDeployment struct {
 	CreatedByID    string
 	CreatedAt      string
 	ActivatedAt    string
+	BundleSHA256   string
 }
 
 type AdminDeploymentFilter struct {
@@ -211,7 +212,7 @@ func (s *Store) GetAdminDeployment(ctx context.Context, id string) (*AdminDeploy
 	return adminDeploymentFromRow(adminDeploymentRow{
 		ID: row.ID, SiteID: row.SiteID, SiteSlug: row.SiteSlug, PrimaryHost: row.PrimaryHost, OrgID: row.OrgID, OrgSlug: row.OrgSlug, OrgName: row.OrgName,
 		Version: row.Version, Status: row.Status, BundleRef: row.BundleRef, UnpackedPath: row.UnpackedPath, ManifestJson: row.ManifestJson, ValidationJson: row.ValidationJson,
-		CreatedByType: row.CreatedByType, CreatedByID: row.CreatedByID, CreatedAt: row.CreatedAt, ActivatedAt: row.ActivatedAt,
+		CreatedByType: row.CreatedByType, CreatedByID: row.CreatedByID, CreatedAt: row.CreatedAt, ActivatedAt: row.ActivatedAt, BundleSha256: row.BundleSha256,
 	})
 }
 
@@ -254,7 +255,7 @@ func (s *Store) ListAdminDeployments(ctx context.Context, filter AdminDeployment
 	}
 	out := make([]AdminDeployment, 0, len(rows))
 	for _, row := range rows {
-		dep, err := adminDeploymentFromRow(adminDeploymentRow{ID: row.ID, SiteID: row.SiteID, SiteSlug: row.SiteSlug, PrimaryHost: row.PrimaryHost, OrgID: row.OrgID, OrgSlug: row.OrgSlug, OrgName: row.OrgName, Version: row.Version, Status: row.Status, BundleRef: row.BundleRef, UnpackedPath: row.UnpackedPath, ManifestJson: row.ManifestJson, ValidationJson: row.ValidationJson, CreatedByType: row.CreatedByType, CreatedByID: row.CreatedByID, CreatedAt: row.CreatedAt, ActivatedAt: row.ActivatedAt})
+		dep, err := adminDeploymentFromRow(adminDeploymentRow{ID: row.ID, SiteID: row.SiteID, SiteSlug: row.SiteSlug, PrimaryHost: row.PrimaryHost, OrgID: row.OrgID, OrgSlug: row.OrgSlug, OrgName: row.OrgName, Version: row.Version, Status: row.Status, BundleRef: row.BundleRef, UnpackedPath: row.UnpackedPath, ManifestJson: row.ManifestJson, ValidationJson: row.ValidationJson, CreatedByType: row.CreatedByType, CreatedByID: row.CreatedByID, CreatedAt: row.CreatedAt, ActivatedAt: row.ActivatedAt, BundleSha256: row.BundleSha256})
 		if err != nil {
 			return nil, err
 		}
@@ -281,10 +282,11 @@ type adminDeploymentRow struct {
 	CreatedByID    string
 	CreatedAt      pgtype.Timestamptz
 	ActivatedAt    pgtype.Timestamptz
+	BundleSha256   string
 }
 
 func adminDeploymentFromRow(row adminDeploymentRow) (*AdminDeployment, error) {
-	return &AdminDeployment{ID: row.ID, SiteID: row.SiteID, SiteSlug: row.SiteSlug, PrimaryHost: row.PrimaryHost, OrgID: row.OrgID, OrgSlug: row.OrgSlug, OrgName: row.OrgName, Version: int(row.Version), Status: row.Status, BundleRef: row.BundleRef, UnpackedPath: row.UnpackedPath, ManifestJSON: row.ManifestJson, ValidationJSON: row.ValidationJson, CreatedByType: row.CreatedByType, CreatedByID: row.CreatedByID, CreatedAt: formatDBTime(row.CreatedAt), ActivatedAt: formatDBTime(row.ActivatedAt)}, nil
+	return &AdminDeployment{ID: row.ID, SiteID: row.SiteID, SiteSlug: row.SiteSlug, PrimaryHost: row.PrimaryHost, OrgID: row.OrgID, OrgSlug: row.OrgSlug, OrgName: row.OrgName, Version: int(row.Version), Status: row.Status, BundleRef: row.BundleRef, UnpackedPath: row.UnpackedPath, ManifestJSON: row.ManifestJson, ValidationJSON: row.ValidationJson, CreatedByType: row.CreatedByType, CreatedByID: row.CreatedByID, CreatedAt: formatDBTime(row.CreatedAt), ActivatedAt: formatDBTime(row.ActivatedAt), BundleSHA256: row.BundleSha256}, nil
 }
 
 func optionalText(value string) pgtype.Text {

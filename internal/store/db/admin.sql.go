@@ -29,7 +29,8 @@ SELECT
   d.created_by_type,
   d.created_by_id,
   d.created_at,
-  d.activated_at
+  d.activated_at,
+  d.bundle_sha256
 FROM deployments d
 JOIN sites s ON s.id = d.site_id
 JOIN orgs o ON o.id = s.org_id
@@ -54,6 +55,7 @@ type GetAdminDeploymentRow struct {
 	CreatedByID    string             `json:"created_by_id"`
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 	ActivatedAt    pgtype.Timestamptz `json:"activated_at"`
+	BundleSha256   string             `json:"bundle_sha256"`
 }
 
 func (q *Queries) GetAdminDeployment(ctx context.Context, id string) (GetAdminDeploymentRow, error) {
@@ -77,6 +79,7 @@ func (q *Queries) GetAdminDeployment(ctx context.Context, id string) (GetAdminDe
 		&i.CreatedByID,
 		&i.CreatedAt,
 		&i.ActivatedAt,
+		&i.BundleSha256,
 	)
 	return i, err
 }
@@ -288,7 +291,8 @@ SELECT
   d.created_by_type,
   d.created_by_id,
   d.created_at,
-  d.activated_at
+  d.activated_at,
+  d.bundle_sha256
 FROM deployments d
 JOIN sites s ON s.id = d.site_id
 JOIN orgs o ON o.id = s.org_id
@@ -324,6 +328,7 @@ type ListAdminDeploymentsRow struct {
 	CreatedByID    string             `json:"created_by_id"`
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 	ActivatedAt    pgtype.Timestamptz `json:"activated_at"`
+	BundleSha256   string             `json:"bundle_sha256"`
 }
 
 func (q *Queries) ListAdminDeployments(ctx context.Context, arg ListAdminDeploymentsParams) ([]ListAdminDeploymentsRow, error) {
@@ -358,6 +363,7 @@ func (q *Queries) ListAdminDeployments(ctx context.Context, arg ListAdminDeploym
 			&i.CreatedByID,
 			&i.CreatedAt,
 			&i.ActivatedAt,
+			&i.BundleSha256,
 		); err != nil {
 			return nil, err
 		}

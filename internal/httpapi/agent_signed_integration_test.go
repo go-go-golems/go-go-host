@@ -80,6 +80,10 @@ func TestAgentSignedDeployRunSecurity(t *testing.T) {
 	if !upload.Activated || upload.Deployment.Status != "active" {
 		t.Fatalf("expected auto-activated upload, got %#v", upload)
 	}
+	secondUploadRec := uploadAgentBundleViaAPI(t, h, goodRun.ID, goodRun.UploadToken, writeHelloBundle(t))
+	if secondUploadRec.Code != http.StatusForbidden {
+		t.Fatalf("expected second upload denial, got %d %s", secondUploadRec.Code, secondUploadRec.Body.String())
+	}
 	keysReq := httptest.NewRequest(http.MethodGet, "/api/v1/orgs/"+org.ID+"/agents/"+created.Agent.ID+"/keys", nil)
 	keysReq.Header.Set("X-Go-Go-Host-User", user)
 	keysRec := httptest.NewRecorder()
