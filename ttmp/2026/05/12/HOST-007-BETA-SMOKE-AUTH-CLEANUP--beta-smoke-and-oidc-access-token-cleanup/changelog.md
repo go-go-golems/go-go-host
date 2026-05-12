@@ -27,3 +27,14 @@ Deployed access-token image sha-23b66ec, verified live access-token API auth, di
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/cmd/go-go-hostd/main.go — daemon startup calls active runtime restoration
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/control/deployments.go — startup restoration for active deployments
 
+
+## 2026-05-12
+
+Built and deployed sha-f137ff9 with startup active-runtime restoration; Argo is healthy, live access-token auth works, and scripts/beta-smoke.sh passes after rollout.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/go-go-host/deployment.yaml — live image now sha-f137ff9
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/control/deployments.go — deployed startup active runtime restoration
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/scripts/beta-smoke.sh — post-rollout beta smoke passed
+

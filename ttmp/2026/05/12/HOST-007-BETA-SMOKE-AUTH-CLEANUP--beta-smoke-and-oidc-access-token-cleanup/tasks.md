@@ -32,10 +32,10 @@ Intent: long-term
 - [x] Change backend verifier to validate OIDC bearer token signature, issuer, and expiry while accepting either matching `aud` or matching `azp`/authorized party.
 - [x] Add unit coverage for audience/authorized-party token matching.
 - [x] Keep platform-admin bootstrap behavior based on subject/email/roles/groups/client roles.
-- [ ] Rebuild and publish a new Docker image containing the auth cleanup.
-- [ ] Update K3s GitOps image pin and roll out the new image.
-- [ ] Verify live API calls with the browser access token after rollout.
-- [ ] Verify dashboard/GitHub login still reaches admin and org/site pages.
+- [x] Rebuild and publish a new Docker image containing the auth cleanup.
+- [x] Update K3s GitOps image pin and roll out the new image.
+- [x] Verify live API calls with the browser access token after rollout.
+- [x] Verify dashboard/GitHub login still reaches admin and org/site pages.
 
 ## P0: Repeatable beta smoke
 
@@ -44,7 +44,7 @@ Intent: long-term
 - [x] Validate `scripts/beta-smoke.sh` against `https://hosting.yolo.scapegoat.dev` and `https://hello.hosting.yolo.scapegoat.dev` before image rollout.
 - [x] Discover that pod restart/image rollout drops in-memory active runtime registrations.
 - [x] Add daemon startup restoration for deployments whose database status is `active`.
-- [ ] Validate `scripts/beta-smoke.sh` again after deploying the startup-restore image.
+- [x] Validate `scripts/beta-smoke.sh` again after deploying the startup-restore image.
 - [ ] Extend smoke script with optional authenticated create/upload/activate mode after access-token rollout.
 - [ ] Document required environment variables for authenticated mode.
 
@@ -70,5 +70,5 @@ Intent: long-term
 - [x] `go test ./...`
 - [x] New access-token image `sha-23b66ec` deployed to K3s.
 - [x] Live access-token API verification passes against `/api/v1/me`.
-- [ ] New startup-restore image deployed to K3s.
-- [ ] Live beta smoke passes after image rollout without manual reactivation.
+- [x] New startup-restore image `sha-f137ff9` deployed to K3s.
+- [x] Live beta smoke passes after image rollout without manual reactivation.

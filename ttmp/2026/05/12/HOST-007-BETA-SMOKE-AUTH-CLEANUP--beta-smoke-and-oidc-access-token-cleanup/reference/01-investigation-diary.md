@@ -377,3 +377,113 @@ The live site URL remains:
 ```text
 https://hello.hosting.yolo.scapegoat.dev/
 ```
+
+## Step 4: Deploy startup restoration and confirm beta smoke passes after rollout
+
+I built and deployed the startup-restoration fix so active sites survive a normal image rollout. This completed the immediate HOST-007 implementation loop: access tokens work live, the demo app source is durable, the smoke script exists, and the live demo site remains reachable after pod restart.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 3)
+
+**Assistant interpretation:** Continue from the runtime restoration discovery and make the live beta healthy again.
+
+**Inferred user intent:** Finish the implementation, not just document or partially fix it.
+
+**Commit (code):** `f137ff9` — "Restore active runtimes on daemon startup"
+
+### What I did
+
+- Built and pushed:
+
+```text
+ghcr.io/go-go-golems/go-go-host:sha-f137ff9
+```
+
+- Updated K3s GitOps deployment image and pushed K3s commit:
+
+```text
+13ac467 Deploy go-go-host startup runtime restore
+```
+
+- Refreshed Argo and waited for rollout.
+- Confirmed Argo and Deployment state:
+
+```text
+go-go-host Synced Healthy
+deployment image ghcr.io/go-go-golems/go-go-host:sha-f137ff9
+```
+
+- Re-ran `scripts/beta-smoke.sh` after rollout.
+- Re-verified live access-token API calls against `/api/v1/me`.
+
+### Why
+
+The first HOST-007 image proved access-token support but broke the public demo site until manual reactivation. A beta hosting service must restore active sites on daemon restart, because pod restarts, image rollouts, node drains, and crashes are normal operational events.
+
+### What worked
+
+After deploying `sha-f137ff9`, `scripts/beta-smoke.sh` passed:
+
+```text
+beta smoke passed for https://hosting.yolo.scapegoat.dev and https://hello.hosting.yolo.scapegoat.dev
+```
+
+The demo site returned HTTP 200 after the pod restart without manual reactivation.
+
+The browser access token also worked live:
+
+```json
+{
+  "email": "wesen@ruinwesen.com",
+  "platformAdmin": true,
+  "memberships": ["beta-demo", "wesen"]
+}
+```
+
+### What didn't work
+
+No new failure occurred after deploying `sha-f137ff9`. The earlier `sha-23b66ec` rollout failure is now fixed by startup restoration.
+
+### What I learned
+
+- The read-only smoke script is valuable as a post-rollout gate, not just a one-off status check.
+- Access-token semantics and runtime restoration are tightly connected operationally: both need to work before a scripted authenticated deploy smoke is trustworthy.
+
+### What was tricky to build
+
+The main sharp edge was Argo status timing. Immediately after pushing image bumps, the Deployment image and Argo summary can briefly disagree while refresh/sync is in progress. I waited for both Argo `Synced Healthy` and the Deployment container image to show the expected SHA before treating rollout as complete.
+
+### What warrants a second pair of eyes
+
+- Startup restoration failure policy: currently one failed active deployment can fail daemon startup. That may be desirable for beta visibility, but production may prefer best-effort restoration with per-site degraded status.
+- The store query for active runtime restoration should eventually be purpose-built rather than reusing admin inventory listing.
+
+### What should be done in the future
+
+- Add automated tests for startup restoration.
+- Add authenticated smoke mode that creates/redeploys the demo site using an access token.
+- Add a Makefile target for packaging `examples/hello-beta`.
+
+### Code review instructions
+
+Review commits:
+
+```text
+23b66ec Add beta smoke and OIDC access token support
+f137ff9 Restore active runtimes on daemon startup
+```
+
+Review K3s commits:
+
+```text
+5779ad3 Bump go-go-host beta image
+13ac467 Deploy go-go-host startup runtime restore
+```
+
+Validate live:
+
+```bash
+scripts/beta-smoke.sh
+curl -fsS https://hosting.yolo.scapegoat.dev/api/v1/me -H "Authorization: Bearer <access-token>" | jq .
+```
