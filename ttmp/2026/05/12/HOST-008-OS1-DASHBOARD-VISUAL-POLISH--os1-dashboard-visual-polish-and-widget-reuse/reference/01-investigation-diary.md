@@ -169,3 +169,32 @@ POST /api/v1/orgs/:orgId/agents/:agentId/keys/:keyId/revoke
 ```
 
 Validation: `pnpm build` passed after the CSS/MSW changes. The only remaining browser console error in the Storybook full-page screenshot was `favicon.ico` 404, not an API/MSW route issue.
+
+## 2026-05-12 — Settings-page polish scope
+
+User requested the next focused slice on the settings page:
+
+- use proper checkbox widgets,
+- add subtle color highlights in text where appropriate,
+- unify font sizes,
+- use CodeMirror with JSON syntax highlighting for JSON fields,
+- add ticket tasks first, then implement with commits and diary updates.
+
+Added four HOST-008 tasks for checkbox widgets, semantic highlights, font scale unification, and CodeMirror JSON editing.
+
+Inspected `SiteSettingsPage.tsx` and `SiteSettingsPage.css`. Current state:
+
+- the settings page is structurally useful but visually inconsistent;
+- the only native checkbox in the page is inside the agent create flow, but settings has capability toggles that behave like boolean controls via Enable/Disable buttons;
+- editable JSON config uses a plain `<textarea>`;
+- JSON display uses `CodeBlock`, which is readable but not editable/syntax-highlighted;
+- helper text uses mostly muted gray and misses semantic emphasis for safe vs unsupported capability/environment language;
+- settings CSS still has `font: inherit` and mixed fallbacks instead of a small OS1 scale.
+
+Plan for this slice:
+
+1. Add a small reusable CodeMirror JSON editor component under `components/atoms/JsonEditor` using official CodeMirror packages.
+2. Replace the settings JSON textarea with that editor.
+3. Render capability policy rows with OS-core `Checkbox` widgets so enabled/disabled state reads as a boolean control, while still preserving async save behavior.
+4. Add subtle highlight classes for safe, warning, danger, and identifier text.
+5. Normalize settings-page font sizes and table/control density.
