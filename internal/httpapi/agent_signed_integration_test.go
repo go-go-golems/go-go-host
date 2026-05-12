@@ -6,8 +6,12 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -61,6 +65,14 @@ func TestAgentSignedDeployRunSecurity(t *testing.T) {
 	if goodRec.Code != http.StatusCreated {
 		t.Fatalf("good signed run: %d %s", goodRec.Code, goodRec.Body.String())
 	}
+	var goodRun createDeployRunResponse
+	if err := json.Unmarshal(goodRec.Body.Bytes(), &goodRun); err != nil {
+		t.Fatal(err)
+	}
+	uploadRec := uploadAgentBundleViaAPI(t, h, goodRun.ID, goodRun.UploadToken, writeHelloBundle(t))
+	if uploadRec.Code != http.StatusCreated {
+		t.Fatalf("agent upload: %d %s", uploadRec.Code, uploadRec.Body.String())
+	}
 
 	replayReq := signedAgentRequest(t, http.MethodPost, "/api/v1/agent/deploy-runs", goodBody, created.Agent.ID, enrolled.KeyID, priv, time.Now().UTC(), "nonce-good")
 	replayRec := httptest.NewRecorder()
@@ -99,6 +111,34 @@ func TestAgentSignedDeployRunSecurity(t *testing.T) {
 	if badSigRec.Code != http.StatusForbidden {
 		t.Fatalf("expected bad signature denial, got %d %s", badSigRec.Code, badSigRec.Body.String())
 	}
+}
+
+func uploadAgentBundleViaAPI(t *testing.T, h http.Handler, runID, uploadToken, bundlePath string) *httptest.ResponseRecorder {
+	t.Helper()
+	var body bytes.Buffer
+	mw := multipart.NewWriter(&body)
+	part, err := mw.CreateFormFile("bundle", filepath.Base(bundlePath))
+	if err != nil {
+		t.Fatal(err)
+	}
+	f, err := os.Open(bundlePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := io.Copy(part, f); err != nil {
+		_ = f.Close()
+		t.Fatal(err)
+	}
+	_ = f.Close()
+	if err := mw.Close(); err != nil {
+		t.Fatal(err)
+	}
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/agent/deploy-runs/"+runID+"/upload", &body)
+	req.Header.Set("Content-Type", mw.FormDataContentType())
+	req.Header.Set("X-Go-Go-Upload-Token", uploadToken)
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+	return rec
 }
 
 func signedAgentRequest(t *testing.T, method, path string, body []byte, agentID, keyID string, priv ed25519.PrivateKey, ts time.Time, nonce string) *http.Request {
