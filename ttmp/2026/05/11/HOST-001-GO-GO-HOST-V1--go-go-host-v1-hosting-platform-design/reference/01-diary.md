@@ -20,18 +20,29 @@ RelatedFiles:
       Note: agent CLI signing
     - Path: internal/control/agent_runs.go
       Note: Phase 9 service logic for enrollment
+    - Path: internal/control/deployments.go
+      Note: Activation now includes verified custom domains
+    - Path: internal/control/services.go
+      Note: Phase 11 site config
     - Path: internal/httpapi/agent_signed_integration_test.go
       Note: Phase 9 security regression coverage
     - Path: internal/httpapi/agents_audit.go
       Note: agent enrollment and signed deploy-run HTTP endpoints
+    - Path: internal/httpapi/site_settings.go
+      Note: Phase 11 site settings API handlers and DTOs
+    - Path: internal/store/queries/sites.sql
+      Note: Phase 11 sqlc queries for config and domains
     - Path: ttmp/2026/05/11/HOST-001-GO-GO-HOST-V1--go-go-host-v1-hosting-platform-design/design-doc/01-go-go-host-v1-hosting-platform-intern-design-and-implementation-guide.md
       Note: Primary design deliverable recorded in diary
+    - Path: web/admin/src/pages/SiteSettingsPage/SiteSettingsPage.tsx
+      Note: Phase 11 operator settings page
 ExternalSources: []
 Summary: Chronological diary for creating the go-go-host v1 design ticket and intern implementation guide.
 LastUpdated: 2026-05-11T17:05:00-04:00
 WhatFor: Use this to continue the investigation or review how the design was produced.
 WhenToUse: When extending the go-go-host v1 design, implementing phases, or auditing source evidence.
 ---
+
 
 
 
