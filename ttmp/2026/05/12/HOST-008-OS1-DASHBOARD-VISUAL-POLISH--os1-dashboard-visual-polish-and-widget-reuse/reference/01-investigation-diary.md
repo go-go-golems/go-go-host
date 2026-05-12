@@ -308,3 +308,22 @@ Command output:
 ```text
 OK: uploaded HOST-008_OS1_Admin_UI_Guidelines.pdf -> /ai/2026/05/12/HOST-008-OS1-DASHBOARD-VISUAL-POLISH
 ```
+
+## 2026-05-12 — Agents page cleanup scope
+
+Continuing HOST-008 after writing the UI playbook. Next target: `AgentsPage`, because it is security-sensitive and currently violates several playbook rules:
+
+- native checkbox for auto-activation instead of OS-core `Checkbox`,
+- warning copy is a broad yellow strip but not semantically precise,
+- form is a loose flex row rather than a compact OS1 control group,
+- tables use different border weights than Sites/Settings tables,
+- signing-key status styles use ad-hoc colors and large font sizes,
+- page headers do not use the improved stacked explanatory-text pattern.
+
+Plan:
+
+1. Replace the auto-activation native checkbox with `@go-go-golems/os-core` `Checkbox`.
+2. Add subtle semantic highlights for machine identity, auto-activation, trusted pipelines, enrollment tokens, and revocation.
+3. Normalize Agents page font sizes and table density to the dashboard scale.
+4. Align `AgentsTable` and `AgentKeysTable` with the same 2px outer border / black header pattern used by Sites and Settings.
+5. Capture a Storybook screenshot of the populated Agents page.

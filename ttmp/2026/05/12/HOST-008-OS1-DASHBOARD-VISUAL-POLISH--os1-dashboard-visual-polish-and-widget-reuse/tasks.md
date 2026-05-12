@@ -13,3 +13,4 @@
 - [x] Add subtle semantic text highlights for warnings, safe capabilities, identifiers, and helper text
 - [x] Unify dashboard font sizes around OS1 tokenized scale
 - [ ] Use CodeMirror JSON editor with syntax highlighting for editable JSON fields
+- [ ] Apply OS1 guidelines to Agents page and signing-key tables
