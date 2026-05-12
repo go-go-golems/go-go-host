@@ -68,3 +68,12 @@ Added initial /app routing with session/org guards plus NoOrgsPage, SitesPage, a
 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/app/routes.tsx — Initial dashboard route tree
 
+
+## 2026-05-11
+
+Wired CreateSitePage to RTK Query create-site mutation with validation, MSW POST handler, and Storybook interaction stories for invalid, success, and forbidden states.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/CreateSitePage/CreateSitePage.tsx — Create-site page form and mutation wiring
+

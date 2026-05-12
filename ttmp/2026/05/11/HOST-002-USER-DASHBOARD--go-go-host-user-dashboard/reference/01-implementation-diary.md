@@ -477,3 +477,67 @@ make storybook-build
 devctl restart storybook
 devctl status --tail-lines 5
 ```
+
+## Step 8: Wired create-site form mutation and interaction stories
+
+I finished the first useful site-management workflow slice by turning `CreateSitePage` from a form shell into a validated mutation-backed page.
+
+### Prompt Context
+
+**User prompt (verbatim):** "continue" and reminder to keep a diary and commit at appropriate intervals.
+
+**Assistant interpretation:** Continue the `HOST-002` page work, keep the implementation diary current, validate the frontend, and commit the focused slice.
+
+### What I did
+
+- Added `CreateSiteRequest` to dashboard service types.
+- Added RTK Query `createSite` mutation for `POST /api/v1/orgs/{org_id}/sites`.
+- Invalidated the org site list cache after successful create.
+- Added a shared `apiErrorMessage()` helper for RTK Query errors.
+- Added MSW `POST /api/v1/orgs/:orgId/sites` handler.
+- Reworked `CreateSitePage` into a real form:
+  - slug and name state,
+  - DNS-safe lowercase slug validation,
+  - name presence/length validation,
+  - preview host using `/api/v1/config` base domain,
+  - API error rendering,
+  - success navigation to the future site detail route.
+- Added Storybook interaction stories for:
+  - invalid slug,
+  - successful create,
+  - forbidden create.
+- Added `@storybook/test` as a dev dependency so interaction stories can use `userEvent`, `within`, and `expect` with type support.
+
+### Why
+
+The dashboard needed a complete create-site loop before moving to site detail/deployment pages. This validates that form state, client validation, RTK Query mutations, MSW, and Storybook interactions all work together.
+
+### What worked
+
+- `make web-build` passes.
+- `make storybook-build` passes.
+- Storybook restarted successfully through `devctl`.
+
+### What didn't work
+
+- Initial Storybook interaction imports failed because `@storybook/test` was not installed. I added it to `devDependencies` and restored the documented import path.
+- The first `apiErrorMessage` implementation assumed every `FetchBaseQueryError` had an `error` property; TypeScript correctly flagged that only some variants do. I fixed this with discriminated `in` checks.
+
+### What was tricky
+
+- The create success story needs a placeholder route for `/app/orgs/:orgId/sites/:siteId` so navigation can be asserted inside Storybook without implementing the full site detail page yet.
+
+### What warrants review
+
+- The slug regex is intentionally conservative and DNS-ish. If backend slug policy differs, align both sides in a later pass.
+- Success navigation currently points at a not-yet-real site detail route; that route should be implemented next.
+
+### Validation
+
+Commands run:
+
+```bash
+make web-build
+make storybook-build
+devctl restart storybook
+```

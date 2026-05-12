@@ -166,16 +166,16 @@ Goal: deliver the first useful dashboard workflow: create org/site and view site
 - [x] Create `pages/CreateSitePage` form shell.
 - [x] Create `organisms/SitesTable`.
 - [ ] Add runtime badge fan-out or placeholder strategy for site rows.
-- [ ] Create site form validation for slug/name.
+- [x] Create site form validation for slug/name.
 - [ ] Wire `POST /api/v1/orgs`.
 - [x] Wire `GET /api/v1/orgs/{org_id}/sites`.
-- [ ] Wire `POST /api/v1/orgs/{org_id}/sites`.
+- [x] Wire `POST /api/v1/orgs/{org_id}/sites`.
 - [ ] Add Storybook page stories:
   - [x] no org onboarding empty state,
   - [x] sites empty,
   - [x] sites populated,
   - [x] sites load error,
-  - [ ] create site valid/invalid/forbidden.
+  - [x] create site valid/invalid/forbidden.
 
 Exit criteria:
 

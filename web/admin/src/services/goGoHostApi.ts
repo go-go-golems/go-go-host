@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type { Agent, AuditEvent, ConfigResponse, Deployment, MeResponse, RuntimeStatus, Site } from './types';
+import type { Agent, AuditEvent, ConfigResponse, CreateSiteRequest, Deployment, MeResponse, RuntimeStatus, Site } from './types';
 
 export const goGoHostApi = createApi({
   reducerPath: 'goGoHostApi',
@@ -9,6 +9,10 @@ export const goGoHostApi = createApi({
     getConfig: build.query<ConfigResponse, void>({ query: () => '/config', providesTags: ['Config'] }),
     getMe: build.query<MeResponse, void>({ query: () => '/me', providesTags: ['Me', 'Org'] }),
     listSites: build.query<Site[], string>({ query: (orgId) => `/orgs/${orgId}/sites`, providesTags: (_r, _e, orgId) => [{ type: 'Site', id: `ORG:${orgId}` }] }),
+    createSite: build.mutation<Site, CreateSiteRequest>({
+      query: ({ orgId, slug, name }) => ({ url: `/orgs/${orgId}/sites`, method: 'POST', body: { slug, name } }),
+      invalidatesTags: (_r, _e, { orgId }) => [{ type: 'Site', id: `ORG:${orgId}` }],
+    }),
     getRuntime: build.query<RuntimeStatus, string>({ query: (siteId) => `/sites/${siteId}/runtime`, providesTags: (_r, _e, siteId) => [{ type: 'Runtime', id: siteId }] }),
     listDeployments: build.query<Deployment[], string>({ query: (siteId) => `/sites/${siteId}/deployments`, providesTags: (_r, _e, siteId) => [{ type: 'Deployment', id: `SITE:${siteId}` }] }),
     listAgents: build.query<Agent[], string>({ query: (orgId) => `/orgs/${orgId}/agents`, providesTags: ['Agent'] }),
@@ -19,4 +23,4 @@ export const goGoHostApi = createApi({
   }),
 });
 
-export const { useGetConfigQuery, useGetMeQuery, useListSitesQuery, useGetRuntimeQuery, useListDeploymentsQuery, useListAgentsQuery, useListAuditQuery } = goGoHostApi;
+export const { useGetConfigQuery, useGetMeQuery, useListSitesQuery, useCreateSiteMutation, useGetRuntimeQuery, useListDeploymentsQuery, useListAgentsQuery, useListAuditQuery } = goGoHostApi;
