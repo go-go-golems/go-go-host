@@ -28,3 +28,12 @@ Polished the site settings page with OS-core checkbox widgets, subtle semantic t
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/SiteSettingsPage/SiteSettingsPage.css — Settings-specific OS1 font scale
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/SiteSettingsPage/SiteSettingsPage.tsx — Settings page now uses JsonEditor
 
+
+## 2026-05-12
+
+Added a reusable OS1 admin dashboard UI work guidelines playbook for future page design and implementation.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/12/HOST-008-OS1-DASHBOARD-VISUAL-POLISH--os1-dashboard-visual-polish-and-widget-reuse/playbook/01-os1-admin-dashboard-ui-work-guidelines.md — Reusable design and implementation guidelines for future admin dashboard UI work
+

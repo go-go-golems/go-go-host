@@ -269,3 +269,28 @@ sources/screenshots/host-008-site-settings-final.png
 ```
 
 Commit: `3def444 Polish settings page OS1 controls`.
+
+## 2026-05-12 — Admin UI guidelines playbook
+
+User changed direction from continuing implementation to writing a reusable playbook/guideline document for future admin-backend UI work, then uploading it to reMarkable.
+
+Created playbook:
+
+```text
+playbook/01-os1-admin-dashboard-ui-work-guidelines.md
+```
+
+The playbook captures the rules learned so far:
+
+- use the OS1 shell/window mental model;
+- do not merely apply retro colors to a modern SaaS layout;
+- use OS-core theme variables and `data-part` contracts;
+- use the dashboard font scale;
+- keep whitespace structural;
+- use semantic highlights subtly;
+- use OS checkbox widgets for booleans;
+- use CodeMirror `JsonEditor` for editable JSON;
+- build Storybook/MSW states before styling;
+- capture Playwright screenshots and review full pages before moving on.
+
+Next step: upload the playbook to reMarkable.
