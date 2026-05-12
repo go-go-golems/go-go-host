@@ -119,6 +119,39 @@ func (q *Queries) GetSiteQuota(ctx context.Context, siteID string) (SiteQuota, e
 	return i, err
 }
 
+const listSiteCapabilities = `-- name: ListSiteCapabilities :many
+SELECT site_id, capability, enabled, config_json, updated_at
+FROM site_capabilities
+WHERE site_id = $1
+ORDER BY capability
+`
+
+func (q *Queries) ListSiteCapabilities(ctx context.Context, siteID string) ([]SiteCapability, error) {
+	rows, err := q.db.Query(ctx, listSiteCapabilities, siteID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []SiteCapability{}
+	for rows.Next() {
+		var i SiteCapability
+		if err := rows.Scan(
+			&i.SiteID,
+			&i.Capability,
+			&i.Enabled,
+			&i.ConfigJson,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listSitesByOrg = `-- name: ListSitesByOrg :many
 SELECT id, org_id, slug, name, primary_host, status, active_deployment_id, created_at
 FROM sites
@@ -184,5 +217,31 @@ type UpdateSiteStatusParams struct {
 
 func (q *Queries) UpdateSiteStatus(ctx context.Context, arg UpdateSiteStatusParams) error {
 	_, err := q.db.Exec(ctx, updateSiteStatus, arg.ID, arg.Status)
+	return err
+}
+
+const upsertSiteCapability = `-- name: UpsertSiteCapability :exec
+INSERT INTO site_capabilities (site_id, capability, enabled, config_json, updated_at)
+VALUES ($1, $2, $3, $4, $5)
+ON CONFLICT (site_id, capability)
+DO UPDATE SET enabled = EXCLUDED.enabled, config_json = EXCLUDED.config_json, updated_at = EXCLUDED.updated_at
+`
+
+type UpsertSiteCapabilityParams struct {
+	SiteID     string             `json:"site_id"`
+	Capability string             `json:"capability"`
+	Enabled    bool               `json:"enabled"`
+	ConfigJson []byte             `json:"config_json"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+}
+
+func (q *Queries) UpsertSiteCapability(ctx context.Context, arg UpsertSiteCapabilityParams) error {
+	_, err := q.db.Exec(ctx, upsertSiteCapability,
+		arg.SiteID,
+		arg.Capability,
+		arg.Enabled,
+		arg.ConfigJson,
+		arg.UpdatedAt,
+	)
 	return err
 }

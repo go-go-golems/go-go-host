@@ -79,7 +79,11 @@ func (s *DeploymentService) Upload(ctx context.Context, input UploadDeploymentIn
 	}
 	archiveDest := filepath.Join(s.dataDir, "bundles", site.ID, dep.ID+filepath.Ext(input.BundlePath))
 	unpackDest := filepath.Join(s.dataDir, "sites", site.ID, "deployments", dep.ID)
-	prepared, err := deploy.ValidateAndStore(ctx, input.BundlePath, archiveDest, unpackDest, deploy.Options{MaxBytes: quota.BundleMaxBytes, AllowedPaths: input.AllowedPaths, Channel: input.Channel})
+	policyCaps, err := s.siteCapabilityPolicy(ctx, site.ID)
+	if err != nil {
+		return nil, err
+	}
+	prepared, err := deploy.ValidateAndStore(ctx, input.BundlePath, archiveDest, unpackDest, deploy.Options{MaxBytes: quota.BundleMaxBytes, AllowedPaths: input.AllowedPaths, Channel: input.Channel, PolicyCaps: policyCaps})
 	if err != nil {
 		return nil, err
 	}
@@ -242,6 +246,21 @@ func (s *DeploymentService) Rollback(ctx context.Context, actorUserID, siteID st
 	}
 	_, _ = s.store.InsertAuditEvent(ctx, store.AuditEvent{OrgID: site.OrgID, ActorType: "user", ActorID: actorUserID, Action: "deployment.rollback", ResourceType: "deployment", ResourceID: dep.ID})
 	return dep, nil
+}
+
+func (s *DeploymentService) siteCapabilityPolicy(ctx context.Context, siteID string) (map[string]bool, error) {
+	caps, err := s.store.ListSiteCapabilities(ctx, siteID)
+	if err != nil {
+		return nil, err
+	}
+	if len(caps) == 0 {
+		return deploy.SafeCapabilities, nil
+	}
+	policy := map[string]bool{}
+	for _, cap := range caps {
+		policy[cap.Capability] = cap.Enabled
+	}
+	return policy, nil
 }
 
 func manifestFromDeployment(dep *store.Deployment) (deploy.Manifest, error) {

@@ -57,6 +57,27 @@ func (s *Store) CreateDefaultSiteQuota(ctx context.Context, siteID string) error
 	return s.q.CreateDefaultSiteQuota(ctx, storedb.CreateDefaultSiteQuotaParams{SiteID: siteID, BundleMaxBytes: int64(50 * 1024 * 1024), DbSoftMaxBytes: int64(50 * 1024 * 1024), DbHardMaxBytes: int64(100 * 1024 * 1024), RequestTimeoutMs: 2000, UpdatedAt: pgTime(now())})
 }
 
+func (s *Store) CreateDefaultSiteCapabilities(ctx context.Context, siteID string) error {
+	for _, capability := range []string{"express", "ui.dsl", "database", "db", "time", "timer", "assets"} {
+		if err := s.q.UpsertSiteCapability(ctx, storedb.UpsertSiteCapabilityParams{SiteID: siteID, Capability: capability, Enabled: true, ConfigJson: []byte("{}"), UpdatedAt: pgTime(now())}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *Store) ListSiteCapabilities(ctx context.Context, siteID string) ([]SiteCapability, error) {
+	rows, err := s.q.ListSiteCapabilities(ctx, siteID)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]SiteCapability, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, SiteCapability{SiteID: row.SiteID, Capability: row.Capability, Enabled: row.Enabled, ConfigJSON: row.ConfigJson, UpdatedAt: fromPgTime(row.UpdatedAt)})
+	}
+	return out, nil
+}
+
 func (s *Store) GetSiteQuota(ctx context.Context, siteID string) (*SiteQuota, error) {
 	row, err := s.q.GetSiteQuota(ctx, siteID)
 	if err != nil {

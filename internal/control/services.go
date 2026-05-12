@@ -78,6 +78,9 @@ func (s *SiteService) CreateSite(ctx context.Context, actorUserID, orgID, slug, 
 	if err := s.store.CreateDefaultSiteQuota(ctx, site.ID); err != nil {
 		return nil, err
 	}
+	if err := s.store.CreateDefaultSiteCapabilities(ctx, site.ID); err != nil {
+		return nil, err
+	}
 	_, _ = s.store.InsertAuditEvent(ctx, store.AuditEvent{OrgID: orgID, ActorType: "user", ActorID: actorUserID, Action: "site.create", ResourceType: "site", ResourceID: site.ID})
 	return site, nil
 }

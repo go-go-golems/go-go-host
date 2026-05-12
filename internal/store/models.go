@@ -54,6 +54,14 @@ type SiteQuota struct {
 	UpdatedAt        time.Time
 }
 
+type SiteCapability struct {
+	SiteID     string
+	Capability string
+	Enabled    bool
+	ConfigJSON []byte
+	UpdatedAt  time.Time
+}
+
 type RuntimeStatus struct {
 	SiteID        string
 	OrgID         string

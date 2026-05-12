@@ -32,3 +32,15 @@ VALUES ($1, $2, $3, $4, $5, $6);
 SELECT site_id, bundle_max_bytes, db_soft_max_bytes, db_hard_max_bytes, request_timeout_ms, updated_at
 FROM site_quotas
 WHERE site_id = $1;
+
+-- name: UpsertSiteCapability :exec
+INSERT INTO site_capabilities (site_id, capability, enabled, config_json, updated_at)
+VALUES ($1, $2, $3, $4, $5)
+ON CONFLICT (site_id, capability)
+DO UPDATE SET enabled = EXCLUDED.enabled, config_json = EXCLUDED.config_json, updated_at = EXCLUDED.updated_at;
+
+-- name: ListSiteCapabilities :many
+SELECT site_id, capability, enabled, config_json, updated_at
+FROM site_capabilities
+WHERE site_id = $1
+ORDER BY capability;
