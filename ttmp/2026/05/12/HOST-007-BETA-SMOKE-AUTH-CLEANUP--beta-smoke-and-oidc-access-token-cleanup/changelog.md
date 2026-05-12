@@ -70,3 +70,14 @@ Implemented preferred agent bundle-path semantics locally: allowedBundlePaths/bu
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/agents_audit.go — allowedBundlePaths and bundlePath API aliases
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/deployments.go — agent uploads no longer pass logical bundle paths to archive validator
 
+
+## 2026-05-12
+
+Deployed sha-0b70bdd and verified live agent publishing with allowedBundlePaths ['bundles/**'] plus --bundle-path bundles/hello-beta-bundlepath-smoke.tar.gz; beta smoke passed and temporary agent was revoked.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/go-go-host/deployment.yaml — live image now sha-0b70bdd
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/cmd/go-go-host-agent/cmds/deploy.go — live --bundle-path deploy
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/agents_audit.go — live allowedBundlePaths behavior
+

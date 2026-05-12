@@ -68,19 +68,19 @@ Intent: long-term
 
 ## P0: Agent bundle-path semantics fix
 
-- [ ] Define `allowedBundlePaths` as the agent grant policy for logical deployment artifact paths, for example `bundles/**`, `bundles/previews/**`, or `bundles/releases/**`.
-- [ ] Define `bundlePath` as the deploy-run request field that carries the logical artifact path; it should match `allowedBundlePaths` and should not be confused with the uploaded tar/zip's internal file names.
-- [ ] Rename the operator CLI grant flag from `go-go-host agents create --path` to `--bundle-path`, keeping `--path` only as a deprecated compatibility alias if Glazed/Cobra wiring allows it cleanly.
-- [ ] Rename the agent CLI deploy flag from `go-go-host-agent deploy --path` to `--bundle-path`, keeping `--path` as a deprecated compatibility alias if possible.
-- [ ] Add API request aliases so `allowedBundlePaths` is preferred while existing `allowedPaths` requests continue to work during beta migration.
-- [ ] Add API request aliases so `bundlePath` is preferred while existing deploy-run `path` requests continue to work during beta migration.
-- [ ] Stop passing deploy-run allowed paths into `deploy.ValidateAndStore` as archive-entry `AllowedPaths`; agent grant paths should authorize the logical bundle path only.
-- [ ] Keep the regular bundle/archive safety validator unchanged for traversal, absolute paths, unsafe symlinks, manifest path validation, size limits, and capability policy.
-- [ ] Update response DTOs and docs to label the persisted DB field `allowed_paths` as logical bundle paths until a future DB migration renames it.
-- [ ] Add/adjust tests so an agent with `allowedBundlePaths: ["bundles/**"]` can deploy a normal archive containing `go-go-host.json`, `scripts/app.js`, and `assets/style.css` using `--bundle-path bundles/hello-beta.tar.gz`.
-- [ ] Add/adjust tests so the same agent is denied when requesting `--bundle-path private/hello-beta.tar.gz`.
-- [ ] Add CLI/help docs explaining that `--bundle` is the local file path and `--bundle-path` is the logical artifact path checked against the grant.
-- [ ] Re-run live agent publishing smoke with `allowedBundlePaths: ["bundles/**"]` and `go-go-host-agent deploy --bundle-path bundles/hello-beta-agent-smoke.tar.gz`.
+- [x] Define `allowedBundlePaths` as the agent grant policy for logical deployment artifact paths, for example `bundles/**`, `bundles/previews/**`, or `bundles/releases/**`.
+- [x] Define `bundlePath` as the deploy-run request field that carries the logical artifact path; it should match `allowedBundlePaths` and should not be confused with the uploaded tar/zip's internal file names.
+- [x] Rename the operator CLI grant flag from `go-go-host agents create --path` to `--bundle-path`, keeping `--path` as a deprecated compatibility alias.
+- [x] Rename the agent CLI deploy flag from `go-go-host-agent deploy --path` to `--bundle-path`, keeping `--path` as a deprecated compatibility alias.
+- [x] Add API request aliases so `allowedBundlePaths` is preferred while existing `allowedPaths` requests continue to work during beta migration.
+- [x] Add API request aliases so `bundlePath` is preferred while existing deploy-run `path` requests continue to work during beta migration.
+- [x] Stop passing deploy-run allowed paths into `deploy.ValidateAndStore` as archive-entry `AllowedPaths`; agent grant paths now authorize the logical bundle path only.
+- [x] Keep the regular bundle/archive safety validator unchanged for traversal, absolute paths, unsafe symlinks, manifest path validation, size limits, and capability policy.
+- [x] Update response DTOs and docs to label the persisted DB field `allowed_paths` as logical bundle paths until a future DB migration renames it.
+- [x] Add/adjust tests so an agent with `allowedBundlePaths: ["bundles/**"]` can deploy a normal archive containing `go-go-host.json`, `scripts/app.js`, and `assets/style.css` using `--bundle-path bundles/hello-beta.tar.gz`.
+- [x] Add/adjust tests so the same agent is denied when requesting `--bundle-path private/hello-beta.tar.gz`.
+- [x] Add CLI/help docs explaining that `--bundle` is the local file path and `--bundle-path` is the logical artifact path checked against the grant.
+- [x] Re-run live agent publishing smoke with `allowedBundlePaths: ["bundles/**"]` and `go-go-host-agent deploy --bundle-path bundles/hello-beta-agent-smoke.tar.gz`.
 
 ## P1: CLI/device-flow preparation
 

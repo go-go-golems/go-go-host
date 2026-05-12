@@ -783,3 +783,143 @@ internal/httpapi/agent_signed_integration_test.go
 cmd/go-go-host/doc/agent-guide.md
 cmd/go-go-host-agent/doc/agent-guide.md
 ```
+
+## Step 8: Deploy and verify `allowedBundlePaths` live
+
+I built, deployed, and live-smoked the `allowedBundlePaths` implementation. The exact scenario that failed earlier now works: an agent grant scoped to `bundles/**` can deploy a normal go-go-host bundle whose archive entries are `go-go-host.json`, `scripts/app.js`, `assets/style.css`, and `README.md`, because the grant now checks the logical `bundlePath` rather than archive entry paths.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 7)
+
+**Assistant interpretation:** Finish implementation by deploying the fix and verifying it against the live beta environment.
+
+**Inferred user intent:** Prove the semantics fix in the same real system where the confusion was discovered.
+
+**Commit (code):** `0b70bdd` — "Implement agent bundle path semantics"
+
+### What I did
+
+- Built and pushed:
+
+```text
+ghcr.io/go-go-golems/go-go-host:sha-0b70bdd
+```
+
+- Updated K3s GitOps and pushed:
+
+```text
+035e5ef Deploy go-go-host agent bundle path semantics
+```
+
+- Waited for Argo to converge:
+
+```text
+go-go-host Synced Healthy
+deployment image ghcr.io/go-go-golems/go-go-host:sha-0b70bdd
+```
+
+- Created a live smoke agent with:
+
+```bash
+go-go-host agents create \
+  --bundle-path 'bundles/**' \
+  --can-activate ...
+```
+
+- Enrolled it with `go-go-host-agent keygen` and `go-go-host-agent enroll`.
+- Deployed with:
+
+```bash
+go-go-host-agent deploy \
+  --bundle /tmp/hello-beta-styled.tar.gz \
+  --bundle-path bundles/hello-beta-bundlepath-smoke.tar.gz \
+  --activate ...
+```
+
+- Verified successful result:
+
+```text
+deploy_run_id: dr_e96c09ec-b514-40b0-a53b-679fff3a2277
+deployment_id: dep_00661c7e-d7a3-4338-8bf4-1a007031d185
+version: 5
+status: active
+valid: true
+activated: true
+```
+
+- Verified the public site now reports:
+
+```text
+deploymentId: dep_00661c7e-d7a3-4338-8bf4-1a007031d185
+host: hello.hosting.yolo.scapegoat.dev
+```
+
+- Re-ran `scripts/beta-smoke.sh`; it passed.
+- Revoked the temporary smoke agent:
+
+```text
+agt_9e45e751-0781-46cb-8129-2c277bac550e -> revoked
+```
+
+### Why
+
+The goal was to prove that `allowedBundlePaths: ["bundles/**"]` authorizes the logical artifact namespace without preventing normal root-level bundle contents. This is the practical CI/CD policy we want for beta agents.
+
+### What worked
+
+The live agent publishing smoke passed with the narrow grant. This confirms the implementation fixed the exact behavior that forced the earlier broad `**` workaround.
+
+### What didn't work
+
+No new failure occurred after deploying `sha-0b70bdd`.
+
+### What I learned
+
+The chosen names are much easier to reason about in live CLI usage:
+
+```text
+--bundle       /tmp/hello-beta-styled.tar.gz
+--bundle-path  bundles/hello-beta-bundlepath-smoke.tar.gz
+```
+
+The first is a local file. The second is the logical path checked against the grant.
+
+### What was tricky to build
+
+The compatibility layer is the only subtle part: the API and response DTOs temporarily carry both old and new names. That keeps existing beta clients working while moving docs and CLIs to the clearer names.
+
+### What warrants a second pair of eyes
+
+- Decide how long to keep `allowedPaths` and `path` compatibility aliases.
+- Decide if a future DB migration should rename `allowed_paths` to `allowed_bundle_paths`, or if the internal DB name can remain as-is.
+
+### What should be done in the future
+
+- Add an automated authenticated/agent smoke script so the live test can be repeated without manual token extraction.
+- Optionally hide deprecated `--path` if Glazed supports hidden flags.
+
+### Code review instructions
+
+Review:
+
+```text
+internal/httpapi/agents_audit.go
+internal/httpapi/deployments.go
+cmd/go-go-host/cmds/agents.go
+cmd/go-go-host-agent/cmds/deploy.go
+internal/httpapi/agent_signed_integration_test.go
+```
+
+Validate:
+
+```bash
+go test ./...
+scripts/beta-smoke.sh
+```
+
+Live image:
+
+```text
+ghcr.io/go-go-golems/go-go-host:sha-0b70bdd
+```
