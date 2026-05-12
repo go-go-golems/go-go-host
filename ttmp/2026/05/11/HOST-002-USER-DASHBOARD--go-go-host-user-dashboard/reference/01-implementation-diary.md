@@ -1025,3 +1025,54 @@ devctl restart storybook
 Playwright screenshot:
 
 - `embedded-npm-os-core.png`
+
+## Step 17: Shrank macOS1 bridge CSS now that os-core comes from npmjs
+
+The user said to go ahead after we confirmed `@go-go-golems/os-core` is public on npmjs. I removed the duplicated theme-token block from the temporary dashboard bridge so os-core owns the canonical macOS1 variables again.
+
+### Prompt Context
+
+**User prompt (verbatim):** "go ahead"
+
+**Assistant interpretation:** Proceed with the cleanup mentioned in the prior response: shrink `macos1-bridge.css` now that the published os-core package is installed and imported reliably.
+
+### What I did
+
+- Removed duplicated `--hc-*` and `--os-space-*` token definitions from `src/app/macos1-bridge.css`.
+- Left only app-specific legacy class mappings in the bridge, e.g. `.dashboard-shell`, `.dashboard-panel`, `.status-pill`, and `.copy-button` styling.
+- Rebuilt embedded assets through the Dagger `cmd/build-web` path.
+- Re-ran full Go tests and Storybook production build.
+- Restarted `go-go-hostd`, `web-admin`, and `storybook`.
+- Verified `/app/assets/index-...css` is served by the daemon.
+- Used Playwright to inspect the embedded dashboard after the cleanup.
+
+### What worked
+
+- `go run ./cmd/build-web` succeeds with the npmjs `@go-go-golems/os-core` package.
+- `go test ./...` passes.
+- `make storybook-build` passes.
+- The embedded dashboard still renders with macOS1 styling after removing duplicated variables.
+- CSS is served from `go-go-hostd` with `Content-Type: text/css`.
+
+### Notes
+
+- Storybook shows MSW warnings for unhandled static/module requests when inspected in-browser, but the story renders. These are noisy dev-mode warnings rather than build failures.
+- The only embedded app console error seen was a missing `/favicon.ico`, which is unrelated to dashboard CSS and can be cleaned up later.
+
+### Validation
+
+Commands run:
+
+```bash
+go run ./cmd/build-web
+go test ./...
+make storybook-build
+devctl restart go-go-hostd
+devctl restart web-admin
+devctl restart storybook
+curl -fsSI http://127.0.0.1:8080/app/assets/index-DS32nCO8.css
+```
+
+Playwright screenshot:
+
+- `embedded-oscore-shrunk-bridge.png`

@@ -1,34 +1,6 @@
+/* Temporary dashboard bridge: keep only app-specific legacy class mappings here.
+   Theme tokens come from @go-go-golems/os-core. */
 [data-widget="hypercard"].theme-macos1 {
-  --hc-font-family: "Geneva", "Chicago", "Monaco", monospace;
-  --hc-font-size: 11px;
-  --hc-border-radius: 0px;
-  --hc-color-bg: #fff;
-  --hc-color-fg: #000;
-  --hc-color-border: #000;
-  --hc-color-muted: #777;
-  --hc-color-accent: #000;
-  --hc-color-alt: #f5f4ed;
-  --hc-color-row-even: #eee;
-  --hc-color-row-odd: #fff;
-  --hc-color-row-hover: #e0e0e0;
-  --hc-color-error: #a00;
-  --hc-color-warning: #960;
-  --hc-color-success: #060;
-  --hc-color-link: #006;
-  --hc-color-desktop-bg: #bfc8d8;
-  --hc-btn-bg: #fff;
-  --hc-btn-fg: #000;
-  --hc-btn-border: 2px solid #000;
-  --hc-btn-padding: 3px 10px;
-  --hc-btn-shadow: 1px 1px 0 #000;
-  --hc-window-shadow: 3px 3px 0 #000;
-  --hc-window-border-radius: 3px;
-  --os-space-1: 0.25rem;
-  --os-space-2: 0.5rem;
-  --os-space-3: 0.75rem;
-  --os-space-4: 1rem;
-  --os-space-5: 1.5rem;
-  --os-space-6: 2rem;
   min-height: 100vh;
   background: var(--hc-color-desktop-bg);
   color: var(--hc-color-fg);

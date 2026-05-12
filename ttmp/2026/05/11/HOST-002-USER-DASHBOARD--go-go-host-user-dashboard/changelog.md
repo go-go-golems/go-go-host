@@ -149,3 +149,12 @@ Restored @go-go-golems/os-core as a published npmjs dependency, rebuilt embedded
 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/package.json — Uses @go-go-golems/os-core from npmjs
 
+
+## 2026-05-11
+
+Shrank macOS1 bridge CSS after restoring published os-core; embedded dashboard still builds via Dagger and renders with os-core-owned theme variables.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/app/macos1-bridge.css — Bridge CSS now only contains app-specific legacy mappings
+
