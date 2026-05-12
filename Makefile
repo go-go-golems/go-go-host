@@ -1,4 +1,4 @@
-.PHONY: build test run-dev run-host-status run-agent-status tidy lint web-install web-dev web-build storybook storybook-build
+.PHONY: build test run-dev run-host-status run-agent-status tidy lint web-install web-dev web-build web-embed storybook storybook-build
 
 build:
 	go build ./...
@@ -29,6 +29,11 @@ web-dev:
 
 web-build:
 	cd web/admin && pnpm build
+
+web-embed: web-build
+	rm -rf internal/webadmin/dist
+	mkdir -p internal/webadmin/dist
+	cp -R web/admin/dist/. internal/webadmin/dist/
 
 storybook:
 	cd web/admin && pnpm storybook

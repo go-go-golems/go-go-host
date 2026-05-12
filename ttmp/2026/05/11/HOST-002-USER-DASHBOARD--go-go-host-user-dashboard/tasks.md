@@ -270,38 +270,38 @@ Exit criteria:
 
 Goal: reserve product surfaces for near-future backend features while showing useful current data.
 
-- [ ] Create `pages/UsagePage`.
-- [ ] Create `organisms/QuotaPanel` with API-pending state.
-- [ ] Show runtime counters from `GET /api/v1/sites/{site_id}/runtime`.
-- [ ] Create `pages/MembersPage`.
-- [ ] Create `organisms/MembersTable` based on `/api/v1/me` memberships.
-- [ ] Add API-pending callouts for membership mutation and quota endpoints.
-- [ ] Add Storybook stories for quota pending and role variants.
+- [x] Create `pages/UsagePage`.
+- [x] Create `organisms/QuotaPanel` with API-pending state.
+- [x] Show runtime counters from `GET /api/v1/sites/{site_id}/runtime`.
+- [x] Create `pages/MembersPage`.
+- [x] Create `organisms/MembersTable` based on `/api/v1/me` memberships.
+- [x] Add API-pending callouts for membership mutation and quota endpoints.
+- [x] Add Storybook stories for quota pending and role variants.
 
 Exit criteria:
 
-- [ ] Users can see request/error counters in usage.
-- [ ] Users understand which usage/member features are pending backend APIs.
+- [x] Users can see request/error counters in usage.
+- [x] Users understand which usage/member features are pending backend APIs.
 
 ## Phase 11: Backend embedding and SPA serving
 
 Goal: serve the built dashboard from the Go daemon.
 
-- [ ] Add production build copy/embed flow for `web/admin/dist`.
-- [ ] Replace `internal/webadmin.NewPlaceholderHandler()` with embedded SPA handler.
-- [ ] Preserve `/api/*` route behavior.
-- [ ] Serve `/app/` and nested `/app/orgs/...` routes as SPA index.
-- [ ] Keep `/admin/` separate, either placeholder or future admin bundle.
+- [x] Add production build copy/embed flow for `web/admin/dist`.
+- [x] Replace `internal/webadmin.NewPlaceholderHandler()` with embedded SPA handler.
+- [x] Preserve `/api/*` route behavior.
+- [x] Serve `/app/` and nested `/app/orgs/...` routes as SPA index.
+- [x] Keep `/admin/` separate, either placeholder or future admin bundle.
 - [ ] Add Go tests:
-  - [ ] `/app/` returns dashboard index,
-  - [ ] `/app/orgs/org_123/sites` returns dashboard index,
-  - [ ] `/api/v1/version` still returns JSON,
+  - [x] `/app/` returns dashboard index,
+  - [x] `/app/orgs/org_123/sites` returns dashboard index,
+  - [x] `/api/v1/version` still returns JSON,
   - [ ] unknown public host fallback still reaches runtime supervisor.
 
 Exit criteria:
 
-- [ ] `go-go-hostd` serves the dashboard from `/app/` in production mode.
-- [ ] SPA routing and API routing do not conflict.
+- [x] `go-go-hostd` serves the dashboard from `/app/` in production mode.
+- [x] SPA routing and API routing do not conflict.
 
 ## Phase 12: End-to-end validation and release polish
 

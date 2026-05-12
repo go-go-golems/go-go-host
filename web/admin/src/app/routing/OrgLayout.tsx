@@ -9,7 +9,7 @@ export function OrgLayout() {
   const me = useGetMeQuery();
   const config = useGetConfigQuery();
   const path = location.pathname;
-  const active: OrgSection = path.includes('/agents') ? 'agents' : path.includes('/audit') ? 'audit' : 'sites';
+  const active: OrgSection = path.includes('/agents') ? 'agents' : path.includes('/audit') ? 'audit' : path.includes('/members') ? 'members' : path.includes('/usage') ? 'usage' : 'sites';
   if (me.isLoading) return <LoadingBlock lines={4} />;
   const userLabel = me.data?.user.email ?? 'unknown user';
   return <AppShell memberships={me.data?.memberships ?? []} selectedOrgId={orgId} userLabel={userLabel} devAuth={config.data?.devAuth} onOrgSelect={(id) => navigate(`/app/orgs/${id}/sites`)} sidebar={<OrgSidebar active={active} onSelect={(section) => navigate(`/app/orgs/${orgId}/${section}`)} />}><Outlet /></AppShell>;

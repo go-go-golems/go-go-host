@@ -1,0 +1,4 @@
+.quota-panel { display: grid; gap: 1rem; border: 1px solid var(--hc-color-border); background: var(--hc-color-bg); padding: var(--os-space-4); }
+.quota-panel h2, .quota-panel p { margin: 0; }
+.quota-panel p { color: var(--hc-color-muted); }
+.quota-panel__grid { display: flex; gap: 0.75rem; flex-wrap: wrap; }

@@ -781,3 +781,82 @@ Commands run:
 make web-build
 make storybook-build
 ```
+
+## Step 13: Implemented Phase 10 usage/members placeholders and Phase 11 embedded SPA serving
+
+The user confirmed the deployment workflow works and asked to continue with phases 10 and 11. I added the remaining product-placeholder pages and then wired the built React dashboard into the Go daemon under `/app`.
+
+### Prompt Context
+
+**User prompt (verbatim):** "ok, works, continue. do phase 10 and 11"
+
+**Assistant interpretation:** Finish the usage/members surfaces and make the dashboard available from `go-go-hostd` itself, not only from the Vite dev server.
+
+### What I did
+
+Phase 10:
+
+- Added `QuotaPanel` organism with API-pending quota explanation and runtime-derived counters.
+- Added `MembersTable` organism based on `/api/v1/me` memberships and roles.
+- Added `UsagePage`:
+  - lists sites,
+  - fans out runtime status requests,
+  - aggregates request/error counters,
+  - shows per-site runtime counters.
+- Added `MembersPage`:
+  - shows membership roles from `/api/v1/me`,
+  - explicitly notes that membership mutation APIs are pending.
+- Wired org sidebar active state for usage/members.
+- Wired routes:
+  - `/app/orgs/:orgId/usage`,
+  - `/app/orgs/:orgId/members`.
+- Added Storybook stories for quota counters, empty usage, current memberships, role variants, and empty memberships.
+
+Phase 11:
+
+- Set Vite production `base` to `/app/` so embedded assets are requested as `/app/assets/...`.
+- Added `make web-embed`, which builds `web/admin` and copies `web/admin/dist` into `internal/webadmin/dist`.
+- Replaced the placeholder webadmin handler with an embedded `go:embed` SPA handler.
+- The handler serves assets directly and falls back nested app routes to `index.html`.
+- Updated HTTP routing so `/app`, `/app/`, and nested `/app/...` routes are served by the embedded dashboard while `/api/*` continues to route to JSON APIs.
+- Kept `/admin` separate by routing it through the same compatibility handler for now; it can be split to a separate admin bundle later.
+- Added tests:
+  - `internal/webadmin/handler_test.go`,
+  - `internal/httpapi/webadmin_integration_test.go`.
+- Added `.gitignore` exceptions so `internal/webadmin/dist` is committed while generated root/web dist directories remain ignored.
+
+### What worked
+
+- `make web-build` passes.
+- `make storybook-build` passes.
+- `make web-embed` succeeds.
+- `go test ./...` passes.
+- `curl -I http://127.0.0.1:8080/app` returns embedded dashboard HTML.
+- `curl -I http://127.0.0.1:8080/app/orgs/org_123/sites` returns embedded dashboard HTML.
+- Devctl services were restarted successfully.
+
+### What didn't work
+
+- The first webadmin test saw HTTP 301 redirects because `http.FileServer` redirects `/index.html` to `./`. I fixed the handler to serve the embedded index bytes directly for SPA fallback routes.
+
+### What warrants review
+
+- `/admin` is still not a distinct platform admin bundle; it currently uses the compatibility webadmin handler. The route is separate, but the product surface remains future work.
+- `internal/webadmin/dist` is committed as the production embedded snapshot. Whenever frontend changes should ship in `go-go-hostd`, run `make web-embed` before committing.
+
+### Validation
+
+Commands run:
+
+```bash
+make web-build
+make storybook-build
+go test ./internal/webadmin ./internal/httpapi ./internal/deploy
+make web-embed
+go test ./...
+devctl restart go-go-hostd
+devctl restart web-admin
+devctl restart storybook
+curl -fsSI http://127.0.0.1:8080/app
+curl -fsSI http://127.0.0.1:8080/app/orgs/org_123/sites
+```

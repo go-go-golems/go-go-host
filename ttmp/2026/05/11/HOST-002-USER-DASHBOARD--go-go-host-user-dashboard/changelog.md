@@ -113,3 +113,12 @@ Added Phase 9 dashboard pages for agents and audit, including create/revoke agen
 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/AgentsPage/AgentsPage.tsx — Agents page API wiring
 
+
+## 2026-05-11
+
+Implemented Phase 10 usage/members pages and Phase 11 embedded dashboard serving from go-go-hostd under /app with build copy flow and route tests.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/webadmin/handler.go — Embedded SPA handler for /app
+

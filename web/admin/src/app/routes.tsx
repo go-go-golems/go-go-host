@@ -11,6 +11,8 @@ import { DeploymentsPage } from '../pages/DeploymentsPage';
 import { DeploymentDetailPage } from '../pages/DeploymentDetailPage';
 import { AgentsPage } from '../pages/AgentsPage';
 import { AuditPage } from '../pages/AuditPage';
+import { UsagePage } from '../pages/UsagePage';
+import { MembersPage } from '../pages/MembersPage';
 
 export const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/app" replace /> },
@@ -27,5 +29,7 @@ export const router = createBrowserRouter([
     ] },
     { path: 'agents', element: <AgentsPage /> },
     { path: 'audit', element: <AuditPage /> },
+    { path: 'usage', element: <UsagePage /> },
+    { path: 'members', element: <MembersPage /> },
   ] },
 ]);

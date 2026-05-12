@@ -16,7 +16,10 @@ func NewHandler(core *control.Core) http.Handler {
 	mux.HandleFunc("GET /healthz", handleHealth)
 	mux.HandleFunc("GET /readyz", handleReady)
 	mux.HandleFunc("GET /api/v1/version", handleVersion)
-	mux.Handle("/app/", http.StripPrefix("/app", webadmin.NewPlaceholderHandler()))
+	dashboard := webadmin.NewHandler()
+	mux.Handle("/app", http.StripPrefix("/app", dashboard))
+	mux.Handle("/app/", http.StripPrefix("/app", dashboard))
+	mux.Handle("/admin", http.StripPrefix("/admin", webadmin.NewPlaceholderHandler()))
 	mux.Handle("/admin/", http.StripPrefix("/admin", webadmin.NewPlaceholderHandler()))
 	mux.HandleFunc("GET /api/v1/config", func(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(w, http.StatusOK, map[string]any{
