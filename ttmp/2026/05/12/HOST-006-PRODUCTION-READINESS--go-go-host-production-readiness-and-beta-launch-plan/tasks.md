@@ -51,18 +51,21 @@ Intent: long-term
 
 ## P0: Release/deploy pipeline
 
-- [ ] Add image build/push GitHub Action.
-- [ ] Add staging deployment recipe with health gate on `/readyz`.
-- [ ] Decide and document migration policy.
-- [ ] Add release image tags by version and commit SHA.
-- [ ] Add rollback procedure for image and data preservation.
+- [x] Add image build/push GitHub Action.
+- [x] Add beta K3s/Argo deployment recipe with health gate on `/readyz`.
+- [x] Decide and document migration policy: daemon applies control-plane migrations on startup after Postgres bootstrap.
+- [x] Add immutable image tag by commit SHA and pin `ghcr.io/go-go-golems/go-go-host:sha-4187ea3` in GitOps.
+- [x] Add first-pass rollback guidance through GitOps image/config revert and persistent Postgres/PVC retention.
+- [ ] Automate future image bump PRs or document a manual image bump checklist after beta stabilizes.
 
 ## P1: Domains/TLS
 
 - [ ] Implement DNS TXT/CNAME verification checks.
 - [ ] Add domain verification detail API and dashboard copy.
 - [ ] Add fake DNS resolver tests.
-- [ ] Write edge/TLS routing recipe for wildcard base domain and custom domains.
+- [x] Write and exercise edge/TLS routing recipe for the beta dashboard/API host `hosting.yolo.scapegoat.dev`.
+- [x] Add DNS wildcard `*.hosting.yolo.scapegoat.dev` for future generated site hosts.
+- [ ] Add wildcard TLS strategy for generated site hosts; current HTTP-01 issuer only covers explicit ingress hosts.
 - [ ] Add domain recheck/expiry policy.
 
 ## P1: Runtime isolation

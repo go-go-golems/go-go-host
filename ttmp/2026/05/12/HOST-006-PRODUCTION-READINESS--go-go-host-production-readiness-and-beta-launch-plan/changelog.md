@@ -62,3 +62,16 @@ OIDC E2E ok: admin@example.test platformAdmin=true testing is sufficient for now
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/12/HOST-006-PRODUCTION-READINESS--go-go-host-production-readiness-and-beta-launch-plan/reference/01-investigation-diary.md — CI decision note
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/12/HOST-006-PRODUCTION-READINESS--go-go-host-production-readiness-and-beta-launch-plan/tasks.md — Phase 1 CI decision
 
+
+## 2026-05-12
+
+Backfilled detailed K3s/Argo/Keycloak/Vault/DNS beta deployment diary, including the PVC sync-wave hang, hostname correction to hosting.yolo.scapegoat.dev, smoke tests, commits, and caveats.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-03-27--hetzner-k3s/docs/go-go-host-beta-deployment-playbook.md — K3s beta deploy runbook
+- /home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/go-go-host — go-go-host Argo/Kustomize package
+- /home/manuel/code/wesen/terraform/dns/zones/scapegoat-dev/envs/prod/main.tf — hosting.yolo DNS wildcard
+- /home/manuel/code/wesen/terraform/keycloak/apps/go-go-host/envs/k3s-beta — Keycloak beta realm Terraform
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/12/HOST-006-PRODUCTION-READINESS--go-go-host-production-readiness-and-beta-launch-plan/reference/01-investigation-diary.md — backfilled beta deployment diary
+

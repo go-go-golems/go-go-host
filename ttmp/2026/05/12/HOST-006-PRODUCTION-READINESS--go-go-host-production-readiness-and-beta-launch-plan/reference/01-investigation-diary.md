@@ -12,13 +12,32 @@ Topics:
 DocType: reference
 Intent: long-term
 Owners: []
-RelatedFiles: []
+RelatedFiles:
+    - Path: ../../../../../../../../../../code/wesen/2026-03-27--hetzner-k3s/docs/go-go-host-beta-deployment-playbook.md
+      Note: operator runbook for the live hosting.yolo.scapegoat.dev beta deployment
+    - Path: ../../../../../../../../../../code/wesen/2026-03-27--hetzner-k3s/gitops/applications/go-go-host.yaml
+      Note: Argo CD Application for go-go-host beta
+    - Path: ../../../../../../../../../../code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/go-go-host
+      Note: Kustomize manifests for namespace
+    - Path: ../../../../../../../../../../code/wesen/2026-03-27--hetzner-k3s/scripts/bootstrap-go-go-host-image-pull-secret.sh
+      Note: Vault image-pull secret bootstrap for private GHCR image
+    - Path: ../../../../../../../../../../code/wesen/2026-03-27--hetzner-k3s/scripts/bootstrap-go-go-host-runtime-secrets.sh
+      Note: Vault runtime secret bootstrap for Postgres DSN
+    - Path: ../../../../../../../../../../code/wesen/terraform/dns/zones/scapegoat-dev/envs/prod/main.tf
+      Note: DNS wildcard for *.hosting.yolo.scapegoat.dev
+    - Path: ../../../../../../../../../../code/wesen/terraform/keycloak/apps/go-go-host/envs/k3s-beta
+      Note: Keycloak realm/client/role/user Terraform for beta
+    - Path: .github/workflows/publish-image.yaml
+      Note: GHCR image publish workflow
+    - Path: Dockerfile
+      Note: Go 1.26 Docker build fix for beta image
 ExternalSources: []
-Summary: "Chronological diary for the HOST-006 production readiness investigation."
+Summary: Chronological diary for the HOST-006 production readiness investigation.
 LastUpdated: 2026-05-12T13:14:11.750159577-04:00
-WhatFor: "Use this to resume or audit the production readiness planning work."
-WhenToUse: "When implementing beta launch tasks or reviewing evidence behind the readiness guide."
+WhatFor: Use this to resume or audit the production readiness planning work.
+WhenToUse: When implementing beta launch tasks or reviewing evidence behind the readiness guide.
 ---
+
 
 # Diary
 
@@ -203,3 +222,699 @@ The smoke currently verifies the platform-admin path. The Alice/Bob isolation fl
 ## Step 5: CI decision for OIDC smoke
 
 The user clarified that CI wiring is not necessary for the OIDC browser smoke right now. Local testing through `devctl up --force` plus `make oidc-e2e` is sufficient for Phase 1. I updated the HOST-006 task list to mark the CI decision complete and leave the next work focused on production/beta deployment readiness rather than CI automation.
+
+## Step 6: Beta deployment research across K3s GitOps and Terraform
+
+The user changed the target from a generic beta topology to the real Hetzner K3s cluster and asked to deploy through Argo CD. The target repos were:
+
+- K3s/GitOps repo: `/home/manuel/code/wesen/2026-03-27--hetzner-k3s`
+- Keycloak/Terraform repo: `/home/manuel/code/wesen/terraform`
+- App repo: `/home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host`
+
+The requested initial hostname was `yolo.scapegoat.dev`; later it was corrected to `hosting.yolo.scapegoat.dev`.
+
+### Prompt Context
+
+**User prompt (verbatim):** "we want to deploy this to my k3s cluster in /home/manuel/code/wesen/2026-03-27--hetzner-k3s , which also has a keycloak setup which is configured in /home/manuel/code/wesen/terraform .
+
+Study how to do a deploy, and then set the system up so we can have a beta deploy on yolo.scapegoat.dev using argocd"
+
+**Assistant interpretation:** Read the existing K3s and Terraform deployment patterns, then add a real beta deployment path for go-go-host using the existing Argo CD, Vault, Postgres, cert-manager, Traefik, and Keycloak conventions.
+
+**Inferred user intent:** Move beyond local/devctl readiness and make the beta system actually run on the real cluster with the same GitOps/identity/secrets discipline used by other apps.
+
+### Evidence gathered
+
+I read the K3s deployment docs and existing manifests to avoid inventing a parallel deployment style:
+
+- `/home/manuel/code/wesen/2026-03-27--hetzner-k3s/docs/argocd-app-setup.md`
+- `/home/manuel/code/wesen/2026-03-27--hetzner-k3s/docs/public-repo-ghcr-argocd-deployment-playbook.md`
+- `/home/manuel/code/wesen/2026-03-27--hetzner-k3s/docs/app-packaging-and-gitops-pr-standard.md`
+- `/home/manuel/code/wesen/2026-03-27--hetzner-k3s/docs/app-runtime-secrets-and-identity-provisioning-playbook.md`
+- `/home/manuel/code/wesen/terraform/docs/shared-keycloak-platform-playbook.md`
+
+Important patterns learned:
+
+- New Argo CD `Application` manifests under `gitops/applications/*.yaml` must be applied once with `kubectl apply`; the repo does not currently auto-materialize new apps through app-of-apps.
+- Live app manifests are plain Kustomize packages under `gitops/kustomize/<app>/`.
+- Runtime secrets are usually delivered with Vault Secrets Operator (`VaultConnection`, `VaultAuth`, `VaultStaticSecret`).
+- Shared Postgres already exists as `postgres.postgres.svc.cluster.local:5432` and app DB users/databases are created by idempotent bootstrap Jobs.
+- In-cluster VSO traffic should use `http://vault.vault.svc.cluster.local:8200`, not the public Vault hostname.
+- Public ingress is Traefik + cert-manager + `letsencrypt-prod` HTTP-01.
+- Existing `*.yolo.scapegoat.dev` DNS points at the K3s node, but the apex `yolo.scapegoat.dev` did not.
+- The in-cluster Keycloak public URL is `https://auth.yolo.scapegoat.dev`.
+
+### Design selected
+
+For the first beta deploy I chose a conservative single-pod topology:
+
+```text
+Ingress hosting.yolo.scapegoat.dev
+  -> Service go-go-host:80
+    -> Deployment go-go-host:8080
+      -> ConfigMap daemon config
+      -> Secret go-go-host-runtime from Vault
+      -> PVC /var/lib/go-go-host
+      -> shared Postgres control-plane DB
+      -> Keycloak realm go-go-host
+```
+
+The namespace is `go-go-host`.
+
+The K3s repo owns the runtime topology, Vault policies/roles, app manifests, and operator runbook. The Terraform repo owns Keycloak realm/client/role/user state. The app repo owns Dockerfile, image publishing, and daemon config/env expansion.
+
+## Step 7: App repo packaging fixes for beta image publishing
+
+Before the cluster could pull an image, the app repo needed a beta image publishing path and a Dockerfile that actually matched the Go version in `go.mod`.
+
+### What changed
+
+In the app repo I added:
+
+- `.github/workflows/publish-image.yaml`
+- `internal/config/config_test.go`
+
+I changed:
+
+- `internal/config/config.go`
+- `Dockerfile`
+
+The config loader now expands environment variables inside YAML/JSON config files. This matters because the K3s ConfigMap can safely contain:
+
+```yaml
+controlDbDsn: "${GO_GO_HOST_CONTROL_DB_DSN}"
+```
+
+and the actual DSN can come from a Kubernetes Secret rendered by Vault Secrets Operator.
+
+### Build failure and fix
+
+The first Docker build failed:
+
+```text
+go: go.mod requires go >= 1.26.1 (running go 1.24.13; GOTOOLCHAIN=local)
+```
+
+The Dockerfile still used:
+
+```dockerfile
+FROM golang:1.24-bookworm AS build
+```
+
+but `go.mod` declares:
+
+```text
+go 1.26.1
+```
+
+I fixed the Dockerfile to use:
+
+```dockerfile
+FROM golang:1.26-bookworm AS build
+```
+
+### Image built and pushed
+
+I built from an archive of commit `4187ea3` so the image tag matched the source commit exactly:
+
+```bash
+cd go-go-host
+tmpdir=$(mktemp -d)
+git archive 4187ea3 | tar -x -C "$tmpdir"
+cd "$tmpdir"
+IMAGE=ghcr.io/go-go-golems/go-go-host:sha-4187ea3
+docker build -t "$IMAGE" .
+docker push "$IMAGE"
+```
+
+The image pushed successfully:
+
+```text
+ghcr.io/go-go-golems/go-go-host:sha-4187ea3
+sha256:0942deba0b9ea834ef6562af5284c26ae67257e80e0da9e45311b506bdecf50e
+```
+
+The GHCR package was private, so I added an image-pull-secret path to the K3s GitOps side instead of blocking on package visibility.
+
+### Commits
+
+App repo commits:
+
+- `083e76c Prepare beta image publishing`
+- `4187ea3 Use Go 1.26 for Docker builds`
+
+I also pushed the app branch for traceability:
+
+```bash
+git push origin task/go-go-host-v1
+```
+
+## Step 8: K3s GitOps manifests, Vault roles, and bootstrap scripts
+
+I added a full Kustomize package and Argo CD application in the K3s repo.
+
+### Files created in the K3s repo
+
+Application:
+
+- `gitops/applications/go-go-host.yaml`
+
+Kustomize package:
+
+- `gitops/kustomize/go-go-host/kustomization.yaml`
+- `gitops/kustomize/go-go-host/namespace.yaml`
+- `gitops/kustomize/go-go-host/serviceaccount.yaml`
+- `gitops/kustomize/go-go-host/db-bootstrap-serviceaccount.yaml`
+- `gitops/kustomize/go-go-host/vault-connection.yaml`
+- `gitops/kustomize/go-go-host/vault-auth.yaml`
+- `gitops/kustomize/go-go-host/db-bootstrap-vault-auth.yaml`
+- `gitops/kustomize/go-go-host/runtime-secret.yaml`
+- `gitops/kustomize/go-go-host/image-pull-secret.yaml`
+- `gitops/kustomize/go-go-host/postgres-admin-secret.yaml`
+- `gitops/kustomize/go-go-host/db-bootstrap-script-configmap.yaml`
+- `gitops/kustomize/go-go-host/db-bootstrap-job.yaml`
+- `gitops/kustomize/go-go-host/configmap.yaml`
+- `gitops/kustomize/go-go-host/persistentvolumeclaim.yaml`
+- `gitops/kustomize/go-go-host/deployment.yaml`
+- `gitops/kustomize/go-go-host/service.yaml`
+- `gitops/kustomize/go-go-host/ingress.yaml`
+
+Vault policy/role files:
+
+- `vault/policies/kubernetes/go-go-host.hcl`
+- `vault/policies/kubernetes/go-go-host-db-bootstrap.hcl`
+- `vault/roles/kubernetes/go-go-host.json`
+- `vault/roles/kubernetes/go-go-host-db-bootstrap.json`
+
+Operator scripts:
+
+- `scripts/bootstrap-go-go-host-runtime-secrets.sh`
+- `scripts/bootstrap-go-go-host-image-pull-secret.sh`
+
+Runbook:
+
+- `docs/go-go-host-beta-deployment-playbook.md`
+
+### Render validation
+
+I validated the Kustomize package locally:
+
+```bash
+cd /home/manuel/code/wesen/2026-03-27--hetzner-k3s
+kubectl kustomize gitops/kustomize/go-go-host >/tmp/go-go-host-kustomize.yaml
+```
+
+After adding the image-pull secret, the package rendered 16 resources:
+
+```text
+Namespace go-go-host
+ServiceAccount go-go-host
+ServiceAccount go-go-host-db-bootstrap
+ConfigMap go-go-host-config
+ConfigMap go-go-host-db-bootstrap-script
+Service go-go-host
+PersistentVolumeClaim go-go-host-data
+Deployment go-go-host
+Job go-go-host-db-bootstrap
+Ingress go-go-host
+VaultAuth go-go-host
+VaultAuth go-go-host-db-bootstrap
+VaultConnection vault
+VaultStaticSecret go-go-host-ghcr-pull
+VaultStaticSecret go-go-host-postgres-admin
+VaultStaticSecret go-go-host-runtime
+```
+
+### Initial K3s commit
+
+K3s repo commit:
+
+- `984048e Add go-go-host beta GitOps deployment`
+
+## Step 9: Keycloak Terraform beta realm
+
+I added a new Terraform environment for the in-cluster Keycloak deployment.
+
+### Files created in the Terraform repo
+
+- `keycloak/apps/go-go-host/envs/k3s-beta/main.tf`
+- `keycloak/apps/go-go-host/envs/k3s-beta/variables.tf`
+- `keycloak/apps/go-go-host/envs/k3s-beta/providers.tf`
+- `keycloak/apps/go-go-host/envs/k3s-beta/outputs.tf`
+- `keycloak/apps/go-go-host/envs/k3s-beta/versions.tf`
+- `keycloak/apps/go-go-host/envs/k3s-beta/terraform.tfvars.example`
+- `keycloak/apps/go-go-host/envs/k3s-beta/.terraform.lock.hcl`
+
+### What it manages
+
+- realm `go-go-host`
+- public OIDC client `go-go-host-dashboard`
+- realm role `go-go-host-admin`
+- optional `wesen` user
+- assignment of `go-go-host-admin` to `wesen`
+
+I intentionally used a public client because the dashboard uses browser PKCE and should not require a client secret.
+
+### Validation
+
+```bash
+cd /home/manuel/code/wesen/terraform/keycloak/apps/go-go-host/envs/k3s-beta
+terraform init -backend=false
+terraform validate
+```
+
+Validation succeeded.
+
+### Initial Terraform commit
+
+Terraform repo commit:
+
+- `5c2f61e Add go-go-host Keycloak beta realm`
+
+## Step 10: Applying Keycloak, Vault, secrets, and Argo
+
+After pushing the K3s and Terraform commits, I applied the live control-plane prerequisites.
+
+### Keycloak admin credentials
+
+I read the in-cluster Keycloak bootstrap admin secret through the Tailscale kubeconfig:
+
+```bash
+cd /home/manuel/code/wesen/2026-03-27--hetzner-k3s
+export KUBECONFIG=$PWD/.cache/kubeconfig-tailnet.yaml
+kubectl -n keycloak get secret keycloak-bootstrap-admin -o jsonpath='{.data.username}' | base64 -d >/tmp/kc-user
+kubectl -n keycloak get secret keycloak-bootstrap-admin -o jsonpath='{.data.password}' | base64 -d >/tmp/kc-pass
+```
+
+I then applied Terraform:
+
+```bash
+cd /home/manuel/code/wesen/terraform/keycloak/apps/go-go-host/envs/k3s-beta
+export AWS_PROFILE=manuel
+export TF_VAR_keycloak_url=https://auth.yolo.scapegoat.dev
+export TF_VAR_keycloak_username="$(cat /tmp/kc-user)"
+export TF_VAR_keycloak_password="$(cat /tmp/kc-pass)"
+export TF_VAR_wesen_password="$(openssl rand -base64 24 | tr -d '\n')"
+terraform init
+terraform plan -out=/tmp/go-go-host-kc-beta.tfplan
+terraform apply -auto-approve /tmp/go-go-host-kc-beta.tfplan
+```
+
+Terraform created 5 resources:
+
+```text
+module.realm.keycloak_realm.this
+keycloak_role.platform_admin
+keycloak_openid_client.dashboard
+keycloak_user.wesen[0]
+keycloak_user_roles.wesen_platform_admin[0]
+```
+
+Outputs showed:
+
+```text
+realm_name = go-go-host
+dashboard_client_id = go-go-host-dashboard
+platform_admin_role = go-go-host-admin
+public_callback_url = https://yolo.scapegoat.dev/app/auth/callback
+```
+
+The callback URL was later corrected when the hostname changed to `hosting.yolo.scapegoat.dev`.
+
+### Vault setup
+
+I wrote the Vault policies and Kubernetes auth roles:
+
+```bash
+cd /home/manuel/code/wesen/2026-03-27--hetzner-k3s
+export VAULT_ADDR=https://vault.yolo.scapegoat.dev
+vault policy write go-go-host vault/policies/kubernetes/go-go-host.hcl
+vault policy write go-go-host-db-bootstrap vault/policies/kubernetes/go-go-host-db-bootstrap.hcl
+vault write auth/kubernetes/role/go-go-host @vault/roles/kubernetes/go-go-host.json
+vault write auth/kubernetes/role/go-go-host-db-bootstrap @vault/roles/kubernetes/go-go-host-db-bootstrap.json
+```
+
+Vault warned that the Kubernetes roles do not have an audience configured:
+
+```text
+Role go-go-host does not have an audience configured. While audiences are not required, consider specifying one if your use case would benefit from additional JWT claim verification.
+```
+
+This matches other existing role files and was not treated as a blocker for beta.
+
+### Secret bootstrap failure and fix
+
+The first runtime secret bootstrap failed because the script explicitly requires `VAULT_TOKEN`:
+
+```text
+missing required environment variable: VAULT_TOKEN
+```
+
+The Vault CLI had enough ambient token state for `vault policy write`, but the script uses `require_env VAULT_TOKEN`, so I reran with:
+
+```bash
+export VAULT_TOKEN="$(cat ~/.vault-token)"
+./scripts/bootstrap-go-go-host-runtime-secrets.sh
+GITHUB_DEPLOY_PAT="$(gh auth token)" ./scripts/bootstrap-go-go-host-image-pull-secret.sh
+```
+
+The scripts seeded:
+
+```text
+kv/apps/go-go-host/beta/runtime
+kv/apps/go-go-host/beta/image-pull
+```
+
+without printing secret values.
+
+### Argo bootstrap
+
+I bootstrapped the new Argo `Application`:
+
+```bash
+cd /home/manuel/code/wesen/2026-03-27--hetzner-k3s
+export KUBECONFIG=$PWD/.cache/kubeconfig-tailnet.yaml
+kubectl apply -f gitops/applications/go-go-host.yaml
+kubectl -n argocd annotate application go-go-host argocd.argoproj.io/refresh=hard --overwrite
+```
+
+Argo created the namespace, VSO resources, secrets, ConfigMaps, and the database bootstrap Job. The bootstrap Job completed successfully.
+
+## Step 11: Argo hang on PVC sync wave and why Service/Ingress were missing
+
+The first Argo sync appeared to hang, and the user observed in Argo CD that the Service and Ingress were not found:
+
+```text
+Resource not found in cluster: v1/Service:go-go-host
+Resource not found in cluster: networking.k8s.io/v1/Ingress:go-go-host
+```
+
+The root cause was an ordering bug in my Kustomize package, not a missing manifest.
+
+### Exact state from Argo
+
+Inspecting the Application showed:
+
+```text
+waiting for healthy state of /PersistentVolumeClaim/go-go-host-data
+```
+
+Namespace resources showed:
+
+```text
+pod/go-go-host-db-bootstrap-...   Completed
+persistentvolumeclaim/go-go-host-data   Pending   storageClassName=local-path
+```
+
+The Service and Ingress had not been applied yet because they were later sync waves.
+
+### Root cause
+
+I had put the PVC in sync wave `1`:
+
+```yaml
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+```
+
+But with K3s `local-path` storage, a PVC can remain `Pending` until a pod using it is scheduled. Argo was waiting for the PVC to become healthy before applying wave `2`, but the Deployment that would bind the PVC was also in wave `2`. That created an ordering deadlock.
+
+### Fix
+
+I changed the PVC sync wave to `2`, alongside the Deployment:
+
+```yaml
+argocd.argoproj.io/sync-wave: "2"
+```
+
+Then I committed and pushed:
+
+```text
+c86389a Fix go-go-host PVC sync wave
+```
+
+I cleared the stuck operation and refreshed Argo:
+
+```bash
+kubectl -n argocd patch application go-go-host --type merge -p '{"operation":null}' || true
+kubectl -n argocd annotate application go-go-host argocd.argoproj.io/refresh=hard --overwrite
+```
+
+After this, the Deployment, Service, PVC, and Ingress were all created. The app became:
+
+```text
+Synced Healthy
+```
+
+## Step 12: Hostname correction from yolo.scapegoat.dev to hosting.yolo.scapegoat.dev
+
+The user corrected the desired hostname:
+
+**User prompt (verbatim):** "wait, what's the name here? actually i want hosting.yolo.scapegoat.dev, sorry"
+
+I moved the deployment from `yolo.scapegoat.dev` to `hosting.yolo.scapegoat.dev`.
+
+### K3s changes
+
+I updated:
+
+- `gitops/kustomize/go-go-host/configmap.yaml`
+- `gitops/kustomize/go-go-host/ingress.yaml`
+- `docs/go-go-host-beta-deployment-playbook.md`
+
+The daemon config became:
+
+```yaml
+publicBaseUrl: "https://hosting.yolo.scapegoat.dev"
+baseDomain: "hosting.yolo.scapegoat.dev"
+oidcIssuer: "https://auth.yolo.scapegoat.dev/realms/go-go-host"
+```
+
+The Ingress host became:
+
+```text
+hosting.yolo.scapegoat.dev
+```
+
+K3s repo commit:
+
+```text
+3bf74d3 Move go-go-host beta to hosting.yolo
+```
+
+### Terraform Keycloak changes
+
+I updated the default public app URL in:
+
+- `keycloak/apps/go-go-host/envs/k3s-beta/variables.tf`
+- `keycloak/apps/go-go-host/envs/k3s-beta/terraform.tfvars.example`
+
+Terraform changed the OIDC client redirect URIs, logout redirects, and web origin from `https://yolo.scapegoat.dev` to `https://hosting.yolo.scapegoat.dev`.
+
+Terraform repo commit:
+
+```text
+1a39dfb Move go-go-host beta identity to hosting.yolo
+```
+
+I applied the Terraform change. The output became:
+
+```text
+public_callback_url = https://hosting.yolo.scapegoat.dev/app/auth/callback
+```
+
+### DNS mistake and correction
+
+To make `yolo.scapegoat.dev` resolve, I had briefly added an apex `yolo` A record in the DNS Terraform state. After the hostname correction, I removed that accidental record and added a wildcard for hosted go-go-host site subdomains:
+
+```text
+*.hosting.yolo.scapegoat.dev -> 91.98.46.169
+```
+
+Terraform DNS apply destroyed:
+
+```text
+digitalocean_record.records["yolo_a"]
+```
+
+and created:
+
+```text
+digitalocean_record.records["wildcard_hosting_yolo_a"]
+```
+
+This means:
+
+```text
+hosting.yolo.scapegoat.dev       resolves through *.yolo.scapegoat.dev
+foo.hosting.yolo.scapegoat.dev   resolves through *.hosting.yolo.scapegoat.dev
+yolo.scapegoat.dev               intentionally has no A record
+```
+
+## Step 13: Final rollout, health checks, and browser smoke
+
+After the hostname change, I refreshed Argo and restarted the Deployment once so the pod would pick up the updated ConfigMap:
+
+```bash
+kubectl -n argocd annotate application go-go-host argocd.argoproj.io/refresh=hard --overwrite
+kubectl -n go-go-host rollout restart deployment/go-go-host
+kubectl -n go-go-host rollout status deployment/go-go-host
+```
+
+The rollout completed successfully:
+
+```text
+deployment "go-go-host" successfully rolled out
+```
+
+The certificate for `hosting.yolo.scapegoat.dev` became ready:
+
+```text
+certificate.cert-manager.io/go-go-host-yolo-tls True
+```
+
+### HTTP/API smoke
+
+I ran:
+
+```bash
+curl -I https://hosting.yolo.scapegoat.dev/healthz
+curl -I https://hosting.yolo.scapegoat.dev/readyz
+curl -fsS https://hosting.yolo.scapegoat.dev/api/v1/config | jq .
+```
+
+Results:
+
+```text
+/healthz -> HTTP/2 200
+/readyz  -> HTTP/2 200
+/api/v1/config -> devAuth=false and correct OIDC config
+```
+
+The config response showed:
+
+```json
+{
+  "baseDomain": "hosting.yolo.scapegoat.dev",
+  "devAuth": false,
+  "oidc": {
+    "clientId": "go-go-host-dashboard",
+    "issuer": "https://auth.yolo.scapegoat.dev/realms/go-go-host",
+    "logoutRedirectPath": "/app",
+    "redirectPath": "/app/auth/callback",
+    "scopes": ["openid", "profile", "email"]
+  },
+  "publicBaseUrl": "https://hosting.yolo.scapegoat.dev"
+}
+```
+
+Argo status:
+
+```text
+Synced Healthy
+```
+
+### Browser smoke
+
+Using the built-in Playwright browser tool, I opened:
+
+```text
+https://hosting.yolo.scapegoat.dev/admin
+```
+
+The browser redirected to:
+
+```text
+https://auth.yolo.scapegoat.dev/realms/go-go-host/protocol/openid-connect/auth...
+```
+
+I logged in as `wesen` using a generated temporary password. The callback completed and redirected to:
+
+```text
+https://hosting.yolo.scapegoat.dev/admin/overview
+```
+
+The dashboard showed:
+
+```text
+wesen@ruinwesen.com · platform admin
+```
+
+After the smoke, I rotated the `wesen` password again through the Keycloak admin API. The current generated password is stored only in:
+
+```text
+/tmp/go-go-host-beta-wesen-password
+```
+
+No password value was committed or written into docs.
+
+## Step 14: Current live state and remaining caveats
+
+### Live state
+
+`go-go-host` beta is now deployed through Argo CD on the K3s cluster.
+
+Public URL:
+
+```text
+https://hosting.yolo.scapegoat.dev
+```
+
+OIDC issuer:
+
+```text
+https://auth.yolo.scapegoat.dev/realms/go-go-host
+```
+
+Image:
+
+```text
+ghcr.io/go-go-golems/go-go-host:sha-4187ea3
+```
+
+Argo application:
+
+```text
+go-go-host -> Synced Healthy
+```
+
+### Cross-repo commits
+
+App repo:
+
+- `083e76c Prepare beta image publishing`
+- `4187ea3 Use Go 1.26 for Docker builds`
+
+K3s repo:
+
+- `984048e Add go-go-host beta GitOps deployment`
+- `c86389a Fix go-go-host PVC sync wave`
+- `3bf74d3 Move go-go-host beta to hosting.yolo`
+
+Terraform repo:
+
+- `5c2f61e Add go-go-host Keycloak beta realm`
+- `1a39dfb Move go-go-host beta identity to hosting.yolo`
+
+### What worked
+
+- Existing K3s patterns were reusable: Argo Application, Kustomize, VSO, Vault policies/roles, Postgres bootstrap Job, Traefik ingress, cert-manager HTTP-01.
+- The local OIDC work from Phase 1 translated cleanly to real Keycloak because the dashboard used standard PKCE and `/api/v1/config` advertised the issuer/client/redirect path.
+- Config environment expansion was the right small app change to keep the DSN out of ConfigMaps and Git.
+- The built-in Playwright browser tool was useful for a real end-to-end browser smoke after Argo converged.
+
+### What failed or was tricky
+
+- The Dockerfile used Go 1.24 while `go.mod` required Go 1.26.1, causing the first image build to fail.
+- GHCR package visibility was private. I worked around this with a Vault-backed image pull secret rather than changing package visibility through a broken/unsupported API path.
+- The first Argo sync hung because a `local-path` PVC was in an earlier sync wave than the pod that would bind it.
+- I initially targeted `yolo.scapegoat.dev`; the correct host is `hosting.yolo.scapegoat.dev`. This required coordinated changes in GitOps, Keycloak Terraform, and DNS Terraform.
+- The initial attempt to curl `yolo.scapegoat.dev` failed with DNS resolution errors because wildcard `*.yolo.scapegoat.dev` does not cover the apex `yolo.scapegoat.dev`.
+
+### Caveats and next steps
+
+- `https://hosting.yolo.scapegoat.dev` is live and healthy.
+- DNS for `*.hosting.yolo.scapegoat.dev` exists, but wildcard TLS for arbitrary hosted sub-sites is not implemented. The current `letsencrypt-prod` issuer uses HTTP-01, so wildcard certs would require a DNS-01 issuer or a different sub-site TLS strategy.
+- The Deployment currently has a manual `kubectl.kubernetes.io/restartedAt` annotation from the rollout restart. This is acceptable but could be removed in a later GitOps cleanup if Argo reports drift.
+- The app repo still has unrelated dirty files in `cmd/go-go-host*/cmds/support.go` and an unrelated untracked HOST-005 workspace; I did not touch them.
