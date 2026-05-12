@@ -25,8 +25,16 @@ export function AppShell({ memberships, selectedOrgId, userLabel, devAuth, sideb
         <span>{userLabel}</span>
         {onLogout ? <button type="button" data-part="btn" onClick={onLogout}>Sign out</button> : null}
       </header>
-      <div className="app-shell__body">
-        {sidebar ? <aside className="app-shell__sidebar">{sidebar}</aside> : null}
+      <div className="app-shell__body" data-part="windowing-icon-layer">
+        {sidebar ? (
+          <aside className="app-shell__sidebar" data-part="windowing-window" data-state="focused" aria-label="Navigation">
+            <div className="app-shell__sidebar-title" data-part="windowing-window-title-bar" data-state="focused">
+              <span aria-hidden="true" data-part="windowing-close-button" />
+              <span data-part="windowing-window-title">Navigation</span>
+            </div>
+            <div className="app-shell__sidebar-body" data-part="windowing-window-body">{sidebar}</div>
+          </aside>
+        ) : null}
         <main className="app-shell__content">{children}</main>
       </div>
     </div>
