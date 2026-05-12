@@ -2165,3 +2165,166 @@ go test ./...
 ### Technical details
 
 The test uses Ed25519 directly and signs the same canonical string used by the CLI. This avoids treating the CLI as a test dependency while still exercising the HTTP verifier and deploy-run/upload endpoints.
+
+## Step 23: Live devctl agent deployment smoke test
+
+I ran the Phase 9 workflow against the real devctl stack rather than only httptest and command-level smoke. This live pass was valuable because it exposed two path-policy bugs that unit tests had not caught: deploy runs were storing the requested logical path as the upload validation policy, and the deployment archive validator did not treat `**` as an allow-all nested-path pattern.
+
+After fixing both issues and restarting `go-go-hostd`, the live workflow succeeded: a dev-auth user created an org/site/agent, the agent generated a key, enrolled with a one-time token, created a signed deploy run, uploaded a bundle, the deployment validated as `created_by_type=agent`, a human activated it, and the public Host-header route served the uploaded site.
+
+### Prompt Context
+
+**User prompt (verbatim):** "run a live test against devctl"
+
+**Assistant interpretation:** Start/restart the local devctl stack and execute a real CLI/API agent enrollment and deployment workflow against `http://127.0.0.1:8080`.
+
+**Inferred user intent:** Confirm that Phase 9 works outside tests, catch integration gaps, and report exactly what was smoke-tested.
+
+**Commit (code):** 9122ef2044048e7d757a7a0dbbd7fb07a6b5195d — "Preserve grant paths for agent uploads"
+
+**Commit (code):** ce1192f7c22415d7918318f5dba22b86f3f618f3 — "Allow double-star deployment path grants"
+
+**Commit (test):** 2210e0dc7841be08151e025cadebc963c4719012 — "Test double-star deployment path grants"
+
+### What I did
+
+- Ran `devctl up --force` and confirmed Postgres, `go-go-hostd`, Vite, and Storybook were alive.
+- Ran a full live CLI flow using `go run`:
+  - `go-go-host org create`,
+  - `go-go-host site create`,
+  - `go-go-host agents create --site-id ... --path '**'`,
+  - `go-go-host-agent keygen`,
+  - `go-go-host-agent enroll`,
+  - `go-go-host-agent status`,
+  - `go-go-host-agent deploy`,
+  - `go-go-host deployments activate`,
+  - `curl -H 'Host: live-agent-site-...localhost' http://127.0.0.1:8080/`,
+  - `go-go-host audit list`.
+- Fixed deploy-run creation to preserve grant archive paths for upload validation instead of narrowing validation to the requested logical deploy path.
+- Fixed deployment bundle path matching so `**` allows nested archive paths.
+- Added a regression test for `AllowedPaths: []string{"**"}` against nested archive entries.
+
+### Why
+
+- The previous test suite proved the signed HTTP path, but not a live daemon compiled/restarted under devctl with real CLI binaries and the existing `/tmp/go-go-host-test-bundle.tar.gz`.
+- Agent grants use path policies twice: once for signed deploy-run authorization and once for archive-entry validation. The live smoke made it clear those two concepts must not be conflated.
+
+### What worked
+
+Final successful live output included:
+
+```text
+"status": "validated",
+"valid": true,
+"created_by_type": "agent"
+```
+
+Activation returned:
+
+```text
+"status": "active",
+"created_by_type": "agent",
+"created_by_id": "agt_3908903e-6307-45ff-b43b-735a04103da5"
+```
+
+The public route returned the uploaded HTML:
+
+```html
+<title>Hello from dashboard upload</title>
+<h1>Hello from go-go-host</h1>
+```
+
+Audit showed the expected sequence:
+
+```text
+org.create
+site.create
+agent.create
+agent.grant.upsert
+agent.enrollment_token.create
+agent.enroll
+deploy_run.create   actor_type=agent
+deployment.upload   actor_type=agent
+deployment.activate actor_type=user
+```
+
+### What didn't work
+
+First live deploy failed with rejected validation because the deploy run stored the requested logical path (`/tmp/go-go-host-test-bundle.tar.gz`) as the archive validation allow-list:
+
+```text
+path "assets/style.css" is not allowed by deployment policy
+path "scripts/app.js" is not allowed by deployment policy
+path "go-go-host.json" is not allowed by deployment policy
+```
+
+I fixed that by storing `grant.AllowedPaths` in the deploy run for upload validation.
+
+Second live deploy still failed for nested paths because the deploy package treated `**` like a `filepath.Match` pattern, which does not match slashes:
+
+```text
+path "assets/style.css" is not allowed by deployment policy
+path "scripts/app.js" is not allowed by deployment policy
+```
+
+I fixed `internal/deploy/bundle.go` so `pattern == "**"` explicitly allows all archive paths and added `TestValidateAndStoreAllowsDoubleStarPolicy`.
+
+A separate CLI usage mistake happened during activation: I initially passed the deployment ID positionally, but the Glazed command expects `--deployment-id`. The corrected command worked:
+
+```bash
+go run ./cmd/go-go-host deployments activate \
+  --api-url http://127.0.0.1:8080 \
+  --dev-user live-agent-1778594396 \
+  --deployment-id dep_4710ba96-8150-4df8-aebb-4eb7ea807ab1 \
+  --output json
+```
+
+### What I learned
+
+- Live devctl smoke was necessary; the httptest integration used a narrower grant path (`bundles/**`) and did not expose the deploy-package `**` mismatch.
+- The deployment policy should use grant archive path allow-lists, while the signed deploy-run request path should be treated as a requested logical path for authorization only.
+- The current agent workflow uploads and validates but does not auto-activate; activation is still a human/user operation in this smoke.
+
+### What was tricky to build
+
+- There were two distinct path languages in play: agent deploy-run request paths and archive-entry validation paths. The symptom looked like a permission failure, but the root cause was that the wrong path value was being carried from signed deploy-run creation into bundle validation.
+- `filepath.Match("**", "assets/style.css")` does not mean recursive allow-all. I made `**` an explicit sentinel in the deploy validator to match the grant helper behavior.
+
+### What warrants a second pair of eyes
+
+- Review whether the deploy-run response should include both requested logical path and effective archive path policy to make this distinction visible.
+- Review whether `**` should be accepted as a production policy shorthand or replaced with a clearer explicit value such as `all`.
+- Review the current human activation step: if CI agents should auto-activate in some channels, that should be a deliberate grant flag and audited separately.
+
+### What should be done in the future
+
+- Add a scripted live E2E under `ttmp/.../scripts` or a Makefile target that repeats this devctl smoke.
+- Add CLI help examples showing `--deployment-id` for activation and `--path bundles/app.tar.gz` for agent deploy-run requests.
+- Add a focused test for a signed deploy run with grant `**` and nested archive entries if the integration harness is guaranteed to run under CI with Postgres.
+
+### Code review instructions
+
+- Review `internal/control/agent_runs.go` around `CreateDeployRun`: the effective upload validation policy now comes from `grant.AllowedPaths`.
+- Review `internal/deploy/bundle.go` and `internal/deploy/bundle_test.go` for `**` path policy semantics.
+- Reproduce with:
+
+```bash
+devctl up --force
+# create org/site/agent, keygen/enroll/deploy as shown in this diary step
+curl -H 'Host: <site>.localhost' http://127.0.0.1:8080/
+```
+
+### Technical details
+
+Successful live IDs from the final run:
+
+```text
+user: live-agent-1778594396
+org: org_d03dc993-65fb-4a2b-bd43-7d5593741828
+site: site_dc002068-d404-4a85-aa4d-fae323959865
+host: live-agent-site-1778594396.localhost
+agent: agt_3908903e-6307-45ff-b43b-735a04103da5
+key: ak_aaa7d034-a01e-4f7b-a75b-9e2a4c87e05a
+deploy run: dr_75846d83-0ffc-46a8-8f4f-c81d34f4c133
+deployment: dep_4710ba96-8150-4df8-aebb-4eb7ea807ab1
+```

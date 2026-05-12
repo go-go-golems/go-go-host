@@ -277,3 +277,14 @@ Completed Phase 9 agent enrollment and signed deploy-run MVP: one-time enrollmen
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/agent_signed_integration_test.go — signed agent security and upload integration coverage
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/11/HOST-001-GO-GO-HOST-V1--go-go-host-v1-hosting-platform-design/tasks.md — Phase 9 checklist reconciliation
 
+
+## 2026-05-12
+
+Ran live devctl Phase 9 agent smoke; fixed deploy-run path-policy propagation and double-star archive path matching; verified agent upload, human activation, public Host-header serving, and audit sequence.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/control/agent_runs.go — deploy runs now preserve grant archive paths for upload validation
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/deploy/bundle.go — double-star path policy support found by live smoke
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/deploy/bundle_test.go — regression for double-star nested archive paths
+
