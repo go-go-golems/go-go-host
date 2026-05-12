@@ -321,3 +321,16 @@ Added Phase 10A and implemented initial agent hardening slice: owner-only canAct
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/11/HOST-001-GO-GO-HOST-V1--go-go-host-v1-hosting-platform-design/tasks.md — new Phase 10A tasks
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/AgentsPage/AgentsPage.tsx — operator key inventory and canActivate warning UI
 
+
+## 2026-05-12
+
+Completed Phase 10 and Phase 10A: capability policy enforcement, runtime DB quota/timeouts/stats/events, bundle SHA256 traceability, security-failure audit, one-time upload transitions, key revoke/rotation UI/API, validation and embedded dashboard rebuild.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/control/agent_runs.go — agent security audit and upload transition hardening
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/control/deployments.go — site capability policy and quota-backed runtime specs
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/runtime/supervisor.go — request timeout and DB stats access
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/11/HOST-001-GO-GO-HOST-V1--go-go-host-v1-hosting-platform-design/tasks.md — Phase 10 and 10A completion
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/AgentsPage/AgentsPage.tsx — operator agent hardening UI
+

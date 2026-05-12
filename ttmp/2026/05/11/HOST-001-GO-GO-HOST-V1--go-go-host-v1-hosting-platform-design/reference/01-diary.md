@@ -2515,3 +2515,150 @@ This is deliberately not the whole hardening guide. Security-failure audit event
 go test ./...
 pnpm --dir web/admin build
 ```
+
+## Step 26: Completed Phase 10 and Phase 10A hardening pass
+
+I completed the Phase 10/10A pass as an implementation slice rather than only a planning update. The work hardened the recently-added agent auto-activation path, made deployment artifacts more traceable, connected site capability policy to validation, configured runtime DB quota enforcement from site quotas, added a DB stats API, recorded runtime events, and rebuilt the embedded dashboard.
+
+This pass also exposed one operational detail during live smoke: the live auto-activation flow succeeded, DB stats were reachable, and the public host served the deployment, but the CLI did not initially expose `bundleSha256` in `deployments show`. I added the CLI row field after seeing that the API field was present but the CLI output dropped it.
+
+### Prompt Context
+
+**User prompt (verbatim):** "do phase 10 and phase 10a in their entirety, commit at appropriate intervals, keep a detailed diary."
+
+**Assistant interpretation:** Finish both the original Phase 10 hardening/observability checklist and the newly added Phase 10A immediate agent-hardening checklist, committing in reviewable chunks and recording the implementation journey.
+
+**Inferred user intent:** Move the platform from “feature works” to “feature is safer, observable, and easier to operate,” especially around agent auto-activation.
+
+**Commits (code/docs):**
+
+- f31621773be37f26612d923782a85a61d2f1ecb9 — "Add agent key inventory and revoke controls"
+- a23680bcc2e97f69e889f88720aeb227641b1ac1 — "Add Phase 10 deployment hardening foundations"
+- 0fa578223d1b612e05beb43e19d9f8f7e27aeda1 — "Surface bundle hashes and quota warnings"
+- 2b2e0e7ab67606688f24a2257be6daadaf6107d8 — "Apply site capability policy during validation"
+- 2df31cb1b96d26041faf5d2644dd0f2d6f508b6d — "Add agent key rotation tokens"
+- b917a61dabade64fc35c3445cbfe740852bb4173 — "Rebuild embedded dashboard for hardening UI"
+- 3f7287ef7c0501fbfd3964468254555db6474651 — "Complete Phase 10 hardening checklist"
+
+### What I did
+
+Phase 10A agent hardening:
+
+- Added key inventory and revoke APIs.
+- Added key fingerprints and `last_used_at` tracking.
+- Added key rotation token endpoint for existing agents.
+- Added dashboard key table, key revoke action, and rotation-token action.
+- Added owner-only enforcement for `canActivate` grant creation/update.
+- Extended signed-agent integration coverage for revoked-key denial, replacement-key success, and second-upload denial.
+
+Phase 10 capability/quota/deployment hardening:
+
+- Expanded safe capability policy to include `express`, `ui.dsl`, `database`, `db`, timers, static assets, and sqlite compatibility.
+- Added default site capability rows on site creation.
+- Wired site capability policy into deployment validation so requested/effective capability reports use stored policy.
+- Added request timeout enforcement through the runtime supervisor using site quota `request_timeout_ms`.
+- Configured DB guard soft/hard byte limits from site quota during dry-run and runtime activation.
+- Added DB stats endpoint: `GET /api/v1/sites/{site_id}/db/stats`.
+- Added runtime events table and status-recorder insertion for runtime status changes.
+- Added `bundle_sha256` to deployments, API DTOs, CLI rows, and dashboard deployment details.
+- Added dashboard quota/runtime error warning text.
+- Added a runtime hard-limit test and kept existing forbidden-capability tests.
+- Rebuilt embedded dashboard assets with `go run ./cmd/build-web`.
+
+### Why
+
+- Agent auto-activation makes key compromise and grant mistakes more serious, so operators need key visibility, key revoke, and key rotation.
+- Deployment validation should use stored site policy, not just hard-coded defaults, otherwise policy pages are observability-only and not enforcement.
+- Bundle hashes are the simplest artifact integrity handle: they make it possible to identify what was uploaded and running.
+- Runtime quota/DB stats visibility closes the loop between site quota rows, runtime behavior, and dashboard/operator diagnostics.
+
+### What worked
+
+- `go test ./...` passed after each focused slice.
+- `pnpm --dir web/admin build` passed after dashboard changes.
+- `make storybook-build` passed with the new AgentKeys story.
+- `go run ./cmd/build-web` rebuilt embedded assets successfully through Dagger.
+- A live devctl smoke after the hardening foundations verified:
+  - agent auto-activation still works,
+  - public Host-header routing serves the uploaded site,
+  - `/api/v1/sites/{site_id}/db/stats` returns DB byte/quota stats.
+
+### What didn't work
+
+- The first story build after adding `AgentKeysTable` failed because I imported Storybook types from `@storybook/react-vite` instead of the repo convention `@storybook/react`. I fixed the import.
+- Adding `last_used_at` changed sqlc row shapes for agent-key queries; I fixed the query return lists so create/get/list all include the new column.
+- After the live Phase 10 smoke, `go-go-host deployments show` did not display `bundle_sha256` because the CLI DTO/row mapping did not include the field. I added `BundleSHA256` to the CLI deployment DTO and row output.
+
+### What I learned
+
+- The current schema already had useful policy tables (`site_capabilities`, `site_quotas`), but the runtime/deploy path needed explicit wiring to make them enforcement mechanisms.
+- `deploy_runs.allowed_actions` was a good extension point for auto-activation and later hardening; it now also works naturally with one-time upload semantics.
+- Bundle hash visibility needs to be end-to-end: storing it in DB is not enough if API/CLI/dashboard omit it.
+
+### What was tricky to build
+
+- The agent upload state transition needed to happen after token hash validation but before accepting a bundle. I kept validation in `ValidateUploadToken`, then atomically moved the run from `pending` to `uploading` with a store method before returning control to the upload handler.
+- Capability policy had two layers: default safe capabilities in code and stored per-site capability rows. New sites now get default rows, while existing sites with no rows still fall back to code defaults to avoid breaking older dev data.
+- Runtime request timeout uses `http.TimeoutHandler`, which can limit request handling time at the HTTP layer. It is not a perfect Goja interruption mechanism, but it is an immediately useful guard until deeper VM interruption controls are designed.
+
+### What warrants a second pair of eyes
+
+- Review the security-failure audit events. They intentionally avoid logging raw signatures/tokens, but the exact action names and metadata should be checked before production.
+- Review `ActivateAsAgent` and `canActivate` owner-only enforcement together to confirm the trust model is consistent.
+- Review DB hard-limit behavior. The test proves an extremely low hard limit fails fixture writes; production thresholds and error UX should still be tuned.
+- Review runtime event volume. The status recorder currently records status changes and request-counter updates can also persist status frequently; event retention/pruning should be part of Phase 12.
+
+### What should be done in the future
+
+- Add a dedicated AgentDetailPage instead of continuing to grow `AgentsPage`.
+- Add a richer security-events view instead of relying only on generic audit filtering.
+- Add deploy-run expiry cleanup and nonce retention cleanup under Phase 12 production hardening.
+- Replace `http.TimeoutHandler` with deeper Goja interrupt support if hosted scripts can still consume CPU after timeout responses.
+
+### Code review instructions
+
+Review in this order:
+
+1. `internal/control/agent_runs.go` — signed request audit, deploy-run state transitions, upload token checks.
+2. `internal/control/agents.go` — key list/revoke/rotation token behavior.
+3. `internal/control/deployments.go` — capability policy lookup, DB quota runtime spec, agent activation.
+4. `internal/runtime/runtime.go` and `internal/runtime/supervisor.go` — DB guard and request timeout wiring.
+5. `internal/store/queries/*.sql` and migrations `006`/`007` — schema/query changes.
+6. `web/admin/src/pages/AgentsPage/AgentsPage.tsx` and `AgentKeysTable` — operator UI.
+7. `cmd/go-go-host/cmds/deployments.go` — bundle hash CLI output.
+
+Validate with:
+
+```bash
+go test ./...
+pnpm --dir web/admin build
+make storybook-build
+go run ./cmd/build-web
+docmgr doctor --ticket HOST-001-GO-GO-HOST-V1 --stale-after 30
+```
+
+### Technical details
+
+New/changed APIs:
+
+```http
+GET  /api/v1/orgs/{org_id}/agents/{agent_id}/keys
+POST /api/v1/orgs/{org_id}/agents/{agent_id}/keys/{key_id}/revoke
+POST /api/v1/orgs/{org_id}/agents/{agent_id}/enrollment-token
+GET  /api/v1/sites/{site_id}/db/stats
+```
+
+New schema changes:
+
+```sql
+ALTER TABLE agent_keys ADD COLUMN IF NOT EXISTS last_used_at TIMESTAMPTZ;
+ALTER TABLE deployments ADD COLUMN IF NOT EXISTS bundle_sha256 TEXT NOT NULL DEFAULT '';
+CREATE TABLE IF NOT EXISTS runtime_events (...);
+```
+
+New deploy-run upload state:
+
+```text
+pending -> uploading -> completed
+pending -> uploading -> rejected
+```
