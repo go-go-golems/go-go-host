@@ -37,7 +37,7 @@ func BuildGlazedCobraCommand(command glazedcmds.Command) (*cobra.Command, error)
 	return glazedcli.BuildCobraCommandFromCommand(command,
 		glazedcli.WithParserConfig(glazedcli.CobraParserConfig{
 			ShortHelpSections: []string{schema.DefaultSlug},
-			MiddlewaresFunc:   glazedcli.CobraCommandDefaultMiddlewares,
+			AppName:           "GO_GO_HOST",
 		}),
 	)
 }

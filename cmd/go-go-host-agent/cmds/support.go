@@ -52,7 +52,10 @@ func standardSections() (schema.Section, schema.Section, error) {
 
 func BuildGlazedCobraCommand(command glazedcmds.Command) (*cobra.Command, error) {
 	return glazedcli.BuildCobraCommandFromCommand(command,
-		glazedcli.WithParserConfig(glazedcli.CobraParserConfig{ShortHelpSections: []string{schema.DefaultSlug}, MiddlewaresFunc: glazedcli.CobraCommandDefaultMiddlewares}),
+		glazedcli.WithParserConfig(glazedcli.CobraParserConfig{
+			ShortHelpSections: []string{schema.DefaultSlug},
+			AppName:           "GO_GO_HOST_AGENT",
+		}),
 	)
 }
 
