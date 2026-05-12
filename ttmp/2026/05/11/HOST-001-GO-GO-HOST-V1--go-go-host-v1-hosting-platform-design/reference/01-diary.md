@@ -2662,3 +2662,155 @@ New deploy-run upload state:
 pending -> uploading -> completed
 pending -> uploading -> rejected
 ```
+
+## Step 27: Completed Phase 11 site settings and domain management
+
+I implemented Phase 11 as a full site-settings slice. Sites now have a control-plane API for non-secret config, custom domains with verification tokens, capability policy edits, and an explicit environment/secrets placeholder that documents what is intentionally not exposed to hosted code.
+
+The dashboard now has a site-level Settings page that brings these pieces together in one operator workflow. This keeps code deployment separate from site configuration while preserving the earlier safety boundary: no process environment passthrough, no plaintext secret API, and no unrestricted filesystem access.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Continue with phase 11. Make sure to read the diary and docmgr skills. Keep a diary as you work, commit at appropriate intervals"
+
+**Assistant interpretation:** Resume from the current HOST-001 diary/task state, read the diary/docmgr operating instructions, implement all Phase 11 tasks, and commit focused backend/frontend/docs slices.
+
+**Inferred user intent:** Finish the site settings/domains/configuration milestone with traceable code changes and enough diary detail for later review or continuation.
+
+**Commit (code):** 21d2c172d05b4ca9abaedea452414089bc1d8f62 — "Add site settings and domain APIs"
+
+**Commit (frontend):** 2c99c2875bed875617ce0bf8f1b9d20f5cbe9cf8 — "Add site settings dashboard page"
+
+**Commit (polish):** 92ffade — "Polish pending domain DTOs"
+
+**Commit (embedded assets):** a7ffffef97f847b8b26eb1f75202603fd0e2de9d — "Rebuild embedded dashboard for site settings"
+
+### What I did
+
+- Read `/home/manuel/.pi/agent/skills/diary/SKILL.md` and `/home/manuel/.pi/agent/skills/docmgr/SKILL.md` before coding.
+- Re-read the HOST-001 diary and Phase 11 task list.
+- Added migration `008_phase11_site_settings_domains.sql` for `site_config` and domain indexes.
+- Added sqlc queries and store wrappers for:
+  - site config list/upsert/delete,
+  - site domain create/list/list-verified/get/verify/delete,
+  - capability upsert wrapper.
+- Added `SiteService` methods for config, domains, capabilities, and environment-placeholder authorization.
+- Added HTTP APIs:
+  - `GET/PUT/DELETE /api/v1/sites/{site_id}/config`,
+  - `GET/PUT /api/v1/sites/{site_id}/capabilities`,
+  - `GET/POST /api/v1/sites/{site_id}/domains`,
+  - `POST /api/v1/sites/{site_id}/domains/{domain_id}/verify`,
+  - `DELETE /api/v1/sites/{site_id}/domains/{domain_id}`,
+  - `GET /api/v1/sites/{site_id}/environment`.
+- Added audit events for config upsert/delete, capability update, domain add/verify/delete.
+- Included verified custom domains in runtime activation host specs.
+- Added integration coverage for config, capability toggles, domain add/verify, environment placeholder, and audit visibility.
+- Added RTK Query hooks/types/MSW fixtures for site settings.
+- Added `SiteSettingsPage` with Storybook coverage and wired it into the site tabs/routes.
+- Rebuilt embedded dashboard assets via `go run ./cmd/build-web`.
+- Marked Phase 11 tasks and exit criteria complete.
+
+### Why
+
+- Phase 11’s goal was to separate code deployment from site configuration.
+- Domain state needed a first-class API rather than only admin read-only inventory.
+- Capability policy was already enforced in Phase 10, but site owners needed a UI/API to inspect and adjust it.
+- Secrets/environment needed an explicit placeholder so v1 does not accidentally grow unsafe process-env exposure.
+
+### What worked
+
+- `sqlc generate` handled the new site queries cleanly.
+- The existing `site_domains` table already matched the required custom-domain lifecycle, so Phase 11 only needed query/service/API/UI wiring plus one supporting config table.
+- The dashboard Settings page built successfully with Vite and Storybook.
+- The embedded dashboard pipeline produced new static assets successfully through Dagger.
+
+### What didn't work
+
+- The first backend test compile failed because I added a duplicate `createTestOrgViaAPI` helper in `site_settings_integration_test.go`; the package already had one in `deployments_integration_test.go`.
+
+Exact failure:
+
+```text
+# github.com/go-go-golems/go-go-host/internal/httpapi [github.com/go-go-golems/go-go-host/internal/httpapi.test]
+internal/httpapi/site_settings_integration_test.go:128:6: createTestOrgViaAPI redeclared in this block
+	internal/httpapi/deployments_integration_test.go:62:6: other declaration of createTestOrgViaAPI
+FAIL	github.com/go-go-golems/go-go-host/internal/httpapi [build failed]
+FAIL
+```
+
+I removed the duplicate helper and reused the existing test helper.
+
+### What I learned
+
+- Base-domain primary host assignment was already implemented in `SiteService.CreateSite`, so Phase 11 mostly needed custom-domain lifecycle and dashboard surfacing.
+- Runtime activation is the natural point to include verified custom domains because it already builds the host list for the supervisor.
+- Keeping the environment/secrets endpoint read-only and descriptive is a useful guardrail: it makes the deferred security decision visible instead of leaving a vague gap.
+
+### What was tricky to build
+
+- DELETE with a JSON body is supported by the current RTK Query/fetch path, but it is less ergonomic than a path-key route. I kept the backend simple for config deletion (`DELETE /config` with `{key}`) because config keys may contain dots and would otherwise require careful path escaping.
+- Verified domain hosts are included on activation, not hot-added to an already-running runtime. This avoids implicit runtime mutation from a domain verification endpoint, but it means operators need a future restart/reactivation affordance if they expect a verified domain to route immediately.
+- Capability edits are owner-only, while config/domain edits allow owners and developers. That is intentional because capabilities change runtime security boundaries.
+
+### What warrants a second pair of eyes
+
+- Review `internal/control/services.go` authorization choices: developers can edit non-secret config/domains, but only owners can toggle capabilities.
+- Review hostname validation; it intentionally requires at least one dot and lowercases/trims a trailing dot.
+- Review whether domain verification should remain a manual placeholder in v1 or perform DNS TXT/CNAME checks before marking verified.
+- Review whether config deletion should become `DELETE /api/v1/sites/{site_id}/config/{key}` with URL-escaped keys.
+
+### What should be done in the future
+
+- Add DNS verification checks for `_go-go-host.<hostname>` TXT or a documented CNAME target.
+- Hot-add verified domains to running runtimes or prompt the operator to restart/reactivate.
+- Add encrypted secret storage and injection design before exposing any secret/runtime environment API.
+- Add an admin write policy page for domain allow/deny rules if platform-level domain governance becomes necessary.
+
+### Code review instructions
+
+Start with backend control flow:
+
+1. `internal/control/services.go` — site config, domain, capability, and environment-placeholder service logic.
+2. `internal/httpapi/site_settings.go` — HTTP DTOs and handlers.
+3. `internal/store/queries/sites.sql` and `internal/store/sites.go` — persistence API.
+4. `internal/control/deployments.go` — verified custom domains added to activation hosts.
+5. `web/admin/src/pages/SiteSettingsPage/SiteSettingsPage.tsx` — operator UI.
+6. `web/admin/src/services/goGoHostApi.ts` — RTK Query surface.
+
+Validate with:
+
+```bash
+go test ./...
+pnpm --dir web/admin build
+make storybook-build
+go run ./cmd/build-web
+docmgr doctor --ticket HOST-001-GO-GO-HOST-V1 --stale-after 30
+```
+
+### Technical details
+
+New API summary:
+
+```http
+GET    /api/v1/sites/{site_id}/config
+PUT    /api/v1/sites/{site_id}/config
+DELETE /api/v1/sites/{site_id}/config
+GET    /api/v1/sites/{site_id}/capabilities
+PUT    /api/v1/sites/{site_id}/capabilities
+GET    /api/v1/sites/{site_id}/domains
+POST   /api/v1/sites/{site_id}/domains
+POST   /api/v1/sites/{site_id}/domains/{domain_id}/verify
+DELETE /api/v1/sites/{site_id}/domains/{domain_id}
+GET    /api/v1/sites/{site_id}/environment
+```
+
+New audit actions:
+
+```text
+site.config.upsert
+site.config.delete
+site.capability.update
+site.domain.add
+site.domain.verify
+site.domain.delete
+```

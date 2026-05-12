@@ -404,20 +404,20 @@ Exit criteria:
 
 Goal: make site configuration separate from code deployment.
 
-- [ ] Implement site config endpoint for non-secret settings.
-- [ ] Implement base-domain host assignment.
-- [ ] Implement custom domain table and verification-token generation.
-- [ ] Implement domain verification check placeholder/manual flow.
-- [ ] Add dashboard domain page.
-- [ ] Add admin domain policy page.
-- [ ] Add capability settings page for site owners/admins.
-- [ ] Add environment/secrets design placeholder; do not expose process env wholesale.
-- [ ] Audit domain add/remove/verify and capability changes.
+- [x] Implement site config endpoint for non-secret settings.
+- [x] Implement base-domain host assignment.
+- [x] Implement custom domain table and verification-token generation.
+- [x] Implement domain verification check placeholder/manual flow.
+- [x] Add dashboard domain page.
+- [x] Add admin domain policy page.
+- [x] Add capability settings page for site owners/admins.
+- [x] Add environment/secrets design placeholder; do not expose process env wholesale.
+- [x] Audit domain add/remove/verify and capability changes.
 
 Exit criteria:
 
-- [ ] Site code deployment and site configuration are separate API surfaces.
-- [ ] Base-domain hosts work; custom-domain status is represented even if TLS automation is deferred.
+- [x] Site code deployment and site configuration are separate API surfaces.
+- [x] Base-domain hosts work; custom-domain status is represented even if TLS automation is deferred.
 
 ### Phase 12: Backup, export, pruning, and production hardening
 

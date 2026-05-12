@@ -334,3 +334,15 @@ Completed Phase 10 and Phase 10A: capability policy enforcement, runtime DB quot
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/11/HOST-001-GO-GO-HOST-V1--go-go-host-v1-hosting-platform-design/tasks.md — Phase 10 and 10A completion
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/AgentsPage/AgentsPage.tsx — operator agent hardening UI
 
+
+## 2026-05-12
+
+Completed Phase 11 site settings: non-secret config API, custom-domain verification placeholder, capability settings, explicit environment/secrets placeholder, dashboard Settings page, Storybook coverage, embedded dashboard rebuild, and Phase 11 task completion.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/control/services.go — Phase 11 site config/domain/capability service logic
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/site_settings.go — Phase 11 HTTP API handlers
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/11/HOST-001-GO-GO-HOST-V1--go-go-host-v1-hosting-platform-design/tasks.md — Phase 11 completion checklist
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/SiteSettingsPage/SiteSettingsPage.tsx — dashboard Settings page for config/domains/capabilities/environment placeholder
+
