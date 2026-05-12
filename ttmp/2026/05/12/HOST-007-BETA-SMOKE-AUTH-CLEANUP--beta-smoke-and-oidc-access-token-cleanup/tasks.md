@@ -50,10 +50,21 @@ Intent: long-term
 
 ## P1: Demo-site lifecycle
 
-- [x] Record live demo resources: org `beta-demo`, site `hello`, deployment `dep_181c0489-b037-4732-b7b3-3cc99bf4ea52`.
+- [x] Record live demo resources: org `beta-demo`, site `hello`, initial deployment `dep_181c0489-b037-4732-b7b3-3cc99bf4ea52`.
 - [x] Preserve source for the demo app under `examples/hello-beta`.
+- [x] Link `/assets/style.css` from the demo `/` page using `ui.link({ rel: "stylesheet", href: "/assets/style.css" })`.
+- [x] Redeploy the styled demo as user deployment `dep_728e1491-30b9-49c0-b435-bbc0eb224a61`.
+- [x] Redeploy the demo through agent publishing as deployment `dep_aba73759-dc63-47c4-9a32-ade076330a1a`.
 - [ ] Add a make target for packaging the demo bundle.
 - [ ] Decide whether the live demo site should be treated as permanent beta fixture data or recreated by smoke automation.
+
+## P1: Agent publishing smoke
+
+- [x] Create a beta deploy agent with an intentionally narrow `bundles/**` grant and observe upload rejection for archive paths.
+- [x] Create a beta deploy agent with grant path `**`, enroll it with `go-go-host-agent`, deploy `examples/hello-beta`, and auto-activate it.
+- [x] Verify the agent-published site at `https://hello.hosting.yolo.scapegoat.dev/`.
+- [x] Revoke both temporary smoke-test agents after the test.
+- [ ] Clarify/document the meaning of agent grant `path`: it currently constrains archive entry paths, not only the logical upload path.
 
 ## P1: CLI/device-flow preparation
 

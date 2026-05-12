@@ -19,6 +19,7 @@ app.get("/", (req, res) => {
   const rows = db.query("SELECT COUNT(*) AS count FROM visits");
   return ui.page(
     { title: "go-go-host beta demo" },
+    ui.link({ rel: "stylesheet", href: "/assets/style.css" }),
     ui.main(
       ui.h1("Hello from go-go-host beta"),
       ui.p("This is a live hosted Goja app served through wildcard DNS, wildcard TLS, Traefik, and go-go-host runtime routing."),

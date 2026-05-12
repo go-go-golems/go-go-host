@@ -487,3 +487,132 @@ Validate live:
 scripts/beta-smoke.sh
 curl -fsS https://hosting.yolo.scapegoat.dev/api/v1/me -H "Authorization: Bearer <access-token>" | jq .
 ```
+
+## Step 5: Link demo CSS from the page and smoke-test agent publishing
+
+The user noticed that the demo CSS asset was reachable only as a link in the page body, not loaded as a stylesheet. I updated the demo source to emit a real `<link rel="stylesheet" href="/assets/style.css">` tag in the document head, redeployed the demo, and then used the deployment-agent flow to publish and activate the same demo through signed agent credentials.
+
+### Prompt Context
+
+**User prompt (verbatim):** "should the css be served from the / page in the hosting app? I only see it linked as static asset.
+
+Also, when are we going to test agents publishing ?"
+
+**Assistant interpretation:** The demo page should actually load its static CSS, not merely expose a hyperlink to it, and we should stop deferring agent publishing by testing the signed deploy-agent path now.
+
+**Inferred user intent:** Validate the demo as a polished end-user page and prove that machine-agent publishing works against the live beta, not only human bearer-token uploads.
+
+**Commit (code):** pending at time of diary entry.
+
+### What I did
+
+- Updated `examples/hello-beta/scripts/app.js` to include:
+
+```js
+ui.link({ rel: "stylesheet", href: "/assets/style.css" })
+```
+
+as a top-level child of `ui.page`, which the UI DSL places in the document head.
+
+- Repacked the demo bundle:
+
+```bash
+tar -C examples/hello-beta -czf /tmp/hello-beta-styled.tar.gz .
+```
+
+- Uploaded and activated the styled demo through the human authenticated API path:
+
+```text
+dep_728e1491-30b9-49c0-b435-bbc0eb224a61
+version: 2
+status: active
+```
+
+- Verified the root page now contains:
+
+```html
+<link href="/assets/style.css" rel="stylesheet">
+```
+
+- Created a first test deployment agent with grant path `bundles/**` and attempted to deploy the bundle through `go-go-host-agent`.
+- Observed and recorded the rejection.
+- Created a second test deployment agent with grant path `**`, enrolled it, deployed the bundle through `go-go-host-agent`, and requested auto-activation.
+- Verified successful agent deployment:
+
+```text
+deploy_run_id: dr_af907348-bdaf-48de-af26-23d74aeeb0a6
+deployment_id: dep_aba73759-dc63-47c4-9a32-ade076330a1a
+version: 4
+status: active
+activated: true
+```
+
+- Re-ran `scripts/beta-smoke.sh`; it passed.
+- Revoked both temporary smoke-test agents after the test.
+
+### Why
+
+- A static asset smoke is more meaningful if the HTML page actually references the stylesheet the browser should load.
+- Agent publishing is a core beta feature. It needed a live end-to-end test: operator creates agent/grant, machine generates key, enrolls with one-time token, signs deploy-run creation, uploads bundle, and auto-activates.
+
+### What worked
+
+- `ui.link` is supported by the UI DSL and is automatically placed in the document head by `ui.page` because `link` is one of the registered head tags.
+- The human redeploy path with access-token auth worked.
+- Agent keygen and enrollment worked against the live beta.
+- Agent deployment with grant path `**` validated, uploaded, activated, and served publicly.
+- The final public site still passed smoke at `https://hello.hosting.yolo.scapegoat.dev/`.
+
+### What didn't work
+
+The first agent deploy used a grant path of `bundles/**` and failed with HTTP 400. The validation report said:
+
+```text
+path "assets/style.css" is not allowed by deployment policy
+path "README.md" is not allowed by deployment policy
+path "scripts/app.js" is not allowed by deployment policy
+path "go-go-host.json" is not allowed by deployment policy
+```
+
+This showed that the grant's allowed paths are applied to archive entry paths, not merely to the logical upload path supplied to `go-go-host-agent deploy --path`.
+
+### What I learned
+
+- Agent grants are stricter than the operator docs imply. A path like `bundles/**` sounds like a logical artifact path, but the implementation also constrains bundle contents.
+- For a normal go-go-host bundle, `**` is the currently practical grant path unless we design a clearer distinction between logical artifact path and archive entry policy.
+
+### What was tricky to build
+
+The agent deploy command output shape differs from the raw API upload response. It returns an array with summarized fields such as `deploy_run_id`, `deployment_id`, `activated`, `valid`, and `version`, not the raw nested API object. My first `jq` expression assumed the raw API shape and failed even though the deployment itself succeeded.
+
+### What warrants a second pair of eyes
+
+- Review the agent grant `path` semantics. We should either document that it constrains archive entries or split it into two concepts: logical artifact path and allowed bundle contents.
+- Review whether temporary smoke agents should be pruned/deleted in addition to revoked once the admin UI/API supports cleanup.
+
+### What should be done in the future
+
+- Add an authenticated agent publishing mode to `scripts/beta-smoke.sh` or a separate `scripts/beta-agent-smoke.sh`.
+- Add CLI help text warning that `--path`/grant path affects bundle validation policy.
+
+### Code review instructions
+
+Review:
+
+```text
+examples/hello-beta/scripts/app.js
+scripts/beta-smoke.sh
+cmd/go-go-host/doc/agent-setup.md
+cmd/go-go-host/doc/agent-guide.md
+```
+
+Validate manually:
+
+```bash
+tar -C examples/hello-beta -czf /tmp/hello-beta-styled.tar.gz .
+go-go-host agents create --path '**' --can-activate ...
+go-go-host-agent keygen ...
+go-go-host-agent enroll ...
+go-go-host-agent deploy --activate ...
+scripts/beta-smoke.sh
+```

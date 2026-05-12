@@ -38,3 +38,13 @@ Built and deployed sha-f137ff9 with startup active-runtime restoration; Argo is 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/control/deployments.go — deployed startup active runtime restoration
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/scripts/beta-smoke.sh — post-rollout beta smoke passed
 
+
+## 2026-05-12
+
+Linked the demo CSS from the root page, redeployed the demo, tested live signed agent publishing, documented the bundles/** grant-path rejection, and revoked temporary smoke agents.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/examples/hello-beta/scripts/app.js — demo page now links stylesheet
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/12/HOST-007-BETA-SMOKE-AUTH-CLEANUP--beta-smoke-and-oidc-access-token-cleanup/reference/01-investigation-diary.md — agent publishing smoke details
+
