@@ -1,0 +1,5 @@
+.agents-page { display: grid; gap: 1rem; }
+.agents-page h1, .agents-page h2, .agents-page p { margin: 0; }
+.agents-page__notice, .agents-page__create { display: grid; gap: 0.75rem; }
+.agents-page__create form { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.agents-page__create input { flex: 1 1 16rem; font-family: var(--hc-font-family); border: 1px solid var(--hc-color-border); background: var(--hc-color-bg); color: var(--hc-color-fg); padding: 0.4rem; }

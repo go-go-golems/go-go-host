@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type { Agent, AuditEvent, ConfigResponse, CreateOrgRequest, CreateSiteRequest, Deployment, MeResponse, Org, RuntimeStatus, Site, UploadDeploymentResponse } from './types';
+import type { Agent, AuditEvent, ConfigResponse, CreateAgentRequest, CreateOrgRequest, CreateSiteRequest, Deployment, MeResponse, Org, RevokeAgentRequest, RuntimeStatus, Site, UploadDeploymentResponse } from './types';
 
 export interface UploadDeploymentRequest { siteId: string; file: File; message?: string; channel?: string; }
 
@@ -47,12 +47,20 @@ export const goGoHostApi = createApi({
       query: (siteId) => ({ url: `/sites/${siteId}/rollback`, method: 'POST' }),
       invalidatesTags: (r, _e, siteId) => [{ type: 'Deployment', id: `SITE:${siteId}` }, { type: 'Runtime', id: siteId }, { type: 'Deployment', id: r?.id ?? 'unknown' }],
     }),
-    listAgents: build.query<Agent[], string>({ query: (orgId) => `/orgs/${orgId}/agents`, providesTags: ['Agent'] }),
-    listAudit: build.query<AuditEvent[], { orgId: string; action?: string; limit?: number }>({
+    listAgents: build.query<Agent[], string>({ query: (orgId) => `/orgs/${orgId}/agents`, providesTags: (_r, _e, orgId) => [{ type: 'Agent', id: `ORG:${orgId}` }] }),
+    createAgent: build.mutation<Agent, CreateAgentRequest>({
+      query: ({ orgId, name }) => ({ url: `/orgs/${orgId}/agents`, method: 'POST', body: { name } }),
+      invalidatesTags: (_r, _e, { orgId }) => [{ type: 'Agent', id: `ORG:${orgId}` }, 'Audit'],
+    }),
+    revokeAgent: build.mutation<{ status: string; agentId: string }, RevokeAgentRequest>({
+      query: ({ orgId, agentId }) => ({ url: `/orgs/${orgId}/agents/${agentId}/revoke`, method: 'POST' }),
+      invalidatesTags: (_r, _e, { orgId }) => [{ type: 'Agent', id: `ORG:${orgId}` }, 'Audit'],
+    }),
+    listAudit: build.query<AuditEvent[], { orgId: string; action?: string; actorType?: string; actorId?: string; resourceId?: string; limit?: number }>({
       query: ({ orgId, ...params }) => ({ url: `/orgs/${orgId}/audit`, params }),
       providesTags: ['Audit'],
     }),
   }),
 });
 
-export const { useGetConfigQuery, useGetMeQuery, useCreateOrgMutation, useListSitesQuery, useCreateSiteMutation, useGetRuntimeQuery, useListDeploymentsQuery, useGetDeploymentQuery, useUploadDeploymentMutation, useActivateDeploymentMutation, useRollbackDeploymentMutation, useListAgentsQuery, useListAuditQuery } = goGoHostApi;
+export const { useGetConfigQuery, useGetMeQuery, useCreateOrgMutation, useListSitesQuery, useCreateSiteMutation, useGetRuntimeQuery, useListDeploymentsQuery, useGetDeploymentQuery, useUploadDeploymentMutation, useActivateDeploymentMutation, useRollbackDeploymentMutation, useListAgentsQuery, useCreateAgentMutation, useRevokeAgentMutation, useListAuditQuery } = goGoHostApi;

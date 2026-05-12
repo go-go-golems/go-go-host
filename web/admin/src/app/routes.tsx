@@ -9,6 +9,8 @@ import { SiteOverviewPage } from '../pages/SiteOverviewPage';
 import { RuntimePage } from '../pages/RuntimePage';
 import { DeploymentsPage } from '../pages/DeploymentsPage';
 import { DeploymentDetailPage } from '../pages/DeploymentDetailPage';
+import { AgentsPage } from '../pages/AgentsPage';
+import { AuditPage } from '../pages/AuditPage';
 
 export const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/app" replace /> },
@@ -23,7 +25,7 @@ export const router = createBrowserRouter([
       { path: 'deployments', element: <DeploymentsPage /> },
       { path: 'deployments/:deploymentId', element: <DeploymentDetailPage /> },
     ] },
-    { path: 'agents', element: <div className="dashboard-panel"><h1>Agents</h1><p>Agents page wiring comes next.</p></div> },
-    { path: 'audit', element: <div className="dashboard-panel"><h1>Audit</h1><p>Audit page wiring comes next.</p></div> },
+    { path: 'agents', element: <AgentsPage /> },
+    { path: 'audit', element: <AuditPage /> },
   ] },
 ]);

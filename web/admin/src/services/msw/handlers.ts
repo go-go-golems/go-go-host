@@ -22,5 +22,16 @@ export const handlers = [
   http.post('/api/v1/deployments/:deploymentId/activate', ({ params }) => HttpResponse.json({ ...fixtures.deployments[0], id: String(params.deploymentId), status: 'active' })),
   http.post('/api/v1/sites/:siteId/rollback', () => HttpResponse.json({ ...fixtures.deployments[1], status: 'active' })), 
   http.get('/api/v1/orgs/:orgId/agents', () => HttpResponse.json(fixtures.agents)),
-  http.get('/api/v1/orgs/:orgId/audit', () => HttpResponse.json(fixtures.audit)),
+  http.post('/api/v1/orgs/:orgId/agents', async ({ params, request }) => {
+    const body = await request.json() as { name?: string };
+    if (!body.name) return HttpResponse.json({ error: 'name is required' }, { status: 400 });
+    return HttpResponse.json({ id: `agt_${body.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}`, orgId: String(params.orgId), name: body.name, status: 'active', createdByUserId: 'usr_123', createdAt: new Date('2026-05-11T23:30:00Z').toISOString() }, { status: 201 });
+  }),
+  http.post('/api/v1/orgs/:orgId/agents/:agentId/revoke', ({ params }) => HttpResponse.json({ status: 'revoked', agentId: String(params.agentId) })),
+  http.get('/api/v1/orgs/:orgId/audit', ({ request }) => {
+    const url = new URL(request.url);
+    const action = url.searchParams.get('action');
+    const events = action ? fixtures.audit.filter((event) => event.action.includes(action)) : fixtures.audit;
+    return HttpResponse.json(events);
+  }),
 ];

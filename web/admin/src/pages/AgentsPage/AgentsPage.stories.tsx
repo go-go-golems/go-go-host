@@ -1,0 +1,12 @@
+import type { Meta, StoryObj } from '@storybook/react';
+import { http, HttpResponse } from 'msw';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { userEvent, within, expect } from '@storybook/test';
+import { AgentsPage } from './AgentsPage';
+const Wrapped = () => <MemoryRouter initialEntries={['/app/orgs/org_123/agents']}><Routes><Route path="/app/orgs/:orgId/agents" element={<AgentsPage />} /></Routes></MemoryRouter>;
+const meta = { title: 'Pages/AgentsPage', component: Wrapped } satisfies Meta<typeof Wrapped>;
+export default meta; type Story = StoryObj<typeof meta>;
+export const Populated: Story = {};
+export const Empty: Story = { parameters: { msw: { handlers: [http.get('/api/v1/orgs/:orgId/agents', () => HttpResponse.json([]))] } } };
+export const CreateSuccess: Story = { play: async ({ canvasElement }) => { const canvas = within(canvasElement); await userEvent.type(canvas.getByLabelText('Agent name'), 'release-bot'); await userEvent.click(canvas.getByRole('button', { name: 'Create agent' })); await expect(await canvas.findByText('release-bot')).toBeInTheDocument(); } };
+export const CreateError: Story = { parameters: { msw: { handlers: [http.post('/api/v1/orgs/:orgId/agents', () => HttpResponse.json({ error: 'permission denied' }, { status: 403 }))] } }, play: async ({ canvasElement }) => { const canvas = within(canvasElement); await userEvent.type(canvas.getByLabelText('Agent name'), 'blocked-bot'); await userEvent.click(canvas.getByRole('button', { name: 'Create agent' })); await expect(await canvas.findByText('Unable to create agent')).toBeInTheDocument(); } };

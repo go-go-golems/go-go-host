@@ -718,3 +718,66 @@ devctl status --tail-lines 8
 ```
 
 The daemon has been restarted, so the same uploaded bundle should now validate correctly.
+
+## Step 12: Added Phase 9 agents and audit pages
+
+After confirming the upload fix worked, I continued implementation work by exposing the initial agent and audit APIs in the dashboard.
+
+### Prompt Context
+
+**User prompt (verbatim):** "ok, it works. Continue with implementation work"
+
+**Assistant interpretation:** Continue after the fixed real deployment workflow, moving to the next dashboard phase: agent and audit pages.
+
+### What I did
+
+- Added service types for agent create/revoke requests.
+- Added RTK Query endpoints:
+  - `createAgent` -> `POST /api/v1/orgs/{org_id}/agents`,
+  - `revokeAgent` -> `POST /api/v1/orgs/{org_id}/agents/{agent_id}/revoke`,
+  - expanded audit filters for action, actor type, actor ID, and resource ID.
+- Added MSW handlers for agent create, agent revoke, and filtered audit list.
+- Added `AgentsPage`:
+  - preview notice that enrollment keys/grants/deploy-run tokens are pending,
+  - create-agent form,
+  - agents table,
+  - confirmation-gated revoke,
+  - empty/error states.
+- Added `AuditPage`:
+  - action and actor-type filters,
+  - filters preserved in URL query params,
+  - audit timeline with selected metadata display,
+  - empty/error states.
+- Wired `/app/orgs/:orgId/agents` and `/app/orgs/:orgId/audit` to the real pages.
+- Added Storybook page stories for populated, empty/error-ish, create success/error, selected metadata, and URL-filtered states.
+
+### Why
+
+The backend already exposes initial agent and audit APIs. Adding the pages makes the dashboard useful for inspecting who/what changed deployments and for creating/revoking initial automation identities without pretending that the future enrollment/grants flow is complete.
+
+### What worked
+
+- `make web-build` passes.
+- `make storybook-build` passes.
+
+### What didn't work
+
+- N/A.
+
+### What was tricky
+
+- Audit filters use backend snake_case query names (`actor_type`, `actor_id`, `resource_id`) while the frontend type uses camelCase. The RTK Query endpoint maps the currently used filters through request params; the page preserves visible filters in URL query params.
+
+### What warrants review
+
+- Revoke uses `window.confirm`; this should later become the themed confirmation dialog.
+- `AgentsTable` shows revoke actions, but real enrollment key/grant management still needs backend APIs before we can go deeper.
+
+### Validation
+
+Commands run:
+
+```bash
+make web-build
+make storybook-build
+```

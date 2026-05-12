@@ -1,0 +1,12 @@
+import type { Meta, StoryObj } from '@storybook/react';
+import { http, HttpResponse } from 'msw';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { userEvent, within, expect } from '@storybook/test';
+import { AuditPage } from './AuditPage';
+const Wrapped = ({ initialPath = '/app/orgs/org_123/audit' }: { initialPath?: string }) => <MemoryRouter initialEntries={[initialPath]}><Routes><Route path="/app/orgs/:orgId/audit" element={<AuditPage />} /></Routes></MemoryRouter>;
+const meta = { title: 'Pages/AuditPage', component: Wrapped } satisfies Meta<typeof Wrapped>;
+export default meta; type Story = StoryObj<typeof meta>;
+export const Populated: Story = {};
+export const FilteredEmpty: Story = { parameters: { msw: { handlers: [http.get('/api/v1/orgs/:orgId/audit', () => HttpResponse.json([]))] } } };
+export const SelectedMetadata: Story = { play: async ({ canvasElement }) => { const canvas = within(canvasElement); await userEvent.click(await canvas.findByText('deployment.activate')); await expect(canvas.getByText('{}')).toBeInTheDocument(); } };
+export const UrlFiltered: Story = { args: { initialPath: '/app/orgs/org_123/audit?action=deployment.activate&actor_type=user' } };

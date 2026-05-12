@@ -242,29 +242,29 @@ Exit criteria:
 
 Goal: expose the initial agent/audit APIs without overpromising future deploy-run features.
 
-- [ ] Create `pages/AgentsPage`.
+- [x] Create `pages/AgentsPage`.
 - [x] Create `organisms/AgentsTable`.
-- [ ] Wire `GET /api/v1/orgs/{org_id}/agents`.
-- [ ] Wire `POST /api/v1/orgs/{org_id}/agents`.
-- [ ] Wire `POST /api/v1/orgs/{org_id}/agents/{agent_id}/revoke`.
-- [ ] Add explicit preview notice for keys/grants/enrollment not yet implemented.
-- [ ] Create `pages/AuditPage`.
+- [x] Wire `GET /api/v1/orgs/{org_id}/agents`.
+- [x] Wire `POST /api/v1/orgs/{org_id}/agents`.
+- [x] Wire `POST /api/v1/orgs/{org_id}/agents/{agent_id}/revoke`.
+- [x] Add explicit preview notice for keys/grants/enrollment not yet implemented.
+- [x] Create `pages/AuditPage`.
 - [x] Create `organisms/AuditTimeline`.
-- [ ] Wire `GET /api/v1/orgs/{org_id}/audit` with query filters.
-- [ ] Preserve audit filters in URL query params.
+- [x] Wire `GET /api/v1/orgs/{org_id}/audit` with query filters.
+- [x] Preserve audit filters in URL query params.
 - [ ] Add Storybook stories:
-  - [ ] agents empty/populated,
-  - [ ] create agent success/error,
-  - [ ] revoke confirm/error,
-  - [ ] audit populated,
-  - [ ] audit filtered empty,
-  - [ ] audit selected metadata.
+  - [x] agents empty/populated,
+  - [x] create agent success/error,
+  - [x] revoke confirm/error,
+  - [x] audit populated,
+  - [x] audit filtered empty,
+  - [x] audit selected metadata.
 
 Exit criteria:
 
-- [ ] Agents can be listed and created from dashboard.
-- [ ] Agent revoke is confirmation-gated.
-- [ ] Audit list filters by action/actor/resource.
+- [x] Agents can be listed and created from dashboard.
+- [x] Agent revoke is confirmation-gated.
+- [x] Audit list filters by action/actor/resource.
 
 ## Phase 10: Usage and members placeholder pages
 

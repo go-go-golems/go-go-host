@@ -104,3 +104,12 @@ Fixed deployment bundle validation for tar archives whose entries are prefixed w
 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/deploy/bundle.go — Normalize archive entry names before manifest detection
 
+
+## 2026-05-11
+
+Added Phase 9 dashboard pages for agents and audit, including create/revoke agent mutations, audit filters in URL query params, MSW handlers, and Storybook states.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/AgentsPage/AgentsPage.tsx — Agents page API wiring
+
