@@ -19,10 +19,10 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:26.0
     container_name: go-go-host-keycloak
-    command: ["start-dev"]
+    command: ["start-dev", "--import-realm"]
     environment:
       KC_DB: postgres
-      KC_DB_URL_HOST: postgres
+      KC_DB_URL_HOST: keycloak-postgres
       KC_DB_URL_DATABASE: keycloak
       KC_DB_USERNAME: keycloak
       KC_DB_PASSWORD: keycloak_dev
@@ -30,6 +30,8 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: admin
     ports:
       - "18080:8080"
+    volumes:
+      - ./keycloak/realm-go-go-host.json:/opt/keycloak/data/import/realm-go-go-host.json:ro
     depends_on:
       keycloak-postgres:
         condition: service_healthy

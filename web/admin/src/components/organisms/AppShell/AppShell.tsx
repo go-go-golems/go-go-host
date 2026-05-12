@@ -11,9 +11,10 @@ export interface AppShellProps {
   sidebar?: ReactNode;
   children: ReactNode;
   onOrgSelect?: (orgId: string) => void;
+  onLogout?: () => void;
 }
 
-export function AppShell({ memberships, selectedOrgId, userLabel, devAuth, sidebar, children, onOrgSelect }: AppShellProps) {
+export function AppShell({ memberships, selectedOrgId, userLabel, devAuth, sidebar, children, onOrgSelect, onLogout }: AppShellProps) {
   return (
     <div className="app-shell" data-part="app-shell">
       <header className="app-shell__menubar" data-part="menubar">
@@ -22,6 +23,7 @@ export function AppShell({ memberships, selectedOrgId, userLabel, devAuth, sideb
         <span className="app-shell__spacer" />
         {devAuth ? <span className="app-shell__badge">Dev auth ON</span> : null}
         <span>{userLabel}</span>
+        {onLogout ? <button type="button" data-part="btn" onClick={onLogout}>Sign out</button> : null}
       </header>
       <div className="app-shell__body">
         {sidebar ? <aside className="app-shell__sidebar">{sidebar}</aside> : null}

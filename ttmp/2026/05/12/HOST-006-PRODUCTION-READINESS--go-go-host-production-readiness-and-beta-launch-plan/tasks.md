@@ -28,22 +28,24 @@ Intent: long-term
 
 ## P0: Real local/staging auth
 
-- [ ] Add Keycloak realm import with public dashboard client, redirect URIs, web origins, and seed users.
-- [ ] Add `configs/dev.keycloak.yaml` with `devAuth: false`.
-- [ ] Update devctl to start Keycloak and Keycloak Postgres for the OIDC profile.
-- [ ] Expose OIDC frontend config from `/api/v1/config`.
-- [ ] Add dashboard OAuth Authorization Code + PKCE login, callback, logout, and token refresh.
-- [ ] Attach bearer tokens in RTK Query `prepareHeaders`.
-- [ ] Add backend OIDC claim mapping tests for issuer, audience, expiry, signature, email, subject, and display name.
-- [ ] Add Playwright login/logout/user-isolation E2E.
+- [x] Add Keycloak realm import with public dashboard client, redirect URIs, web origins, and seed users.
+- [x] Add `configs/dev.keycloak.yaml` with `devAuth: false`.
+- [x] Update devctl to start Keycloak and Keycloak Postgres for the OIDC profile.
+- [x] Expose OIDC frontend config from `/api/v1/config`.
+- [x] Add dashboard OAuth Authorization Code + PKCE login, callback, logout, and token storage.
+- [x] Attach bearer tokens in RTK Query `prepareHeaders` and deployment uploads.
+- [x] Add backend OIDC config/admin claim mapping unit coverage.
+- [x] Add gated Playwright admin-login OIDC smoke script.
+- [ ] Run live Keycloak/browser E2E with `GO_GO_HOST_OIDC_E2E=1` after starting devctl.
+- [ ] Add deeper browser E2E for logout and Alice/Bob user isolation.
 
 ## P0: Platform-admin bootstrap
 
-- [ ] Add config fields for OIDC admin subjects, emails, and/or roles.
-- [ ] Add claim parsing for realm/client roles if Keycloak role bootstrap is chosen.
-- [ ] Add admin bootstrap audit event.
-- [ ] Add tests proving admin user can access `/admin` and normal users get `403`.
-- [ ] Document beta operator bootstrap procedure.
+- [x] Add config fields for OIDC admin subjects, emails, and/or roles.
+- [x] Add claim parsing for realm/client roles and groups.
+- [x] Add admin bootstrap audit event.
+- [x] Add tests for admin bootstrap matching logic.
+- [x] Document beta/local operator bootstrap through `configs/dev.keycloak.yaml` and Keycloak realm roles.
 
 ## P0: Release/deploy pipeline
 

@@ -15,14 +15,22 @@ Owners: []
 RelatedFiles:
     - Path: Dockerfile
       Note: current production container recipe
+    - Path: configs/dev.keycloak.yaml
+      Note: Phase 1 local OIDC daemon configuration
     - Path: deployments/dev/docker-compose.yaml
       Note: Keycloak service exists but needs realm/bootstrap integration
+    - Path: deployments/dev/keycloak/realm-go-go-host.json
+      Note: Phase 1 local Keycloak realm
     - Path: internal/control/maintenance.go
       Note: maintenance export/prune/audit-retention capabilities
     - Path: internal/httpapi/auth.go
       Note: dev-auth vs OIDC authentication switch and dev platform-admin seeding evidence
+    - Path: internal/httpapi/config_test.go
+      Note: Phase 1 config API OIDC test
     - Path: internal/httpapi/oidc.go
       Note: current backend OIDC bearer-token verifier
+    - Path: internal/httpapi/oidc_bootstrap_test.go
+      Note: Phase 1 platform-admin bootstrap matching tests
     - Path: internal/httpapi/site_settings.go
       Note: site config/domain/capability APIs and secrets placeholder
     - Path: internal/runtime/runtime.go
@@ -31,6 +39,10 @@ RelatedFiles:
       Note: devctl currently starts Postgres and dev-auth daemon
     - Path: scripts/final-e2e-playwright.mjs
       Note: gated E2E smoke script needing CI/productization
+    - Path: web/admin/src/auth/oidc.ts
+      Note: Phase 1 browser PKCE login
+    - Path: web/admin/src/pages/AuthCallbackPage/AuthCallbackPage.tsx
+      Note: Phase 1 OIDC callback page
     - Path: web/admin/src/services/goGoHostApi.ts
       Note: frontend RTK Query currently lacks bearer-token attachment
 ExternalSources: []
@@ -39,6 +51,7 @@ LastUpdated: 2026-05-12T13:14:11.750159577-04:00
 WhatFor: Use this as the implementation guide for the beta/production readiness push.
 WhenToUse: When planning, reviewing, or implementing the missing pieces needed to run go-go-host for real beta users.
 ---
+
 
 
 # go-go-host production readiness and beta launch implementation guide

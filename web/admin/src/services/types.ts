@@ -2,7 +2,8 @@ export type Role = 'org_owner' | 'org_developer' | 'org_viewer';
 export type DeploymentStatus = 'uploaded' | 'validated' | 'rejected' | 'active' | 'superseded';
 export type RuntimeState = 'starting' | 'ready' | 'failed' | 'stopped' | 'draining';
 
-export interface ConfigResponse { baseDomain: string; publicBaseUrl: string; devAuth: boolean; }
+export interface OIDCConfig { issuer: string; clientId: string; scopes?: string[]; redirectPath?: string; logoutRedirectPath?: string; }
+export interface ConfigResponse { baseDomain: string; publicBaseUrl: string; devAuth: boolean; oidc?: OIDCConfig; }
 export interface User { id: string; email: string; displayName: string; }
 export interface Membership { orgId: string; orgSlug: string; orgName: string; role: Role; }
 export interface MeResponse { user: User; memberships: Membership[]; platformAdmin: boolean; }

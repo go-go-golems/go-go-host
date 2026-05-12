@@ -123,3 +123,30 @@ nl -ba plugins/go-go-host-devctl.py | sed -n '1,150p'
 nl -ba internal/runtime/runtime.go | sed -n '1,130p'
 nl -ba internal/control/maintenance.go | sed -n '1,240p'
 ```
+
+## Step 2: Phase 1 implementation — local Keycloak/OIDC browser login
+
+I implemented the first production-readiness phase so the local stack can exercise the same browser authentication path intended for beta: Keycloak realm import, OIDC daemon config, devctl startup changes, dashboard PKCE login/callback/logout, bearer-token attachment, and OIDC platform-admin bootstrap.
+
+### What changed
+
+- Added `deployments/dev/keycloak/realm-go-go-host.json` with local users `alice`, `bob`, and `platform-admin`, a public PKCE client `go-go-host-dashboard`, and a `go-go-host-admin` realm role.
+- Added `configs/dev.keycloak.yaml` and corrected `configs/dev.postgres-keycloak.yaml` to run with `devAuth: false`.
+- Updated `deployments/dev/docker-compose.yaml` so Keycloak imports the realm and uses the `keycloak-postgres` service.
+- Updated `plugins/go-go-host-devctl.py` so the launch plan starts Keycloak and runs `go-go-hostd` with the Keycloak config.
+- Extended daemon config and `/api/v1/config` with OIDC browser-login metadata.
+- Added production-safe platform-admin bootstrap knobs: OIDC subjects, emails, and roles/groups/client roles.
+- Added dashboard OIDC PKCE helpers, callback route, token storage, logout, and Authorization headers for RTK Query plus deployment uploads.
+- Added a gated Playwright smoke script: `GO_GO_HOST_OIDC_E2E=1 node scripts/oidc-login-playwright.mjs`.
+- Rebuilt embedded dashboard assets.
+
+### Validation
+
+- `go test ./...`
+- `pnpm --dir web/admin build`
+- `node --check scripts/oidc-login-playwright.mjs`
+- `BUILD_WEB_LOCAL=1 go run ./cmd/build-web`
+
+### Notes
+
+I did not run the live browser Keycloak smoke in this step because it requires starting the full devctl stack and Playwright browser runtime. The script is checked in and gated for that follow-up.

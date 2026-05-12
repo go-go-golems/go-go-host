@@ -48,6 +48,8 @@ for line in sys.stdin:
                 "services.go-go-hostd.url": "http://127.0.0.1:8080",
                 "services.storybook.port": 6007,
                 "services.storybook.url": "http://127.0.0.1:6007",
+                "services.keycloak.port": 18080,
+                "services.keycloak.url": "http://127.0.0.1:18080/realms/go-go-host",
                 "services.web-admin.port": 5173,
                 "services.web-admin.url": "http://127.0.0.1:5173",
                 "services.web.port": 5173,
@@ -68,6 +70,7 @@ for line in sys.stdin:
         emit({"type": "response", "request_id": rid, "ok": True, "output": {"valid": len(errors) == 0, "errors": errors, "warnings": warnings}})
     elif op == "launch.plan":
         wait_for_pg = "python3 - <<'PY'\nimport socket, time\nfor _ in range(120):\n    try:\n        with socket.create_connection(('127.0.0.1', 55432), timeout=1):\n            raise SystemExit(0)\n    except OSError:\n        time.sleep(1)\nraise SystemExit('Postgres did not become reachable on 127.0.0.1:55432')\nPY"
+        wait_for_keycloak = "python3 - <<'PY'\nimport json, time, urllib.request\nurl = 'http://127.0.0.1:18080/realms/go-go-host/.well-known/openid-configuration'\nfor _ in range(180):\n    try:\n        with urllib.request.urlopen(url, timeout=2) as r:\n            data = json.load(r)\n            if data.get('issuer'):\n                raise SystemExit(0)\n    except Exception:\n        time.sleep(1)\nraise SystemExit('Keycloak realm did not become reachable on 127.0.0.1:18080')\nPY"
         emit({
             "type": "response",
             "request_id": rid,
@@ -78,9 +81,14 @@ for line in sys.stdin:
                     "command": ["bash", "--noprofile", "--norc", "-lc", "exec docker compose -f deployments/dev/docker-compose.yaml up postgres"],
                 },
                 {
+                    "name": "keycloak",
+                    "command": ["bash", "--noprofile", "--norc", "-lc", "exec docker compose -f deployments/dev/docker-compose.yaml up keycloak"],
+                    "health": {"type": "http", "url": "http://127.0.0.1:18080/realms/go-go-host/.well-known/openid-configuration", "interval_ms": 1000, "timeout_ms": 2000},
+                },
+                {
                     "name": "go-go-hostd",
-                    "command": ["bash", "--noprofile", "--norc", "-lc", wait_for_pg + "\nexec go run ./cmd/go-go-hostd --config configs/dev.yaml"],
-                    "env": {"GO_GO_HOST_CONFIG": "configs/dev.yaml"},
+                    "command": ["bash", "--noprofile", "--norc", "-lc", wait_for_pg + "\n" + wait_for_keycloak + "\nexec go run ./cmd/go-go-hostd --config configs/dev.keycloak.yaml"],
+                    "env": {"GO_GO_HOST_CONFIG": "configs/dev.keycloak.yaml"},
                     "health": {"type": "http", "url": "http://127.0.0.1:8080/healthz", "interval_ms": 1000, "timeout_ms": 1000},
                 },
                 {

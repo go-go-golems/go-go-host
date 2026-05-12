@@ -1,11 +1,21 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { bearerToken } from '../auth/oidc';
 import type { AddSiteDomainRequest, AdminAgent, AdminCapability, AdminDeployment, AdminDomain, AdminOrg, AdminQuota, AdminRuntimeSummary, AdminSite, AdminUser, Agent, AgentKey, AuditEvent, ConfigResponse, CreateAgentEnrollmentTokenRequest, CreateAgentEnrollmentTokenResponse, CreateAgentRequest, CreateAgentResponse, CreateOrgRequest, CreateSiteRequest, DeleteSiteConfigRequest, DeleteSiteDomainRequest, Deployment, MeResponse, Org, RevokeAgentKeyRequest, RevokeAgentRequest, RuntimeStatus, Site, SiteCapability, SiteConfigItem, SiteDomain, SiteEnvironmentPlaceholder, UploadDeploymentResponse, UpsertSiteCapabilityRequest, UpsertSiteConfigRequest, VerifySiteDomainRequest } from './types';
 
 export interface UploadDeploymentRequest { siteId: string; file: File; message?: string; channel?: string; }
 
+const baseQuery = fetchBaseQuery({
+  baseUrl: '/api/v1',
+  prepareHeaders: (headers) => {
+    const token = bearerToken();
+    if (token) headers.set('Authorization', `Bearer ${token}`);
+    return headers;
+  },
+});
+
 export const goGoHostApi = createApi({
   reducerPath: 'goGoHostApi',
-  baseQuery: fetchBaseQuery({ baseUrl: '/api/v1' }),
+  baseQuery,
   tagTypes: ['Me', 'Org', 'Site', 'Deployment', 'Runtime', 'AdminRuntime', 'AdminInventory', 'Agent', 'Audit', 'Config'],
   endpoints: (build) => ({
     getConfig: build.query<ConfigResponse, void>({ query: () => '/config', providesTags: ['Config'] }),
@@ -85,7 +95,10 @@ export const goGoHostApi = createApi({
         if (message) form.append('message', message);
         if (channel) form.append('channel', channel);
         try {
-          const response = await fetch(`/api/v1/sites/${siteId}/deployments`, { method: 'POST', body: form });
+          const headers: Record<string, string> = {};
+          const token = bearerToken();
+          if (token) headers.Authorization = `Bearer ${token}`;
+          const response = await fetch(`/api/v1/sites/${siteId}/deployments`, { method: 'POST', headers, body: form });
           const data = await response.json();
           if (!response.ok && !(data && data.deployment && data.report)) return { error: { status: response.status, data } };
           return { data: data as UploadDeploymentResponse };

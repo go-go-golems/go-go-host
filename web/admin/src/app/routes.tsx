@@ -27,9 +27,11 @@ import { AdminAuditPage } from '../pages/AdminAuditPage';
 import { AdminQuotasPage } from '../pages/AdminQuotasPage';
 import { AdminCapabilitiesPage } from '../pages/AdminCapabilitiesPage';
 import { AdminDomainsPage } from '../pages/AdminDomainsPage';
+import { AuthCallbackPage } from '../pages/AuthCallbackPage';
 
 export const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/app" replace /> },
+  { path: '/app/auth/callback', element: <AuthCallbackPage /> },
   { path: '/app', element: <RequireSession><OrgRedirectOrOnboarding /></RequireSession> },
   { path: '/admin', element: <RequireSession><RequirePlatformAdmin><AdminLayout /></RequirePlatformAdmin></RequireSession>, children: [
     { index: true, element: <Navigate to="overview" replace /> },

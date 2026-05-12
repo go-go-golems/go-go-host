@@ -23,11 +23,21 @@ func NewHandler(core *control.Core) http.Handler {
 	mux.Handle("/admin", http.StripPrefix("/admin", webadmin.NewPlaceholderHandler()))
 	mux.Handle("/admin/", http.StripPrefix("/admin", webadmin.NewPlaceholderHandler()))
 	mux.HandleFunc("GET /api/v1/config", func(w http.ResponseWriter, _ *http.Request) {
-		writeJSON(w, http.StatusOK, map[string]any{
+		response := map[string]any{
 			"baseDomain":    core.Config.BaseDomain,
 			"publicBaseUrl": core.Config.PublicBaseURL,
 			"devAuth":       core.Config.DevAuth,
-		})
+		}
+		if !core.Config.DevAuth && core.Config.OIDCIssuer != "" && core.Config.OIDCClientID != "" {
+			response["oidc"] = map[string]any{
+				"issuer":             core.Config.OIDCIssuer,
+				"clientId":           core.Config.OIDCClientID,
+				"scopes":             core.Config.OIDCScopes,
+				"redirectPath":       core.Config.OIDCRedirectPath,
+				"logoutRedirectPath": core.Config.OIDCLogoutRedirectPath,
+			}
+		}
+		writeJSON(w, http.StatusOK, response)
 	})
 
 	api := http.NewServeMux()

@@ -14,19 +14,25 @@ import (
 // Config contains daemon settings used by the phase-0 skeleton. Later phases
 // will extend this with database, OIDC, runtime, and quota settings.
 type Config struct {
-	ListenAddr               string        `json:"listenAddr" yaml:"listenAddr"`
-	PublicBaseURL            string        `json:"publicBaseUrl" yaml:"publicBaseUrl"`
-	BaseDomain               string        `json:"baseDomain" yaml:"baseDomain"`
-	DataDir                  string        `json:"dataDir" yaml:"dataDir"`
-	ControlDBDSN             string        `json:"controlDbDsn" yaml:"controlDbDsn"`
-	OIDCIssuer               string        `json:"oidcIssuer" yaml:"oidcIssuer"`
-	OIDCClientID             string        `json:"oidcClientId" yaml:"oidcClientId"`
-	DevAuth                  bool          `json:"devAuth" yaml:"devAuth"`
-	DevPlatformAdminSubjects []string      `json:"devPlatformAdminSubjects" yaml:"devPlatformAdminSubjects"`
-	LogLevel                 string        `json:"logLevel" yaml:"logLevel"`
-	ReadTimeout              time.Duration `json:"readTimeout" yaml:"readTimeout"`
-	WriteTimeout             time.Duration `json:"writeTimeout" yaml:"writeTimeout"`
-	ShutdownTimeout          time.Duration `json:"shutdownTimeout" yaml:"shutdownTimeout"`
+	ListenAddr                string        `json:"listenAddr" yaml:"listenAddr"`
+	PublicBaseURL             string        `json:"publicBaseUrl" yaml:"publicBaseUrl"`
+	BaseDomain                string        `json:"baseDomain" yaml:"baseDomain"`
+	DataDir                   string        `json:"dataDir" yaml:"dataDir"`
+	ControlDBDSN              string        `json:"controlDbDsn" yaml:"controlDbDsn"`
+	OIDCIssuer                string        `json:"oidcIssuer" yaml:"oidcIssuer"`
+	OIDCClientID              string        `json:"oidcClientId" yaml:"oidcClientId"`
+	OIDCScopes                []string      `json:"oidcScopes" yaml:"oidcScopes"`
+	OIDCRedirectPath          string        `json:"oidcRedirectPath" yaml:"oidcRedirectPath"`
+	OIDCLogoutRedirectPath    string        `json:"oidcLogoutRedirectPath" yaml:"oidcLogoutRedirectPath"`
+	DevAuth                   bool          `json:"devAuth" yaml:"devAuth"`
+	DevPlatformAdminSubjects  []string      `json:"devPlatformAdminSubjects" yaml:"devPlatformAdminSubjects"`
+	PlatformAdminOIDCSubjects []string      `json:"platformAdminOIDCSubjects" yaml:"platformAdminOIDCSubjects"`
+	PlatformAdminEmails       []string      `json:"platformAdminEmails" yaml:"platformAdminEmails"`
+	PlatformAdminOIDCRoles    []string      `json:"platformAdminOIDCRoles" yaml:"platformAdminOIDCRoles"`
+	LogLevel                  string        `json:"logLevel" yaml:"logLevel"`
+	ReadTimeout               time.Duration `json:"readTimeout" yaml:"readTimeout"`
+	WriteTimeout              time.Duration `json:"writeTimeout" yaml:"writeTimeout"`
+	ShutdownTimeout           time.Duration `json:"shutdownTimeout" yaml:"shutdownTimeout"`
 }
 
 // Default returns a local-development configuration.
@@ -37,6 +43,9 @@ func Default() Config {
 		BaseDomain:               "localhost",
 		DataDir:                  "./data",
 		ControlDBDSN:             "postgres://go_go_host:go_go_host_dev@127.0.0.1:55432/go_go_host?sslmode=disable",
+		OIDCScopes:               []string{"openid", "profile", "email"},
+		OIDCRedirectPath:         "/app/auth/callback",
+		OIDCLogoutRedirectPath:   "/app",
 		DevAuth:                  true,
 		DevPlatformAdminSubjects: []string{"dev-user"},
 		LogLevel:                 "info",
@@ -87,6 +96,15 @@ func (c *Config) ApplyDefaults() {
 	}
 	if c.ControlDBDSN == "" {
 		c.ControlDBDSN = defaults.ControlDBDSN
+	}
+	if len(c.OIDCScopes) == 0 {
+		c.OIDCScopes = defaults.OIDCScopes
+	}
+	if c.OIDCRedirectPath == "" {
+		c.OIDCRedirectPath = defaults.OIDCRedirectPath
+	}
+	if c.OIDCLogoutRedirectPath == "" {
+		c.OIDCLogoutRedirectPath = defaults.OIDCLogoutRedirectPath
 	}
 	if c.LogLevel == "" {
 		c.LogLevel = defaults.LogLevel

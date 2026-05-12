@@ -22,9 +22,20 @@ type oidcAuthenticator struct {
 }
 
 type oidcClaims struct {
-	Email             string `json:"email"`
-	PreferredUsername string `json:"preferred_username"`
-	Name              string `json:"name"`
+	Email             string                           `json:"email"`
+	PreferredUsername string                           `json:"preferred_username"`
+	Name              string                           `json:"name"`
+	RealmAccess       oidcRoleClaim                    `json:"realm_access"`
+	ResourceAccess    map[string]oidcResourceRoleClaim `json:"resource_access"`
+	Groups            []string                         `json:"groups"`
+}
+
+type oidcRoleClaim struct {
+	Roles []string `json:"roles"`
+}
+
+type oidcResourceRoleClaim struct {
+	Roles []string `json:"roles"`
 }
 
 func (a *oidcAuthenticator) authenticate(r *http.Request) (*store.User, error) {
@@ -59,7 +70,70 @@ func (a *oidcAuthenticator) authenticate(r *http.Request) (*store.User, error) {
 	if displayName == "" {
 		displayName = idToken.Subject
 	}
-	return a.st.UpsertUserFromOIDC(r.Context(), issuer, idToken.Subject, claims.Email, displayName)
+	user, err := a.st.UpsertUserFromOIDC(r.Context(), issuer, idToken.Subject, claims.Email, displayName)
+	if err != nil {
+		return nil, err
+	}
+	if shouldBootstrapPlatformAdmin(a.cfg, idToken.Subject, claims) {
+		alreadyAdmin, err := a.st.IsPlatformAdmin(r.Context(), user.ID)
+		if err != nil {
+			return nil, err
+		}
+		if err := a.st.AddPlatformAdmin(r.Context(), user.ID); err != nil {
+			return nil, err
+		}
+		if !alreadyAdmin {
+			_, err := a.st.InsertAuditEvent(r.Context(), store.AuditEvent{
+				OrgID:        "",
+				ActorType:    "system",
+				ActorID:      "oidc-bootstrap",
+				Action:       "platform_admin.bootstrap",
+				ResourceType: "user",
+				ResourceID:   user.ID,
+				IPAddress:    r.RemoteAddr,
+				UserAgent:    r.UserAgent(),
+				MetadataJSON: fmt.Sprintf(`{"issuer":%q,"subject":%q,"email":%q}`, issuer, idToken.Subject, claims.Email),
+			})
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	return user, nil
+}
+
+func shouldBootstrapPlatformAdmin(cfg config.Config, subject string, claims oidcClaims) bool {
+	for _, configured := range cfg.PlatformAdminOIDCSubjects {
+		if strings.EqualFold(strings.TrimSpace(configured), strings.TrimSpace(subject)) {
+			return true
+		}
+	}
+	for _, configured := range cfg.PlatformAdminEmails {
+		if strings.EqualFold(strings.TrimSpace(configured), strings.TrimSpace(claims.Email)) {
+			return true
+		}
+	}
+	if len(cfg.PlatformAdminOIDCRoles) == 0 {
+		return false
+	}
+	actualRoles := map[string]struct{}{}
+	for _, role := range claims.RealmAccess.Roles {
+		actualRoles[strings.TrimSpace(role)] = struct{}{}
+	}
+	for _, role := range claims.Groups {
+		actualRoles[strings.Trim(strings.TrimSpace(role), "/")] = struct{}{}
+	}
+	for _, resource := range claims.ResourceAccess {
+		for _, role := range resource.Roles {
+			actualRoles[strings.TrimSpace(role)] = struct{}{}
+		}
+	}
+	for _, configured := range cfg.PlatformAdminOIDCRoles {
+		if _, ok := actualRoles[strings.Trim(strings.TrimSpace(configured), "/")]; ok {
+			return true
+		}
+	}
+	return false
 }
 
 func (a *oidcAuthenticator) getVerifier(ctx context.Context, issuer, clientID string) (*oidc.IDTokenVerifier, error) {
