@@ -359,3 +359,15 @@ Completed Phase 12 maintenance and production hardening: export APIs/CLI, deploy
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/maintenance.go — Phase 12 maintenance HTTP endpoints
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/scripts/final-e2e-playwright.mjs — gated final browser/API/signed-agent smoke
 
+
+## 2026-05-12
+
+Added bundled textbook-style Glazed help entries for developers, hosted JavaScript API reference, and agent/operator deployment workflows.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/cmd/go-go-host-agent/doc/agent-guide.md — machine/CI agent guide
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/cmd/go-go-host/doc/agent-guide.md — human/operator agent guide
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/cmd/go-go-host/doc/developer-guide.md — developer tutorial bundled into go-go-host help
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/cmd/go-go-host/doc/js-api-reference.md — detailed hosted JS API reference
+

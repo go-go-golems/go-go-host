@@ -2985,3 +2985,103 @@ go run ./cmd/go-go-host maintenance export bundle --deployment-id DEP_ID --dev-u
 go run ./cmd/go-go-host maintenance prune-deployments --site-id SITE_ID --dev-user OWNER --older-than 30d --dry-run=false
 go run ./cmd/go-go-host maintenance audit-retention --dev-user dev-user --older-than 90d --dry-run=false
 ```
+
+## Step 29: Added bundled developer, JavaScript API, and agent guides
+
+I added the missing educational layer for app authors and deployment agents. The platform already had command help and agent quick-start pages, but developers needed a more complete path from "what is a bundle?" to "how do I build, deploy, debug, and operate a full app?" The new help entries are written in a textbook style: start with the mental model, ground it in runnable examples, then explain the reference details and failure modes.
+
+The key result is that the docs now travel with the binaries. A developer can run `go-go-host help developer-guide` and `go-go-host help js-api-reference`; an automation engineer can run `go-go-host-agent help agent-guide`. That makes the CLI itself a teaching surface rather than only a command surface.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Create a developer-guide and a js-api-reference and an agent-guide document that will allow a developer/agent to build and deploy full apps against the system, with examples and such. nAnd then a detailed js api reference for the actual in depth JS reference.
+
+Use a textbook writing style for the documents, to make them really nice (see docs). They shoul dbe bundled as glazed help entries into the relevant binaries)"
+
+**Assistant interpretation:** Add rich Glazed help pages to the human and agent CLIs, using textbook-style explanations and concrete examples, covering app development, the hosted JS APIs/DSLs, and machine-agent deployment workflows.
+
+**Inferred user intent:** Make the platform self-teaching for developers and CI agents so they can build and deploy real apps without reverse-engineering source code or relying on chat history.
+
+**Commit (docs):** f526c9f8da97f2734b55840df50898da1a46ee4e — "Add bundled developer and JS API guides"
+
+### What I did
+
+- Read the textbook-authoring and Glazed help page authoring skills before drafting.
+- Added `cmd/go-go-host/doc/developer-guide.md` as a top-level tutorial for bundle layout, site creation, deployment, activation, config, capabilities, operations, and debugging.
+- Added `cmd/go-go-host/doc/js-api-reference.md` as a detailed reference for manifest fields, `express`, request/response objects, `ui.dsl`, `database`/`db`, `db.guard`, capabilities, forbidden modules, and troubleshooting.
+- Added `cmd/go-go-host/doc/agent-guide.md` for human operators who create agents, grants, enrollment tokens, key rotation, and audit review.
+- Added `cmd/go-go-host-agent/doc/agent-guide.md` for machine/CI operators who run keygen, enroll, deploy, activate, rotate keys, and troubleshoot signed requests.
+- Replaced the older `agent-setup` preview page with a current short bridge to the new agent guides.
+- Verified the new pages are bundled and discoverable with:
+  - `go run ./cmd/go-go-host help developer-guide`,
+  - `go run ./cmd/go-go-host help js-api-reference`,
+  - `go run ./cmd/go-go-host help agent-guide`,
+  - `go run ./cmd/go-go-host-agent help agent-guide`.
+
+### Why
+
+- The code had a real hosted JS surface, but developers should not have to read Go source files to learn it.
+- The agent workflow is security-sensitive; it needs prose that explains why grants, keys, upload tokens, and activation are separated.
+- Glazed help entries are the right delivery mechanism because this is CLI-first developer/operator documentation.
+
+### What worked
+
+- The existing CLI roots already load embedded docs via `doc.AddDocToHelpSystem`, so adding Markdown files was enough to bundle the new help entries.
+- The Glazed help renderer successfully rendered the long-form pages with tables, code blocks, and section structure.
+- Existing `go test ./cmd/go-go-host ./cmd/go-go-host-agent` passed after adding the docs.
+
+### What didn't work
+
+- No code failures occurred in this doc slice. I did notice unrelated dirty files in `cmd/go-go-host*/cmds/support.go` and an untracked `HOST-005-E2E-FIXES` ticket workspace; I left them out of this commit because they were not part of the requested documentation change.
+
+### What I learned
+
+- The old `agent-setup` page still described agent commands as deferred even though Phase 9/10 implemented them. Updating that page was necessary to avoid contradicting the new guides.
+- The JS API reference needs to be both tutorial and contract. It should say what is supported, but it should also explicitly say what is not supported so app authors do not infer unsafe capabilities.
+
+### What was tricky to build
+
+- The docs needed to be thorough without inventing APIs. I grounded the JS API reference in the current runtime modules: `express`, `ui.dsl`/`ui`, `database`/`db`, `db.guard`, request/response DTOs, and manifest validation.
+- The agent story has two audiences. Human operators create grants and tokens; machines hold keys and sign deploys. I split the docs between the human CLI and agent CLI so each binary teaches the workflow from its own point of view.
+
+### What warrants a second pair of eyes
+
+- Review the `db.guard.configure` wording. The function exists, but the docs intentionally discourage treating app-level guard reconfiguration as the normal app contract.
+- Review whether the JS API reference should include every go-go-goja utility function from `time`, `timer`, and `path`, or keep those as high-level utility modules until their upstream docs are linked.
+- Review the examples against a live devctl stack to ensure copy/paste commands remain exact as CLI flags evolve.
+
+### What should be done in the future
+
+- Add a `go-go-host site template` or `go-go-host bundle init` command to generate the documented starter bundle.
+- Add examples as real files under an examples directory and reference them from the help pages.
+- Add a small JS API compatibility test that verifies the documented smoke app routes continue to work.
+
+### Code review instructions
+
+Review:
+
+1. `cmd/go-go-host/doc/developer-guide.md` — complete developer path and operational narrative.
+2. `cmd/go-go-host/doc/js-api-reference.md` — exact JS API contract.
+3. `cmd/go-go-host/doc/agent-guide.md` — human/operator agent workflow.
+4. `cmd/go-go-host-agent/doc/agent-guide.md` — machine/CI workflow.
+5. `cmd/go-go-host/doc/agent-setup.md` — now-current bridge page.
+
+Validate:
+
+```bash
+go test ./cmd/go-go-host ./cmd/go-go-host-agent
+go run ./cmd/go-go-host help developer-guide
+go run ./cmd/go-go-host help js-api-reference
+go run ./cmd/go-go-host help agent-guide
+go run ./cmd/go-go-host-agent help agent-guide
+```
+
+### Technical details
+
+New help slugs:
+
+```text
+developer-guide
+js-api-reference
+agent-guide      # available in both go-go-host and go-go-host-agent, with audience-specific content
+```
