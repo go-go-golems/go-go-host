@@ -82,6 +82,7 @@ type AgentSiteGrant struct {
 	SiteID          string
 	CanDeploy       bool
 	CanRollback     bool
+	CanActivate     bool
 	AllowedChannels []string
 	AllowedPaths    []string
 	ExpiresAt       time.Time

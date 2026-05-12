@@ -19,12 +19,14 @@ type createAgentRequest struct {
 	SiteID          string   `json:"siteId"`
 	AllowedChannels []string `json:"allowedChannels"`
 	AllowedPaths    []string `json:"allowedPaths"`
+	CanActivate     bool     `json:"canActivate"`
 }
 
 type upsertAgentGrantRequest struct {
 	SiteID          string   `json:"siteId"`
 	CanDeploy       bool     `json:"canDeploy"`
 	CanRollback     bool     `json:"canRollback"`
+	CanActivate     bool     `json:"canActivate"`
 	AllowedChannels []string `json:"allowedChannels"`
 	AllowedPaths    []string `json:"allowedPaths"`
 	ExpiresAt       string   `json:"expiresAt"`
@@ -51,6 +53,7 @@ type agentGrantDTO struct {
 	SiteID          string   `json:"siteId"`
 	CanDeploy       bool     `json:"canDeploy"`
 	CanRollback     bool     `json:"canRollback"`
+	CanActivate     bool     `json:"canActivate"`
 	AllowedChannels []string `json:"allowedChannels"`
 	AllowedPaths    []string `json:"allowedPaths"`
 	ExpiresAt       string   `json:"expiresAt,omitempty"`
@@ -70,10 +73,11 @@ type enrollAgentResponse struct {
 }
 
 type createDeployRunRequest struct {
-	SiteID  string `json:"siteId"`
-	Channel string `json:"channel"`
-	Path    string `json:"path"`
-	Action  string `json:"action"`
+	SiteID   string `json:"siteId"`
+	Channel  string `json:"channel"`
+	Path     string `json:"path"`
+	Action   string `json:"action"`
+	Activate bool   `json:"activate"`
 }
 
 type createDeployRunResponse struct {
@@ -131,7 +135,7 @@ func handleCreateAgent(core *control.Core) http.HandlerFunc {
 			writeError(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		result, err := core.Agents.CreateWithEnrollmentToken(r.Context(), control.CreateAgentWithTokenInput{ActorUserID: p.User.ID, OrgID: r.PathValue("org_id"), Name: req.Name, SiteID: req.SiteID, AllowedChannels: req.AllowedChannels, AllowedPaths: req.AllowedPaths})
+		result, err := core.Agents.CreateWithEnrollmentToken(r.Context(), control.CreateAgentWithTokenInput{ActorUserID: p.User.ID, OrgID: r.PathValue("org_id"), Name: req.Name, SiteID: req.SiteID, AllowedChannels: req.AllowedChannels, AllowedPaths: req.AllowedPaths, CanActivate: req.CanActivate})
 		if err != nil {
 			writeDeploymentError(w, err)
 			return
@@ -175,7 +179,7 @@ func handleUpsertAgentGrant(core *control.Core) http.HandlerFunc {
 				return
 			}
 		}
-		grant, err := core.Agents.UpsertGrant(r.Context(), p.User.ID, r.PathValue("org_id"), store.UpsertAgentGrantInput{AgentID: r.PathValue("agent_id"), SiteID: req.SiteID, CanDeploy: req.CanDeploy, CanRollback: req.CanRollback, AllowedChannels: req.AllowedChannels, AllowedPaths: req.AllowedPaths, ExpiresAt: expires})
+		grant, err := core.Agents.UpsertGrant(r.Context(), p.User.ID, r.PathValue("org_id"), store.UpsertAgentGrantInput{AgentID: r.PathValue("agent_id"), SiteID: req.SiteID, CanDeploy: req.CanDeploy, CanRollback: req.CanRollback, CanActivate: req.CanActivate, AllowedChannels: req.AllowedChannels, AllowedPaths: req.AllowedPaths, ExpiresAt: expires})
 		if err != nil {
 			writeDeploymentError(w, err)
 			return
@@ -217,7 +221,7 @@ func handleCreateAgentDeployRun(core *control.Core) http.HandlerFunc {
 			writeDeploymentError(w, err)
 			return
 		}
-		result, err := core.Agents.CreateDeployRun(r.Context(), control.CreateDeployRunInput{AgentID: agent.ID, SiteID: req.SiteID, Channel: req.Channel, Path: req.Path, Action: req.Action})
+		result, err := core.Agents.CreateDeployRun(r.Context(), control.CreateDeployRunInput{AgentID: agent.ID, SiteID: req.SiteID, Channel: req.Channel, Path: req.Path, Action: req.Action, Activate: req.Activate})
 		if err != nil {
 			writeDeploymentError(w, err)
 			return
@@ -271,7 +275,7 @@ func grantToDTO(grant *store.AgentSiteGrant) *agentGrantDTO {
 	if grant == nil {
 		return nil
 	}
-	return &agentGrantDTO{AgentID: grant.AgentID, SiteID: grant.SiteID, CanDeploy: grant.CanDeploy, CanRollback: grant.CanRollback, AllowedChannels: grant.AllowedChannels, AllowedPaths: grant.AllowedPaths, ExpiresAt: grant.ExpiresAt.Format(time.RFC3339), CreatedAt: grant.CreatedAt.Format(time.RFC3339), UpdatedAt: grant.UpdatedAt.Format(time.RFC3339)}
+	return &agentGrantDTO{AgentID: grant.AgentID, SiteID: grant.SiteID, CanDeploy: grant.CanDeploy, CanRollback: grant.CanRollback, CanActivate: grant.CanActivate, AllowedChannels: grant.AllowedChannels, AllowedPaths: grant.AllowedPaths, ExpiresAt: grant.ExpiresAt.Format(time.RFC3339), CreatedAt: grant.CreatedAt.Format(time.RFC3339), UpdatedAt: grant.UpdatedAt.Format(time.RFC3339)}
 }
 
 func auditToDTO(event store.AuditEvent) auditDTO {

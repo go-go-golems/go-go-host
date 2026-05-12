@@ -27,7 +27,7 @@ func TestAgentSignedDeployRunSecurity(t *testing.T) {
 	site := createTestSiteViaAPI(t, h, user, org.ID, "signed-agent-site-"+suffix)
 	otherSite := createTestSiteViaAPI(t, h, user, org.ID, "signed-agent-other-"+suffix)
 
-	createBody := []byte(`{"name":"ci","siteId":"` + site.ID + `","allowedChannels":["default"],"allowedPaths":["bundles/**"]}`)
+	createBody := []byte(`{"name":"ci","siteId":"` + site.ID + `","allowedChannels":["default"],"allowedPaths":["bundles/**"],"canActivate":true}`)
 	createReq := httptest.NewRequest(http.MethodPost, "/api/v1/orgs/"+org.ID+"/agents", bytes.NewReader(createBody))
 	createReq.Header.Set("X-Go-Go-Host-User", user)
 	createReq.Header.Set("Content-Type", "application/json")
@@ -58,7 +58,7 @@ func TestAgentSignedDeployRunSecurity(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	goodBody := []byte(`{"siteId":"` + site.ID + `","channel":"default","path":"bundles/app.tar.gz","action":"deploy"}`)
+	goodBody := []byte(`{"siteId":"` + site.ID + `","channel":"default","path":"bundles/app.tar.gz","action":"deploy","activate":true}`)
 	goodReq := signedAgentRequest(t, http.MethodPost, "/api/v1/agent/deploy-runs", goodBody, created.Agent.ID, enrolled.KeyID, priv, time.Now().UTC(), "nonce-good")
 	goodRec := httptest.NewRecorder()
 	h.ServeHTTP(goodRec, goodReq)
@@ -72,6 +72,13 @@ func TestAgentSignedDeployRunSecurity(t *testing.T) {
 	uploadRec := uploadAgentBundleViaAPI(t, h, goodRun.ID, goodRun.UploadToken, writeHelloBundle(t))
 	if uploadRec.Code != http.StatusCreated {
 		t.Fatalf("agent upload: %d %s", uploadRec.Code, uploadRec.Body.String())
+	}
+	var upload agentUploadResponse
+	if err := json.Unmarshal(uploadRec.Body.Bytes(), &upload); err != nil {
+		t.Fatal(err)
+	}
+	if !upload.Activated || upload.Deployment.Status != "active" {
+		t.Fatalf("expected auto-activated upload, got %#v", upload)
 	}
 
 	replayReq := signedAgentRequest(t, http.MethodPost, "/api/v1/agent/deploy-runs", goodBody, created.Agent.ID, enrolled.KeyID, priv, time.Now().UTC(), "nonce-good")
@@ -111,6 +118,11 @@ func TestAgentSignedDeployRunSecurity(t *testing.T) {
 	if badSigRec.Code != http.StatusForbidden {
 		t.Fatalf("expected bad signature denial, got %d %s", badSigRec.Code, badSigRec.Body.String())
 	}
+}
+
+type agentUploadResponse struct {
+	Activated  bool          `json:"activated"`
+	Deployment deploymentDTO `json:"deployment"`
 }
 
 func uploadAgentBundleViaAPI(t *testing.T, h http.Handler, runID, uploadToken, bundlePath string) *httptest.ResponseRecorder {

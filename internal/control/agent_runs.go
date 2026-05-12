@@ -31,6 +31,7 @@ type CreateAgentWithTokenInput struct {
 	SiteID          string
 	AllowedChannels []string
 	AllowedPaths    []string
+	CanActivate     bool
 	ExpiresAt       time.Time
 }
 
@@ -57,11 +58,12 @@ type SignedAgentRequest struct {
 }
 
 type CreateDeployRunInput struct {
-	AgentID string
-	SiteID  string
-	Channel string
-	Path    string
-	Action  string
+	AgentID  string
+	SiteID   string
+	Channel  string
+	Path     string
+	Action   string
+	Activate bool
 }
 
 type CreateDeployRunResult struct {
@@ -86,7 +88,7 @@ func (s *AgentService) CreateWithEnrollmentToken(ctx context.Context, input Crea
 	}
 	var grant *store.AgentSiteGrant
 	if input.SiteID != "" {
-		grant, err = s.UpsertGrant(ctx, input.ActorUserID, input.OrgID, store.UpsertAgentGrantInput{AgentID: agent.ID, SiteID: input.SiteID, CanDeploy: true, CanRollback: false, AllowedChannels: defaultStrings(input.AllowedChannels, []string{"default"}), AllowedPaths: defaultStrings(input.AllowedPaths, []string{"**"}), ExpiresAt: input.ExpiresAt})
+		grant, err = s.UpsertGrant(ctx, input.ActorUserID, input.OrgID, store.UpsertAgentGrantInput{AgentID: agent.ID, SiteID: input.SiteID, CanDeploy: true, CanRollback: false, CanActivate: input.CanActivate, AllowedChannels: defaultStrings(input.AllowedChannels, []string{"default"}), AllowedPaths: defaultStrings(input.AllowedPaths, []string{"**"}), ExpiresAt: input.ExpiresAt})
 		if err != nil {
 			return nil, err
 		}
@@ -214,6 +216,9 @@ func (s *AgentService) CreateDeployRun(ctx context.Context, input CreateDeployRu
 	if !grant.CanDeploy || grantExpired(grant) || !allowedString(input.Channel, grant.AllowedChannels) || !allowedPath(input.Path, grant.AllowedPaths) {
 		return nil, ErrPermissionDenied
 	}
+	if input.Activate && !grant.CanActivate {
+		return nil, ErrPermissionDenied
+	}
 	token, tokenHash, err := newSecret("upload")
 	if err != nil {
 		return nil, err
@@ -222,7 +227,11 @@ func (s *AgentService) CreateDeployRun(ctx context.Context, input CreateDeployRu
 	if !grant.ExpiresAt.IsZero() && grant.ExpiresAt.Before(expires) {
 		expires = grant.ExpiresAt
 	}
-	run, err := s.store.CreateDeployRun(ctx, store.CreateDeployRunInput{AgentID: input.AgentID, SiteID: input.SiteID, AllowedActions: []string{defaultString(input.Action, "deploy")}, AllowedChannels: []string{defaultString(input.Channel, "default")}, AllowedPaths: grant.AllowedPaths, UploadTokenHash: tokenHash, ExpiresAt: expires})
+	actions := []string{defaultString(input.Action, "deploy")}
+	if input.Activate {
+		actions = append(actions, "activate")
+	}
+	run, err := s.store.CreateDeployRun(ctx, store.CreateDeployRunInput{AgentID: input.AgentID, SiteID: input.SiteID, AllowedActions: actions, AllowedChannels: []string{defaultString(input.Channel, "default")}, AllowedPaths: grant.AllowedPaths, UploadTokenHash: tokenHash, ExpiresAt: expires})
 	if err != nil {
 		return nil, err
 	}

@@ -25,6 +25,7 @@ type AgentSettings struct {
 	SiteID      string `glazed:"site-id"`
 	Channel     string `glazed:"channel"`
 	Path        string `glazed:"path"`
+	CanActivate bool   `glazed:"can-activate"`
 }
 
 type agentDTO struct {
@@ -75,7 +76,7 @@ func agentFlags(requireName bool) []*fields.Definition {
 		fields.New("org-id", fields.TypeString, fields.WithRequired(true), fields.WithHelp("organization ID")),
 	}
 	if requireName {
-		flags = append(flags, fields.New("name", fields.TypeString, fields.WithRequired(true), fields.WithHelp("agent display name")), fields.New("site-id", fields.TypeString, fields.WithHelp("optional site ID to grant deploy access immediately")), fields.New("channel", fields.TypeString, fields.WithDefault("default"), fields.WithHelp("allowed channel for immediate grant")), fields.New("path", fields.TypeString, fields.WithDefault("**"), fields.WithHelp("allowed deploy path for immediate grant")))
+		flags = append(flags, fields.New("name", fields.TypeString, fields.WithRequired(true), fields.WithHelp("agent display name")), fields.New("site-id", fields.TypeString, fields.WithHelp("optional site ID to grant deploy access immediately")), fields.New("channel", fields.TypeString, fields.WithDefault("default"), fields.WithHelp("allowed channel for immediate grant")), fields.New("path", fields.TypeString, fields.WithDefault("**"), fields.WithHelp("allowed deploy path for immediate grant")), fields.New("can-activate", fields.TypeBool, fields.WithHelp("allow this agent to auto-activate deployments for the immediate grant")))
 	}
 	return flags
 }
@@ -133,6 +134,7 @@ func (c *AgentCreateCommand) RunIntoGlazeProcessor(ctx context.Context, vals *va
 		body["siteId"] = settings.SiteID
 		body["allowedChannels"] = []string{settings.Channel}
 		body["allowedPaths"] = []string{settings.Path}
+		body["canActivate"] = settings.CanActivate
 	}
 	if err := postJSONWithAuth(resolved.APIURL, fmt.Sprintf("/api/v1/orgs/%s/agents", settings.OrgID), resolved.DevUser, resolved.BearerToken, body, &resp); err != nil {
 		return err

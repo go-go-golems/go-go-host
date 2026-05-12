@@ -53,6 +53,7 @@ type AgentSiteGrant struct {
 	ExpiresAt       pgtype.Timestamptz `json:"expires_at"`
 	CreatedAt       pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+	CanActivate     bool               `json:"can_activate"`
 }
 
 type AuditLog struct {

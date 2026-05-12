@@ -117,9 +117,28 @@ func handleAgentDeployRunUpload(core *control.Core) http.HandlerFunc {
 			status = http.StatusBadRequest
 			runStatus = store.DeployRunStatusRejected
 		}
+		var activated *store.Deployment
+		if result.Report.Valid && hasAction(run.AllowedActions, "activate") {
+			activated, err = core.Deployments.ActivateAsAgent(r.Context(), agent.ID, result.Deployment.ID)
+			if err != nil {
+				_ = core.Store.FinishDeployRun(r.Context(), run.ID, store.DeployRunStatusRejected)
+				writeDeploymentError(w, err)
+				return
+			}
+			result.Deployment = activated
+		}
 		_ = core.Store.FinishDeployRun(r.Context(), run.ID, runStatus)
-		writeJSON(w, status, map[string]any{"deployRunId": run.ID, "deployment": deploymentToDTO(result.Deployment), "report": result.Report, "manifest": result.Manifest})
+		writeJSON(w, status, map[string]any{"deployRunId": run.ID, "deployment": deploymentToDTO(result.Deployment), "activated": activated != nil, "report": result.Report, "manifest": result.Manifest})
 	}
+}
+
+func hasAction(actions []string, action string) bool {
+	for _, a := range actions {
+		if a == action {
+			return true
+		}
+	}
+	return false
 }
 
 func handleListDeployments(core *control.Core) http.HandlerFunc {

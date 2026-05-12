@@ -318,26 +318,40 @@ func (q *Queries) ListAgentKeys(ctx context.Context, agentID string) ([]AgentKey
 }
 
 const listAgentSiteGrants = `-- name: ListAgentSiteGrants :many
-SELECT agent_id, site_id, can_deploy, can_rollback, allowed_channels, allowed_paths, expires_at, created_at, updated_at
+SELECT agent_id, site_id, can_deploy, can_rollback, can_activate, allowed_channels, allowed_paths, expires_at, created_at, updated_at
 FROM agent_site_grants
 WHERE agent_id = $1
 ORDER BY site_id
 `
 
-func (q *Queries) ListAgentSiteGrants(ctx context.Context, agentID string) ([]AgentSiteGrant, error) {
+type ListAgentSiteGrantsRow struct {
+	AgentID         string             `json:"agent_id"`
+	SiteID          string             `json:"site_id"`
+	CanDeploy       bool               `json:"can_deploy"`
+	CanRollback     bool               `json:"can_rollback"`
+	CanActivate     bool               `json:"can_activate"`
+	AllowedChannels []string           `json:"allowed_channels"`
+	AllowedPaths    []string           `json:"allowed_paths"`
+	ExpiresAt       pgtype.Timestamptz `json:"expires_at"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+}
+
+func (q *Queries) ListAgentSiteGrants(ctx context.Context, agentID string) ([]ListAgentSiteGrantsRow, error) {
 	rows, err := q.db.Query(ctx, listAgentSiteGrants, agentID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []AgentSiteGrant{}
+	items := []ListAgentSiteGrantsRow{}
 	for rows.Next() {
-		var i AgentSiteGrant
+		var i ListAgentSiteGrantsRow
 		if err := rows.Scan(
 			&i.AgentID,
 			&i.SiteID,
 			&i.CanDeploy,
 			&i.CanRollback,
+			&i.CanActivate,
 			&i.AllowedChannels,
 			&i.AllowedPaths,
 			&i.ExpiresAt,
@@ -438,11 +452,11 @@ func (q *Queries) UpdateAgentStatus(ctx context.Context, arg UpdateAgentStatusPa
 }
 
 const upsertAgentSiteGrant = `-- name: UpsertAgentSiteGrant :one
-INSERT INTO agent_site_grants (agent_id, site_id, can_deploy, can_rollback, allowed_channels, allowed_paths, expires_at, created_at, updated_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $8)
+INSERT INTO agent_site_grants (agent_id, site_id, can_deploy, can_rollback, can_activate, allowed_channels, allowed_paths, expires_at, created_at, updated_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $9)
 ON CONFLICT (agent_id, site_id)
-DO UPDATE SET can_deploy = EXCLUDED.can_deploy, can_rollback = EXCLUDED.can_rollback, allowed_channels = EXCLUDED.allowed_channels, allowed_paths = EXCLUDED.allowed_paths, expires_at = EXCLUDED.expires_at, updated_at = EXCLUDED.updated_at
-RETURNING agent_id, site_id, can_deploy, can_rollback, allowed_channels, allowed_paths, expires_at, created_at, updated_at
+DO UPDATE SET can_deploy = EXCLUDED.can_deploy, can_rollback = EXCLUDED.can_rollback, can_activate = EXCLUDED.can_activate, allowed_channels = EXCLUDED.allowed_channels, allowed_paths = EXCLUDED.allowed_paths, expires_at = EXCLUDED.expires_at, updated_at = EXCLUDED.updated_at
+RETURNING agent_id, site_id, can_deploy, can_rollback, can_activate, allowed_channels, allowed_paths, expires_at, created_at, updated_at
 `
 
 type UpsertAgentSiteGrantParams struct {
@@ -450,29 +464,45 @@ type UpsertAgentSiteGrantParams struct {
 	SiteID          string             `json:"site_id"`
 	CanDeploy       bool               `json:"can_deploy"`
 	CanRollback     bool               `json:"can_rollback"`
+	CanActivate     bool               `json:"can_activate"`
 	AllowedChannels []string           `json:"allowed_channels"`
 	AllowedPaths    []string           `json:"allowed_paths"`
 	ExpiresAt       pgtype.Timestamptz `json:"expires_at"`
 	CreatedAt       pgtype.Timestamptz `json:"created_at"`
 }
 
-func (q *Queries) UpsertAgentSiteGrant(ctx context.Context, arg UpsertAgentSiteGrantParams) (AgentSiteGrant, error) {
+type UpsertAgentSiteGrantRow struct {
+	AgentID         string             `json:"agent_id"`
+	SiteID          string             `json:"site_id"`
+	CanDeploy       bool               `json:"can_deploy"`
+	CanRollback     bool               `json:"can_rollback"`
+	CanActivate     bool               `json:"can_activate"`
+	AllowedChannels []string           `json:"allowed_channels"`
+	AllowedPaths    []string           `json:"allowed_paths"`
+	ExpiresAt       pgtype.Timestamptz `json:"expires_at"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+}
+
+func (q *Queries) UpsertAgentSiteGrant(ctx context.Context, arg UpsertAgentSiteGrantParams) (UpsertAgentSiteGrantRow, error) {
 	row := q.db.QueryRow(ctx, upsertAgentSiteGrant,
 		arg.AgentID,
 		arg.SiteID,
 		arg.CanDeploy,
 		arg.CanRollback,
+		arg.CanActivate,
 		arg.AllowedChannels,
 		arg.AllowedPaths,
 		arg.ExpiresAt,
 		arg.CreatedAt,
 	)
-	var i AgentSiteGrant
+	var i UpsertAgentSiteGrantRow
 	err := row.Scan(
 		&i.AgentID,
 		&i.SiteID,
 		&i.CanDeploy,
 		&i.CanRollback,
+		&i.CanActivate,
 		&i.AllowedChannels,
 		&i.AllowedPaths,
 		&i.ExpiresAt,

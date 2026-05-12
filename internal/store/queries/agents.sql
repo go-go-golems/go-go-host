@@ -20,14 +20,14 @@ SET status = $2
 WHERE id = $1;
 
 -- name: UpsertAgentSiteGrant :one
-INSERT INTO agent_site_grants (agent_id, site_id, can_deploy, can_rollback, allowed_channels, allowed_paths, expires_at, created_at, updated_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $8)
+INSERT INTO agent_site_grants (agent_id, site_id, can_deploy, can_rollback, can_activate, allowed_channels, allowed_paths, expires_at, created_at, updated_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $9)
 ON CONFLICT (agent_id, site_id)
-DO UPDATE SET can_deploy = EXCLUDED.can_deploy, can_rollback = EXCLUDED.can_rollback, allowed_channels = EXCLUDED.allowed_channels, allowed_paths = EXCLUDED.allowed_paths, expires_at = EXCLUDED.expires_at, updated_at = EXCLUDED.updated_at
-RETURNING agent_id, site_id, can_deploy, can_rollback, allowed_channels, allowed_paths, expires_at, created_at, updated_at;
+DO UPDATE SET can_deploy = EXCLUDED.can_deploy, can_rollback = EXCLUDED.can_rollback, can_activate = EXCLUDED.can_activate, allowed_channels = EXCLUDED.allowed_channels, allowed_paths = EXCLUDED.allowed_paths, expires_at = EXCLUDED.expires_at, updated_at = EXCLUDED.updated_at
+RETURNING agent_id, site_id, can_deploy, can_rollback, can_activate, allowed_channels, allowed_paths, expires_at, created_at, updated_at;
 
 -- name: ListAgentSiteGrants :many
-SELECT agent_id, site_id, can_deploy, can_rollback, allowed_channels, allowed_paths, expires_at, created_at, updated_at
+SELECT agent_id, site_id, can_deploy, can_rollback, can_activate, allowed_channels, allowed_paths, expires_at, created_at, updated_at
 FROM agent_site_grants
 WHERE agent_id = $1
 ORDER BY site_id;

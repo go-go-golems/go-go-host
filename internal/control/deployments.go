@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/go-go-golems/go-go-host/internal/deploy"
 	hostruntime "github.com/go-go-golems/go-go-host/internal/runtime"
@@ -158,6 +159,43 @@ func (s *DeploymentService) Activate(ctx context.Context, actorUserID, deploymen
 	if err := ensureDeployRole(ctx, s.store, actorUserID, site.OrgID); err != nil {
 		return nil, err
 	}
+	return s.activate(ctx, "user", actorUserID, dep, site)
+}
+
+func (s *DeploymentService) ActivateAsAgent(ctx context.Context, agentID, deploymentID string) (*store.Deployment, error) {
+	dep, err := s.store.GetDeployment(ctx, deploymentID)
+	if err != nil {
+		return nil, err
+	}
+	site, err := s.store.GetSite(ctx, dep.SiteID)
+	if err != nil {
+		return nil, err
+	}
+	agent, err := s.store.GetAgent(ctx, agentID)
+	if err != nil {
+		return nil, err
+	}
+	if agent.OrgID != site.OrgID || agent.Status != store.AgentStatusActive {
+		return nil, ErrPermissionDenied
+	}
+	grants, err := s.store.ListAgentSiteGrants(ctx, agentID)
+	if err != nil {
+		return nil, err
+	}
+	allowed := false
+	for _, grant := range grants {
+		if grant.SiteID == site.ID && grant.CanActivate && (grant.ExpiresAt.IsZero() || time.Now().UTC().Before(grant.ExpiresAt)) {
+			allowed = true
+			break
+		}
+	}
+	if !allowed {
+		return nil, ErrPermissionDenied
+	}
+	return s.activate(ctx, "agent", agentID, dep, site)
+}
+
+func (s *DeploymentService) activate(ctx context.Context, actorType, actorID string, dep *store.Deployment, site *store.Site) (*store.Deployment, error) {
 	if dep.Status != store.DeploymentStatusValidated && dep.Status != store.DeploymentStatusSuperseded && dep.Status != store.DeploymentStatusActive {
 		return nil, fmt.Errorf("deployment %s is not activatable from status %q", dep.ID, dep.Status)
 	}
@@ -176,7 +214,7 @@ func (s *DeploymentService) Activate(ctx context.Context, actorUserID, deploymen
 	if err := s.store.MarkDeploymentActive(ctx, site.ID, dep.ID); err != nil {
 		return nil, err
 	}
-	_, _ = s.store.InsertAuditEvent(ctx, store.AuditEvent{OrgID: site.OrgID, ActorType: "user", ActorID: actorUserID, Action: "deployment.activate", ResourceType: "deployment", ResourceID: dep.ID})
+	_, _ = s.store.InsertAuditEvent(ctx, store.AuditEvent{OrgID: site.OrgID, ActorType: actorType, ActorID: actorID, Action: "deployment.activate", ResourceType: "deployment", ResourceID: dep.ID})
 	return s.store.GetDeployment(ctx, dep.ID)
 }
 
