@@ -1,0 +1,9 @@
+{
+  "name": "hello-beta",
+  "scriptsDir": "scripts",
+  "assetsDir": "assets",
+  "entrypoint": "app.js",
+  "smokePath": "/",
+  "capabilities": ["express", "ui.dsl", "database", "assets"],
+  "channel": "default"
+}

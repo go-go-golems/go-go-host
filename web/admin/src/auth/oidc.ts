@@ -55,7 +55,8 @@ export function getStoredTokens(): StoredOIDCTokens | null {
 }
 
 export function bearerToken(): string | undefined {
-  return getStoredTokens()?.idToken;
+  const tokens = getStoredTokens();
+  return tokens?.accessToken || tokens?.idToken;
 }
 
 export function clearTokens() {

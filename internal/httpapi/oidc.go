@@ -22,6 +22,8 @@ type oidcAuthenticator struct {
 }
 
 type oidcClaims struct {
+	Audience          []string                         `json:"aud"`
+	AuthorizedParty   string                           `json:"azp"`
 	Email             string                           `json:"email"`
 	PreferredUsername string                           `json:"preferred_username"`
 	Name              string                           `json:"name"`
@@ -55,26 +57,29 @@ func (a *oidcAuthenticator) authenticate(r *http.Request) (*store.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	idToken, err := verifier.Verify(r.Context(), token)
+	verifiedToken, err := verifier.Verify(r.Context(), token)
 	if err != nil {
-		return nil, fmt.Errorf("verify id token: %w", err)
+		return nil, fmt.Errorf("verify oidc bearer token: %w", err)
 	}
 	var claims oidcClaims
-	if err := idToken.Claims(&claims); err != nil {
-		return nil, fmt.Errorf("decode id token claims: %w", err)
+	if err := verifiedToken.Claims(&claims); err != nil {
+		return nil, fmt.Errorf("decode oidc bearer token claims: %w", err)
+	}
+	if !tokenMatchesClient(clientID, verifiedToken.Audience, claims) {
+		return nil, fmt.Errorf("verify oidc bearer token: expected audience or authorized party %q", clientID)
 	}
 	displayName := claims.Name
 	if displayName == "" {
 		displayName = claims.PreferredUsername
 	}
 	if displayName == "" {
-		displayName = idToken.Subject
+		displayName = verifiedToken.Subject
 	}
-	user, err := a.st.UpsertUserFromOIDC(r.Context(), issuer, idToken.Subject, claims.Email, displayName)
+	user, err := a.st.UpsertUserFromOIDC(r.Context(), issuer, verifiedToken.Subject, claims.Email, displayName)
 	if err != nil {
 		return nil, err
 	}
-	if shouldBootstrapPlatformAdmin(a.cfg, idToken.Subject, claims) {
+	if shouldBootstrapPlatformAdmin(a.cfg, verifiedToken.Subject, claims) {
 		alreadyAdmin, err := a.st.IsPlatformAdmin(r.Context(), user.ID)
 		if err != nil {
 			return nil, err
@@ -92,7 +97,7 @@ func (a *oidcAuthenticator) authenticate(r *http.Request) (*store.User, error) {
 				ResourceID:   user.ID,
 				IPAddress:    r.RemoteAddr,
 				UserAgent:    r.UserAgent(),
-				MetadataJSON: fmt.Sprintf(`{"issuer":%q,"subject":%q,"email":%q}`, issuer, idToken.Subject, claims.Email),
+				MetadataJSON: fmt.Sprintf(`{"issuer":%q,"subject":%q,"email":%q}`, issuer, verifiedToken.Subject, claims.Email),
 			})
 			if err != nil {
 				return nil, err
@@ -147,8 +152,29 @@ func (a *oidcAuthenticator) getVerifier(ctx context.Context, issuer, clientID st
 		return nil, fmt.Errorf("discover OIDC provider: %w", err)
 	}
 	a.provider = provider
-	a.verifier = provider.Verifier(&oidc.Config{ClientID: clientID})
+	// Keycloak access tokens issued to public browser clients may not include
+	// the client ID in aud unless an audience mapper is configured. They do
+	// include azp (authorized party), while ID tokens include aud. Verify the
+	// signature/issuer/expiry here, then enforce aud-or-azp locally so the API
+	// can accept both dashboard ID tokens and API access tokens without
+	// weakening issuer or expiry checks.
+	a.verifier = provider.Verifier(&oidc.Config{ClientID: clientID, SkipClientIDCheck: true})
 	return a.verifier, nil
+}
+
+func tokenMatchesClient(clientID string, tokenAudience []string, claims oidcClaims) bool {
+	clientID = strings.TrimSpace(clientID)
+	for _, audience := range tokenAudience {
+		if strings.EqualFold(strings.TrimSpace(audience), clientID) {
+			return true
+		}
+	}
+	for _, audience := range claims.Audience {
+		if strings.EqualFold(strings.TrimSpace(audience), clientID) {
+			return true
+		}
+	}
+	return strings.EqualFold(strings.TrimSpace(claims.AuthorizedParty), clientID)
 }
 
 func bearerToken(r *http.Request) string {
