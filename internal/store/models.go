@@ -89,6 +89,42 @@ type AgentSiteGrant struct {
 	UpdatedAt       time.Time
 }
 
+type AgentEnrollmentToken struct {
+	TokenHash string
+	AgentID   string
+	OrgID     string
+	Status    string
+	ExpiresAt time.Time
+	CreatedAt time.Time
+	UsedAt    time.Time
+}
+
+type AgentKey struct {
+	ID        string
+	AgentID   string
+	PublicKey string
+	Status    string
+	CreatedAt time.Time
+	RevokedAt time.Time
+}
+
+type DeployRun struct {
+	ID                string
+	SiteID            string
+	ActorType         string
+	ActorID           string
+	AgentID           string
+	RequestedByUserID string
+	Status            string
+	AllowedActions    []string
+	AllowedChannels   []string
+	AllowedPaths      []string
+	UploadTokenHash   string
+	ExpiresAt         time.Time
+	CreatedAt         time.Time
+	FinishedAt        time.Time
+}
+
 type AuditEvent struct {
 	ID           string
 	OrgID        string
@@ -114,4 +150,14 @@ const (
 
 	AgentStatusActive  = "active"
 	AgentStatusRevoked = "revoked"
+
+	AgentKeyStatusActive  = "active"
+	AgentKeyStatusRevoked = "revoked"
+
+	AgentEnrollmentTokenStatusActive = "active"
+	AgentEnrollmentTokenStatusUsed   = "used"
+
+	DeployRunStatusPending   = "pending"
+	DeployRunStatusCompleted = "completed"
+	DeployRunStatusRejected  = "rejected"
 )

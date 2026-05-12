@@ -18,6 +18,16 @@ type Agent struct {
 	LastSeenAt      pgtype.Timestamptz `json:"last_seen_at"`
 }
 
+type AgentEnrollmentToken struct {
+	TokenHash string             `json:"token_hash"`
+	AgentID   string             `json:"agent_id"`
+	OrgID     string             `json:"org_id"`
+	Status    string             `json:"status"`
+	ExpiresAt pgtype.Timestamptz `json:"expires_at"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UsedAt    pgtype.Timestamptz `json:"used_at"`
+}
+
 type AgentKey struct {
 	ID        string             `json:"id"`
 	AgentID   string             `json:"agent_id"`

@@ -38,7 +38,11 @@ func NewHandler(core *control.Core) http.Handler {
 	api.HandleFunc("GET /api/v1/orgs/{org_id}/agents", handleListAgents(core))
 	api.HandleFunc("POST /api/v1/orgs/{org_id}/agents", handleCreateAgent(core))
 	api.HandleFunc("POST /api/v1/orgs/{org_id}/agents/{agent_id}/revoke", handleRevokeAgent(core))
+	api.HandleFunc("POST /api/v1/orgs/{org_id}/agents/{agent_id}/grants", handleUpsertAgentGrant(core))
 	api.HandleFunc("GET /api/v1/orgs/{org_id}/audit", handleListAudit(core))
+	api.HandleFunc("POST /api/v1/agent/enroll", handleEnrollAgent(core))
+	api.HandleFunc("POST /api/v1/agent/deploy-runs", handleCreateAgentDeployRun(core))
+	api.HandleFunc("POST /api/v1/agent/deploy-runs/{run_id}/upload", handleAgentDeployRunUpload(core))
 	api.HandleFunc("GET /api/v1/sites/{site_id}/runtime", handleRuntimeStatus(core))
 	api.HandleFunc("POST /api/v1/sites/{site_id}/deployments", handleUploadDeployment(core))
 	api.HandleFunc("GET /api/v1/sites/{site_id}/deployments", handleListDeployments(core))
@@ -66,6 +70,7 @@ func NewHandler(core *control.Core) http.Handler {
 	mux.Handle("/api/v1/sites/", authedAPI)
 	mux.Handle("/api/v1/deployments/", authedAPI)
 	mux.Handle("/api/v1/admin/", authedAPI)
+	mux.Handle("/api/v1/agent/", api)
 
 	return withRequestID(withFallback(mux, core.Supervisor))
 }

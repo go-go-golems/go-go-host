@@ -24,12 +24,12 @@ func TestAgentsAndAuditAPIFlow(t *testing.T) {
 	if createRec.Code != http.StatusCreated {
 		t.Fatalf("create agent: %d %s", createRec.Code, createRec.Body.String())
 	}
-	var agent agentDTO
-	if err := json.Unmarshal(createRec.Body.Bytes(), &agent); err != nil {
+	var created createAgentResponse
+	if err := json.Unmarshal(createRec.Body.Bytes(), &created); err != nil {
 		t.Fatal(err)
 	}
-	if agent.Status != "active" {
-		t.Fatalf("expected active agent, got %#v", agent)
+	if created.Agent.Status != "active" || created.EnrollmentToken == "" {
+		t.Fatalf("expected active agent with enrollment token, got %#v", created)
 	}
 
 	listReq := httptest.NewRequest(http.MethodGet, "/api/v1/orgs/"+org.ID+"/agents", nil)

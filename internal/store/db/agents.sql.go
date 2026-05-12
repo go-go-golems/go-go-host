@@ -48,6 +48,135 @@ func (q *Queries) CreateAgent(ctx context.Context, arg CreateAgentParams) (Agent
 	return i, err
 }
 
+const createAgentEnrollmentToken = `-- name: CreateAgentEnrollmentToken :exec
+INSERT INTO agent_enrollment_tokens (token_hash, agent_id, org_id, status, expires_at, created_at)
+VALUES ($1, $2, $3, $4, $5, $6)
+`
+
+type CreateAgentEnrollmentTokenParams struct {
+	TokenHash string             `json:"token_hash"`
+	AgentID   string             `json:"agent_id"`
+	OrgID     string             `json:"org_id"`
+	Status    string             `json:"status"`
+	ExpiresAt pgtype.Timestamptz `json:"expires_at"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) CreateAgentEnrollmentToken(ctx context.Context, arg CreateAgentEnrollmentTokenParams) error {
+	_, err := q.db.Exec(ctx, createAgentEnrollmentToken,
+		arg.TokenHash,
+		arg.AgentID,
+		arg.OrgID,
+		arg.Status,
+		arg.ExpiresAt,
+		arg.CreatedAt,
+	)
+	return err
+}
+
+const createAgentKey = `-- name: CreateAgentKey :one
+INSERT INTO agent_keys (id, agent_id, public_key, status, created_at)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING id, agent_id, public_key, status, created_at, revoked_at
+`
+
+type CreateAgentKeyParams struct {
+	ID        string             `json:"id"`
+	AgentID   string             `json:"agent_id"`
+	PublicKey string             `json:"public_key"`
+	Status    string             `json:"status"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) CreateAgentKey(ctx context.Context, arg CreateAgentKeyParams) (AgentKey, error) {
+	row := q.db.QueryRow(ctx, createAgentKey,
+		arg.ID,
+		arg.AgentID,
+		arg.PublicKey,
+		arg.Status,
+		arg.CreatedAt,
+	)
+	var i AgentKey
+	err := row.Scan(
+		&i.ID,
+		&i.AgentID,
+		&i.PublicKey,
+		&i.Status,
+		&i.CreatedAt,
+		&i.RevokedAt,
+	)
+	return i, err
+}
+
+const createDeployRun = `-- name: CreateDeployRun :one
+INSERT INTO deploy_runs (id, site_id, actor_type, actor_id, agent_id, status, allowed_actions, allowed_channels, allowed_paths, upload_token_hash, expires_at, created_at)
+VALUES ($1, $2, 'agent', $3, $3, $4, $5, $6, $7, $8, $9, $10)
+RETURNING id, site_id, actor_type, actor_id, agent_id, requested_by_user_id, status, allowed_actions, allowed_channels, allowed_paths, upload_token_hash, expires_at, created_at, finished_at
+`
+
+type CreateDeployRunParams struct {
+	ID              string             `json:"id"`
+	SiteID          string             `json:"site_id"`
+	ActorID         string             `json:"actor_id"`
+	Status          string             `json:"status"`
+	AllowedActions  []string           `json:"allowed_actions"`
+	AllowedChannels []string           `json:"allowed_channels"`
+	AllowedPaths    []string           `json:"allowed_paths"`
+	UploadTokenHash string             `json:"upload_token_hash"`
+	ExpiresAt       pgtype.Timestamptz `json:"expires_at"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) CreateDeployRun(ctx context.Context, arg CreateDeployRunParams) (DeployRun, error) {
+	row := q.db.QueryRow(ctx, createDeployRun,
+		arg.ID,
+		arg.SiteID,
+		arg.ActorID,
+		arg.Status,
+		arg.AllowedActions,
+		arg.AllowedChannels,
+		arg.AllowedPaths,
+		arg.UploadTokenHash,
+		arg.ExpiresAt,
+		arg.CreatedAt,
+	)
+	var i DeployRun
+	err := row.Scan(
+		&i.ID,
+		&i.SiteID,
+		&i.ActorType,
+		&i.ActorID,
+		&i.AgentID,
+		&i.RequestedByUserID,
+		&i.Status,
+		&i.AllowedActions,
+		&i.AllowedChannels,
+		&i.AllowedPaths,
+		&i.UploadTokenHash,
+		&i.ExpiresAt,
+		&i.CreatedAt,
+		&i.FinishedAt,
+	)
+	return i, err
+}
+
+const finishDeployRun = `-- name: FinishDeployRun :exec
+UPDATE deploy_runs
+SET status = $2, finished_at = $3
+WHERE id = $1
+`
+
+type FinishDeployRunParams struct {
+	ID         string             `json:"id"`
+	Status     string             `json:"status"`
+	FinishedAt pgtype.Timestamptz `json:"finished_at"`
+}
+
+func (q *Queries) FinishDeployRun(ctx context.Context, arg FinishDeployRunParams) error {
+	_, err := q.db.Exec(ctx, finishDeployRun, arg.ID, arg.Status, arg.FinishedAt)
+	return err
+}
+
 const getAgent = `-- name: GetAgent :one
 SELECT id, org_id, name, status, created_by_user_id, created_at, last_seen_at
 FROM agents
@@ -67,6 +196,125 @@ func (q *Queries) GetAgent(ctx context.Context, id string) (Agent, error) {
 		&i.LastSeenAt,
 	)
 	return i, err
+}
+
+const getAgentEnrollmentToken = `-- name: GetAgentEnrollmentToken :one
+SELECT token_hash, agent_id, org_id, status, expires_at, created_at, used_at
+FROM agent_enrollment_tokens
+WHERE token_hash = $1
+`
+
+func (q *Queries) GetAgentEnrollmentToken(ctx context.Context, tokenHash string) (AgentEnrollmentToken, error) {
+	row := q.db.QueryRow(ctx, getAgentEnrollmentToken, tokenHash)
+	var i AgentEnrollmentToken
+	err := row.Scan(
+		&i.TokenHash,
+		&i.AgentID,
+		&i.OrgID,
+		&i.Status,
+		&i.ExpiresAt,
+		&i.CreatedAt,
+		&i.UsedAt,
+	)
+	return i, err
+}
+
+const getAgentKey = `-- name: GetAgentKey :one
+SELECT id, agent_id, public_key, status, created_at, revoked_at
+FROM agent_keys
+WHERE id = $1
+`
+
+func (q *Queries) GetAgentKey(ctx context.Context, id string) (AgentKey, error) {
+	row := q.db.QueryRow(ctx, getAgentKey, id)
+	var i AgentKey
+	err := row.Scan(
+		&i.ID,
+		&i.AgentID,
+		&i.PublicKey,
+		&i.Status,
+		&i.CreatedAt,
+		&i.RevokedAt,
+	)
+	return i, err
+}
+
+const getDeployRun = `-- name: GetDeployRun :one
+SELECT id, site_id, actor_type, actor_id, agent_id, requested_by_user_id, status, allowed_actions, allowed_channels, allowed_paths, upload_token_hash, expires_at, created_at, finished_at
+FROM deploy_runs
+WHERE id = $1
+`
+
+func (q *Queries) GetDeployRun(ctx context.Context, id string) (DeployRun, error) {
+	row := q.db.QueryRow(ctx, getDeployRun, id)
+	var i DeployRun
+	err := row.Scan(
+		&i.ID,
+		&i.SiteID,
+		&i.ActorType,
+		&i.ActorID,
+		&i.AgentID,
+		&i.RequestedByUserID,
+		&i.Status,
+		&i.AllowedActions,
+		&i.AllowedChannels,
+		&i.AllowedPaths,
+		&i.UploadTokenHash,
+		&i.ExpiresAt,
+		&i.CreatedAt,
+		&i.FinishedAt,
+	)
+	return i, err
+}
+
+const insertAgentNonce = `-- name: InsertAgentNonce :exec
+INSERT INTO agent_nonces (agent_id, nonce, seen_at)
+VALUES ($1, $2, $3)
+`
+
+type InsertAgentNonceParams struct {
+	AgentID string             `json:"agent_id"`
+	Nonce   string             `json:"nonce"`
+	SeenAt  pgtype.Timestamptz `json:"seen_at"`
+}
+
+func (q *Queries) InsertAgentNonce(ctx context.Context, arg InsertAgentNonceParams) error {
+	_, err := q.db.Exec(ctx, insertAgentNonce, arg.AgentID, arg.Nonce, arg.SeenAt)
+	return err
+}
+
+const listAgentKeys = `-- name: ListAgentKeys :many
+SELECT id, agent_id, public_key, status, created_at, revoked_at
+FROM agent_keys
+WHERE agent_id = $1
+ORDER BY created_at DESC
+`
+
+func (q *Queries) ListAgentKeys(ctx context.Context, agentID string) ([]AgentKey, error) {
+	rows, err := q.db.Query(ctx, listAgentKeys, agentID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AgentKey{}
+	for rows.Next() {
+		var i AgentKey
+		if err := rows.Scan(
+			&i.ID,
+			&i.AgentID,
+			&i.PublicKey,
+			&i.Status,
+			&i.CreatedAt,
+			&i.RevokedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listAgentSiteGrants = `-- name: ListAgentSiteGrants :many
@@ -139,6 +387,38 @@ func (q *Queries) ListAgentsByOrg(ctx context.Context, orgID string) ([]Agent, e
 		return nil, err
 	}
 	return items, nil
+}
+
+const markAgentEnrollmentTokenUsed = `-- name: MarkAgentEnrollmentTokenUsed :exec
+UPDATE agent_enrollment_tokens
+SET status = 'used', used_at = $2
+WHERE token_hash = $1
+`
+
+type MarkAgentEnrollmentTokenUsedParams struct {
+	TokenHash string             `json:"token_hash"`
+	UsedAt    pgtype.Timestamptz `json:"used_at"`
+}
+
+func (q *Queries) MarkAgentEnrollmentTokenUsed(ctx context.Context, arg MarkAgentEnrollmentTokenUsedParams) error {
+	_, err := q.db.Exec(ctx, markAgentEnrollmentTokenUsed, arg.TokenHash, arg.UsedAt)
+	return err
+}
+
+const touchAgentLastSeen = `-- name: TouchAgentLastSeen :exec
+UPDATE agents
+SET last_seen_at = $2
+WHERE id = $1
+`
+
+type TouchAgentLastSeenParams struct {
+	ID         string             `json:"id"`
+	LastSeenAt pgtype.Timestamptz `json:"last_seen_at"`
+}
+
+func (q *Queries) TouchAgentLastSeen(ctx context.Context, arg TouchAgentLastSeenParams) error {
+	_, err := q.db.Exec(ctx, touchAgentLastSeen, arg.ID, arg.LastSeenAt)
+	return err
 }
 
 const updateAgentStatus = `-- name: UpdateAgentStatus :exec

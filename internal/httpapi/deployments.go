@@ -72,6 +72,56 @@ func handleUploadDeployment(core *control.Core) http.HandlerFunc {
 	}
 }
 
+func handleAgentDeployRunUpload(core *control.Core) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		run, agent, err := core.Agents.ValidateUploadToken(r.Context(), r.PathValue("run_id"), r.Header.Get("X-Go-Go-Upload-Token"))
+		if err != nil {
+			writeDeploymentError(w, err)
+			return
+		}
+		if err := r.ParseMultipartForm(64 << 20); err != nil {
+			writeError(w, http.StatusBadRequest, "expected multipart form with bundle file")
+			return
+		}
+		file, header, err := r.FormFile("bundle")
+		if err != nil {
+			writeError(w, http.StatusBadRequest, "missing multipart bundle file")
+			return
+		}
+		defer file.Close()
+		tmp, err := os.CreateTemp("", "go-go-host-agent-bundle-*"+filepath.Ext(header.Filename))
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		defer os.Remove(tmp.Name())
+		if _, err := io.Copy(tmp, file); err != nil {
+			_ = tmp.Close()
+			writeError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		_ = tmp.Close()
+		channel := "default"
+		if len(run.AllowedChannels) > 0 && run.AllowedChannels[0] != "" {
+			channel = run.AllowedChannels[0]
+		}
+		result, err := core.Deployments.Upload(r.Context(), control.UploadDeploymentInput{ActorType: "agent", ActorID: agent.ID, SiteID: run.SiteID, BundlePath: tmp.Name(), Channel: channel, AllowedPaths: run.AllowedPaths})
+		if err != nil {
+			_ = core.Store.FinishDeployRun(r.Context(), run.ID, store.DeployRunStatusRejected)
+			writeDeploymentError(w, err)
+			return
+		}
+		status := http.StatusCreated
+		runStatus := store.DeployRunStatusCompleted
+		if !result.Report.Valid {
+			status = http.StatusBadRequest
+			runStatus = store.DeployRunStatusRejected
+		}
+		_ = core.Store.FinishDeployRun(r.Context(), run.ID, runStatus)
+		writeJSON(w, status, map[string]any{"deployRunId": run.ID, "deployment": deploymentToDTO(result.Deployment), "report": result.Report, "manifest": result.Manifest})
+	}
+}
+
 func handleListDeployments(core *control.Core) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		p, err := requirePrincipal(r)

@@ -18,6 +18,7 @@ type StatusCommand struct {
 
 type StatusSettings struct {
 	APIURL string `glazed:"api-url"`
+	Config string `glazed:"config"`
 }
 
 var _ glazedcmds.GlazeCommand = (*StatusCommand)(nil)
@@ -48,6 +49,8 @@ Examples:
 			fields.New("api-url", fields.TypeString,
 				fields.WithDefault(defaultAPIURL),
 				fields.WithHelp("go-go-host daemon API base URL")),
+			fields.New("config", fields.TypeString,
+				fields.WithHelp("agent config path")),
 		),
 		glazedcmds.WithSections(glazedSection, commandSettingsSection),
 	)}, nil
@@ -70,10 +73,15 @@ func (c *StatusCommand) RunIntoGlazeProcessor(ctx context.Context, vals *values.
 	if err := getJSON(settings.APIURL, "/api/v1/version", &version); err != nil {
 		return err
 	}
+	cfg, _ := loadConfig(settings.Config)
 	return gp.AddRow(ctx, types.NewRow(
 		types.MRP("api_url", settings.APIURL),
 		types.MRP("status", health.Status),
 		types.MRP("version", version.Version),
-		types.MRP("agent_enrollment", "not_implemented"),
+		types.MRP("agent_id", cfg.AgentID),
+		types.MRP("key_id", cfg.KeyID),
+		types.MRP("org_id", cfg.OrgID),
+		types.MRP("site_id", cfg.SiteID),
+		types.MRP("enrolled", cfg.AgentID != "" && cfg.KeyID != ""),
 	))
 }

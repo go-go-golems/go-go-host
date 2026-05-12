@@ -31,6 +31,18 @@ func newRootCommand() (*cobra.Command, error) {
 	if err != nil {
 		return nil, err
 	}
-	rootCmd.AddCommand(statusCmd)
+	keygenCmd, err := commands.NewKeygenCobraCommand()
+	if err != nil {
+		return nil, err
+	}
+	enrollCmd, err := commands.NewEnrollCobraCommand()
+	if err != nil {
+		return nil, err
+	}
+	deployCmd, err := commands.NewDeployCobraCommand()
+	if err != nil {
+		return nil, err
+	}
+	rootCmd.AddCommand(statusCmd, keygenCmd, enrollCmd, deployCmd)
 	return rootCmd, nil
 }

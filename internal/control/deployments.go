@@ -21,6 +21,8 @@ type DeploymentService struct {
 
 type UploadDeploymentInput struct {
 	ActorUserID  string
+	ActorType    string
+	ActorID      string
 	SiteID       string
 	BundlePath   string
 	Message      string
@@ -42,8 +44,20 @@ func (s *DeploymentService) Upload(ctx context.Context, input UploadDeploymentIn
 	if err != nil {
 		return nil, err
 	}
-	if err := ensureDeployRole(ctx, s.store, input.ActorUserID, site.OrgID); err != nil {
-		return nil, err
+	actorType := input.ActorType
+	actorID := input.ActorID
+	if actorType == "" {
+		actorType = "user"
+	}
+	if actorID == "" {
+		actorID = input.ActorUserID
+	}
+	if actorType == "user" {
+		if err := ensureDeployRole(ctx, s.store, input.ActorUserID, site.OrgID); err != nil {
+			return nil, err
+		}
+	} else if actorType != "agent" {
+		return nil, ErrPermissionDenied
 	}
 	quota, err := s.store.GetSiteQuota(ctx, site.ID)
 	if err != nil {
@@ -57,7 +71,7 @@ func (s *DeploymentService) Upload(ctx context.Context, input UploadDeploymentIn
 	placeholderReport := deploy.ValidationReport{Valid: true}
 	placeholderBytes, _ := json.Marshal(placeholderReport)
 	dep, err := s.store.CreateDeployment(ctx, store.CreateDeploymentInput{
-		SiteID: site.ID, Status: store.DeploymentStatusUploaded, BundleRef: "pending", ManifestJSON: []byte("{}"), ValidationJSON: placeholderBytes, CreatedByType: "user", CreatedByID: input.ActorUserID,
+		SiteID: site.ID, Status: store.DeploymentStatusUploaded, BundleRef: "pending", ManifestJSON: []byte("{}"), ValidationJSON: placeholderBytes, CreatedByType: actorType, CreatedByID: actorID,
 	})
 	if err != nil {
 		return nil, err
@@ -99,9 +113,9 @@ func (s *DeploymentService) Upload(ctx context.Context, input UploadDeploymentIn
 	if err != nil {
 		return nil, err
 	}
-	_, _ = s.store.InsertAuditEvent(ctx, store.AuditEvent{OrgID: site.OrgID, ActorType: "user", ActorID: input.ActorUserID, Action: "deployment.upload", ResourceType: "deployment", ResourceID: dep.ID})
+	_, _ = s.store.InsertAuditEvent(ctx, store.AuditEvent{OrgID: site.OrgID, ActorType: actorType, ActorID: actorID, Action: "deployment.upload", ResourceType: "deployment", ResourceID: dep.ID})
 	if status == store.DeploymentStatusRejected {
-		_, _ = s.store.InsertAuditEvent(ctx, store.AuditEvent{OrgID: site.OrgID, ActorType: "user", ActorID: input.ActorUserID, Action: "deployment.validation_failed", ResourceType: "deployment", ResourceID: dep.ID})
+		_, _ = s.store.InsertAuditEvent(ctx, store.AuditEvent{OrgID: site.OrgID, ActorType: actorType, ActorID: actorID, Action: "deployment.validation_failed", ResourceType: "deployment", ResourceID: dep.ID})
 	}
 	return &DeploymentResult{Deployment: dep, Report: prepared.Report, Manifest: prepared.Manifest}, nil
 }
