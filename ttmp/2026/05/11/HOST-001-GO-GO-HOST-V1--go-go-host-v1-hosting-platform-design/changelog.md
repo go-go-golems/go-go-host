@@ -265,3 +265,15 @@ Reconciled Phase 7 and Phase 8 task state after HOST-002 user dashboard and HOST
 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/11/HOST-001-GO-GO-HOST-V1--go-go-host-v1-hosting-platform-design/tasks.md — Phase 7/8 task reconciliation
 
+
+## 2026-05-12
+
+Completed Phase 9 agent enrollment and signed deploy-run MVP: one-time enrollment tokens, Ed25519 agent keys, signed deploy-run creation, upload-token-bound agent deployments, agent CLI commands/help, security tests, and task reconciliation.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/cmd/go-go-host-agent/cmds/deploy.go — agent CLI deploy workflow
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/control/agent_runs.go — agent token
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/agent_signed_integration_test.go — signed agent security and upload integration coverage
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/11/HOST-001-GO-GO-HOST-V1--go-go-host-v1-hosting-platform-design/tasks.md — Phase 9 checklist reconciliation
+

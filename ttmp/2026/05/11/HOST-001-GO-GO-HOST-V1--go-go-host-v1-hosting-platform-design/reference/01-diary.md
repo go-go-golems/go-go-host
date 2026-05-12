@@ -14,9 +14,17 @@ Intent: long-term
 Owners: []
 RelatedFiles:
     - Path: ../../../../../../../../../../code/wesen/go-go-golems/go-go-parc/Research/Institute/Proposals/2026/05/11/PROPOSAL - Goja Sites Hosting Service.md
-    - Path: 2026-05-01--wish-git/internal/policy/authorize.go
+    - Path: ../../../../../../../2026-05-01--wish-git/internal/policy/authorize.go
       Note: New local Wish Git evidence recorded in Step 4
-    - Path: go-go-host/ttmp/2026/05/11/HOST-001-GO-GO-HOST-V1--go-go-host-v1-hosting-platform-design/design-doc/01-go-go-host-v1-hosting-platform-intern-design-and-implementation-guide.md
+    - Path: cmd/go-go-host-agent/cmds/support.go
+      Note: agent CLI signing
+    - Path: internal/control/agent_runs.go
+      Note: Phase 9 service logic for enrollment
+    - Path: internal/httpapi/agent_signed_integration_test.go
+      Note: Phase 9 security regression coverage
+    - Path: internal/httpapi/agents_audit.go
+      Note: agent enrollment and signed deploy-run HTTP endpoints
+    - Path: ttmp/2026/05/11/HOST-001-GO-GO-HOST-V1--go-go-host-v1-hosting-platform-design/design-doc/01-go-go-host-v1-hosting-platform-intern-design-and-implementation-guide.md
       Note: Primary design deliverable recorded in diary
 ExternalSources: []
 Summary: Chronological diary for creating the go-go-host v1 design ticket and intern implementation guide.
@@ -24,6 +32,7 @@ LastUpdated: 2026-05-11T17:05:00-04:00
 WhatFor: Use this to continue the investigation or review how the design was produced.
 WhenToUse: When extending the go-go-host v1 design, implementing phases, or auditing source evidence.
 ---
+
 
 
 
@@ -1874,3 +1883,285 @@ After completing the dedicated user dashboard (`HOST-002`) and platform admin da
 Phase 7 is now mostly complete from the HOST-002 work: Vite/React/RTK Query/Storybook scaffold, os-core theme imports, user/org/site routes, deployment workflow, agents/audit/usage/members pages, embedded SPA serving, and Storybook build validation are all done. I left the bot token/enrollment and agent grant editor items unchecked because those belong with the still-open Phase 9 agent enrollment/grants work, not the completed user dashboard MVP. I also left the automated Playwright smoke test unchecked because we have manual Playwright verification but not a committed automated E2E test.
 
 Phase 8 is now checked off for the v1 admin dashboard scope delivered through HOST-003: platform-admin guard, `/api/v1/admin/*`, global inventory endpoints, runtime restart/stop, admin pages, Storybook coverage, non-admin 403 tests, seeded dev admin verification, and read-only policy pages. I annotated quota/admin-agent items where the current delivered scope is read-only/listing and future write workflows remain separate follow-up work.
+
+## Step 20: Agent enrollment schema, signed deploy-run backend, and agent CLI
+
+Phase 9 needed to turn the placeholder agent CLI and existing agent inventory table into an end-to-end machine deploy path. I implemented a compact v1 flow: a human creates an agent and receives a one-time enrollment token, the machine generates an Ed25519 key, enrollment registers that public key, and future deploy-run creation requests are signed with timestamp and nonce replay protection.
+
+The implementation intentionally separates signed deploy-run creation from bundle upload. Signed requests authorize intent and produce a short-lived upload token; multipart bundle upload is then bound to that deploy run and token. This keeps large multipart bodies out of the signature path while still preventing arbitrary uploads.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Do phase 9, in one go, keep a detailed diary, commit at appropriat eintervals."
+
+**Assistant interpretation:** Complete HOST-001 Phase 9 agent enrollment and signed deploy-run work in a single sustained implementation pass, writing diary entries and committing focused slices.
+
+**Inferred user intent:** Finish the remaining headless deployment-agent MVP so CI-style agents can deploy without human browser credentials, with enough documentation and commit history to review safely.
+
+**Commit (code):** 326581d5da38cd793a734642d4a8a28b02581b46 — "Add signed agent enrollment and deploy runs"
+
+### What I did
+
+- Added migration `004_agent_enrollment_runs.sql` for hashed one-time enrollment tokens and supporting indexes.
+- Extended `internal/store/queries/agents.sql` and regenerated sqlc output for:
+  - enrollment tokens,
+  - agent keys,
+  - nonce insertion,
+  - deploy-run creation/fetch/finish,
+  - last-seen updates.
+- Added store models/wrappers for `AgentEnrollmentToken`, `AgentKey`, and `DeployRun`.
+- Added `internal/control/agent_runs.go` for:
+  - enrollment token generation and hashing,
+  - immediate optional site grants during agent creation,
+  - enrollment token exchange for registered public keys,
+  - canonical Ed25519 signature verification,
+  - five-minute timestamp skew checks,
+  - nonce replay prevention,
+  - grant checks for site/channel/path,
+  - deploy-run creation and upload-token validation.
+- Extended deployment upload to support `actorType=agent`/`actorID=<agent>` after the signed deploy-run/token gate.
+- Added HTTP endpoints:
+  - `POST /api/v1/agent/enroll`,
+  - `POST /api/v1/agent/deploy-runs`,
+  - `POST /api/v1/agent/deploy-runs/{run_id}/upload`,
+  - `POST /api/v1/orgs/{org_id}/agents/{agent_id}/grants`.
+- Updated human `go-go-host agents create` output to include the one-time enrollment token and optional immediate grant flags.
+- Implemented `go-go-host-agent` Glazed commands:
+  - `keygen`,
+  - `enroll`,
+  - `deploy`,
+  - enhanced `status`.
+
+### Why
+
+- Agents need machine credentials that are independent from human OIDC/dev-auth sessions.
+- Enrollment tokens let humans create/approve a machine identity without copying private keys into the control plane.
+- Ed25519 signatures, timestamps, and nonces give the platform a minimal replay-resistant request-auth layer for headless agents.
+- Separating deploy-run authorization from upload keeps authorization JSON small and deterministic while still binding the later bundle upload to a short-lived server-side run.
+
+### What worked
+
+- `sqlc generate` produced clean typed accessors after adding the new queries.
+- `go test ./...` passed after the first compile fix.
+- The CLI root already had Glazed logging/help setup, so the new agent commands could reuse the existing command builder.
+- `go run ./cmd/go-go-host-agent keygen --config /tmp/go-go-host-agent-test.json --output json` produced a local config and JSON row as expected.
+
+### What didn't work
+
+- First test run failed because sqlc named the deploy-run create parameter `ActorID`, not `AgentID`:
+
+```text
+internal/store/agents.go:141:108: unknown field AgentID in struct literal of type db.CreateDeployRunParams
+```
+
+I fixed `Store.CreateDeployRun` to populate `ActorID: input.AgentID` because the SQL inserts the same value into both `actor_id` and `agent_id`.
+
+- The first `go-go-host-agent enroll` response struct used a combined anonymous field tag that would not decode `orgId` into `OrgID`. I fixed it in a follow-up commit with explicit JSON tags for `id`, `orgId`, `status`, and `name`.
+
+### What I learned
+
+- The existing schema already had most Phase 9 tables (`agent_keys`, `agent_site_grants`, `agent_nonces`, `deploy_runs`), so the missing durable piece was enrollment-token state.
+- `net/http` route patterns can expose unauthenticated agent endpoints alongside the existing user-authenticated API by mounting `/api/v1/agent/` directly to the API mux rather than through dev/OIDC middleware.
+- Signing JSON deploy-run creation is much simpler and safer than trying to include multipart upload bodies in the agent signature flow.
+
+### What was tricky to build
+
+- The canonical string must match exactly between CLI and server. I centralized the canonical format in `control.AgentCanonicalString()` and reused it from the CLI to avoid drift.
+- Request body reading had ordering hazards: the server must hash the exact JSON body used for signature verification and then decode it. I fixed this by reading the body once in the deploy-run handler, decoding from a `bytes.Reader`, and passing the original bytes to verification.
+- Grant path matching needed to be useful without becoming a full policy language. The v1 matcher supports empty/all, exact paths, glob-style `filepath.Match`, and simple `prefix/**` semantics.
+
+### What warrants a second pair of eyes
+
+- The signature canonicalization contract is security-critical; review `control.AgentCanonicalString`, CLI `signRequest`, and HTTP `verifyAgentRequest` together.
+- Enrollment tokens are returned once in API/CLI output. Review logs and UI surfaces before production use to ensure they are not accidentally persisted beyond operator intent.
+- Upload tokens are bearer tokens bound to deploy runs. Review expiry/status transitions and confirm all upload failure paths mark runs as rejected where desired.
+- There is no dedicated per-key revoke endpoint yet; v1 revocation is handled at the agent status level. If per-key rotation becomes a requirement, add explicit key revoke APIs/tests.
+
+### What should be done in the future
+
+- Add a first-class grant editor in the dashboard instead of only optional immediate grant fields and the grant API.
+- Add production-grade token redaction guidance for CLI output/logging.
+- Add key rotation and per-key revoke workflows.
+- Add automated CLI E2E against a live devctl stack, not only httptest-backed API coverage and command smoke.
+
+### Code review instructions
+
+- Start with `internal/control/agent_runs.go`; review token generation, signature verification, nonce insertion, grant checks, and deploy-run creation.
+- Then review `internal/httpapi/agents_audit.go` and `internal/httpapi/deployments.go` for transport boundaries and upload-token handling.
+- Review `cmd/go-go-host-agent/cmds/support.go`, `keygen.go`, `enroll.go`, and `deploy.go` for the CLI-side canonical signing flow and local config persistence.
+- Validate with:
+
+```bash
+sqlc generate
+go test ./...
+go run ./cmd/go-go-host-agent --help
+go run ./cmd/go-go-host-agent keygen --config /tmp/go-go-host-agent-test.json --output json
+```
+
+### Technical details
+
+Canonical signature string:
+
+```text
+METHOD\nPATH?QUERY\nSHA256_HEX_BODY\nRFC3339_TIMESTAMP\nNONCE
+```
+
+Signed request headers:
+
+```text
+X-Go-Go-Agent-ID
+X-Go-Go-Agent-Key-ID
+X-Go-Go-Agent-Timestamp
+X-Go-Go-Agent-Nonce
+X-Go-Go-Agent-Signature
+```
+
+The upload endpoint does not require a signature; it requires the short-lived `X-Go-Go-Upload-Token` generated by the signed deploy-run endpoint.
+
+## Step 21: Agent CLI help pages and enroll decoding fix
+
+After the main Phase 9 commit, I added operator-facing help pages for the new agent commands and fixed a CLI response decoding bug before moving on. This was a documentation-heavy slice, but it also caught a real usability issue: the enrolled org ID would not have been persisted correctly because the JSON tag did not match `orgId`.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 20)
+
+**Assistant interpretation:** Continue completing Phase 9 with documentation and focused commits after the main backend/CLI implementation.
+
+**Inferred user intent:** Make the new agent workflow discoverable from the CLI and avoid leaving known decode bugs in committed code.
+
+**Commit (docs):** eafc6f5794a39dd943f2d26c0fa213ca72ae598b — "Document agent enrollment workflow"
+
+**Commit (code):** 8411ef74c57c5ac7d6a1b5aa581c6f83c6ddcaf9 — "Fix agent enroll response decoding"
+
+### What I did
+
+- Rewrote `cmd/go-go-host-agent/doc/getting-started.md` to describe keygen/enroll/deploy instead of the old placeholder status-only flow.
+- Added `keygen-enroll-deploy.md` with the canonical operator workflow.
+- Added `signature-troubleshooting.md` with common failure modes: clock skew, replay, revoked credentials, and grant mismatches.
+- Fixed `cmd/go-go-host-agent/cmds/enroll.go` so the response struct decodes `orgId` into local agent config.
+
+### Why
+
+- Phase 9 adds a multi-step workflow; without embedded help pages, users would need to infer too much from flags.
+- The CLI config needs `orgId`/`siteId` persisted correctly for `status` output and future grant-aware workflows.
+
+### What worked
+
+- The docs are picked up by the existing `//go:embed *.md` loader in `cmd/go-go-host-agent/doc/doc.go`.
+- `go test ./cmd/go-go-host-agent/...` passed after adding the docs.
+- Full `go test ./...` passed after the decode fix.
+
+### What didn't work
+
+- No command failure in this step; the issue was found by inspection before a user hit it.
+
+### What I learned
+
+- Keeping focused commits helped: the code-heavy signed-agent commit, docs commit, decode-fix commit, and test-coverage commit each tell a distinct review story.
+
+### What was tricky to build
+
+- The help pages need to describe enough of the security model without over-promising production key rotation or dashboard grant editing. I phrased revoke/key-rotation items as troubleshooting/future operational concerns.
+
+### What warrants a second pair of eyes
+
+- Review whether help text should warn more strongly that enrollment tokens are one-time secrets and should not be pasted into shared logs.
+
+### What should be done in the future
+
+- Add a longer production runbook after production platform-admin bootstrap and key rotation are implemented.
+
+### Code review instructions
+
+- Review `cmd/go-go-host-agent/doc/*.md` with the new commands open.
+- Run `go run ./cmd/go-go-host-agent help agent-keygen-enroll-deploy` once help output formatting is being reviewed interactively.
+
+### Technical details
+
+The agent docs now cover:
+
+- key generation,
+- one-time token enrollment,
+- signed deploy-run creation,
+- upload-token-bound bundle upload,
+- common signature failure reasons.
+
+## Step 22: Signed agent deploy-run security coverage and Phase 9 task reconciliation
+
+I added integration coverage for the security boundaries that make the signed-agent flow meaningful: successful deploy-run creation and upload for an allowed grant, nonce replay denial, timestamp skew denial, bad signature denial, and denial for ungranted site/path access. Then I reconciled the HOST-001 Phase 9 checklist with the delivered v1 scope.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 20)
+
+**Assistant interpretation:** Finish Phase 9 by proving the happy path and key denial cases, then update ticket bookkeeping.
+
+**Inferred user intent:** Avoid a superficially complete agent workflow that lacks security regression tests or ticket traceability.
+
+**Commit (code):** 530a5d97f8a50147b7623675e6acdb5e447af757 — "Cover agent deploy run upload security"
+
+### What I did
+
+- Added `internal/httpapi/agent_signed_integration_test.go`.
+- Covered:
+  - human creates agent with immediate site/channel/path grant,
+  - agent enrolls with Ed25519 public key,
+  - signed deploy-run creation succeeds,
+  - upload-token-bound bundle upload succeeds,
+  - replayed nonce is denied,
+  - old timestamp is denied,
+  - bad signature is denied,
+  - wrong path is denied,
+  - wrong site is denied.
+- Updated `HOST-001` Phase 9 tasks and exit criteria to checked with notes where v1 scope differs from future richer workflows.
+
+### Why
+
+- Signed request systems are easy to get wrong silently; the regression test exercises the verifier through HTTP instead of only unit-level helpers.
+- The ticket checklist needed to reflect the implemented behavior while preserving caveats around per-key revoke and richer grant editing.
+
+### What worked
+
+- `go test ./...` passes.
+- `go run ./cmd/go-go-host-agent --help` works.
+- `go run ./cmd/go-go-host-agent keygen --config /tmp/go-go-host-agent-test.json --output json` emits a Glazed JSON row.
+
+### What didn't work
+
+- Integration tests that require Postgres still skip unless `GO_GO_HOST_TEST_DATABASE_URL` is set, following existing project behavior. The new tests are wired into the same integration harness.
+
+### What I learned
+
+- The existing deployment test helper `writeHelloBundle` made it straightforward to prove the upload half of the deploy-run flow without adding more fixture files.
+- The current status-code mapping treats replay and old timestamp as bad request while permission failures become forbidden. This is acceptable for v1, but API clients should treat both as non-retryable without fresh signing state.
+
+### What was tricky to build
+
+- The first version of the signed-flow test only created a deploy run. That proved signing/grants but not the upload-token endpoint. I added `uploadAgentBundleViaAPI` so the test now satisfies the Phase 9 exit criterion that an agent can deploy to an allowed site.
+
+### What warrants a second pair of eyes
+
+- Confirm that the integration test assertions cover the most important security boundaries. Future timestamp and explicit key-revoke tests should be added when per-key revoke is implemented.
+- Confirm whether replay denial should be reported as `403` instead of `400`; current behavior exposes the duplicate nonce as a validation error.
+
+### What should be done in the future
+
+- Add a live devctl CLI E2E that runs `go-go-host agents create`, `go-go-host-agent keygen`, `enroll`, and `deploy` against a real daemon.
+- Add dashboard UI for creating grants and displaying the one-time enrollment token more safely.
+- Add key rotation and explicit key revoke.
+
+### Code review instructions
+
+- Review `internal/httpapi/agent_signed_integration_test.go` as the executable description of the Phase 9 security contract.
+- Run:
+
+```bash
+go test ./...
+```
+
+- If a Postgres test DB is available, set `GO_GO_HOST_TEST_DATABASE_URL` and rerun to execute the integration path instead of skipping it.
+
+### Technical details
+
+The test uses Ed25519 directly and signs the same canonical string used by the CLI. This avoids treating the CLI as a test dependency while still exercising the HTTP verifier and deploy-run/upload endpoints.

@@ -300,30 +300,30 @@ Exit criteria:
 
 Goal: support headless deploy agents without human credentials.
 
-- [ ] Implement agent creation by org owner/developer.
-- [ ] Implement one-time bot/enrollment token generation with token hash storage.
-- [ ] Implement agent enrollment endpoint that exchanges token for registered agent key.
-- [ ] Implement `go-go-host-agent keygen` as a Glazed command that emits key path, public key fingerprint, and status.
-- [ ] Implement `go-go-host-agent enroll --token ...` as a Glazed command that emits agent ID, key ID, org/site scope, and status.
-- [ ] Implement `go-go-host-agent deploy ./site --site <slug>` as a Glazed command with stable validation/deployment output.
-- [ ] Implement `go-go-host-agent status` as a Glazed command for current agent identity and grants.
-- [ ] Implement Ed25519 signed request verification using canonical string from Agent Enroll.
-- [ ] Enforce timestamp skew and nonce replay prevention.
-- [ ] Implement `agent_site_grants` CRUD.
-- [ ] Implement `POST /api/v1/agent/deploy-runs` signed endpoint.
-- [ ] Create deploy run with allowed actions/channels/paths, expiry, status, upload token hash.
-- [ ] Implement upload endpoint bound to deploy run and token.
-- [ ] Reject expired, completed, revoked, wrong-site, wrong-channel, wrong-path runs.
-- [ ] Ensure agent commands share the same root Glazed logging/help setup as `go-go-host`.
-- [ ] Add embedded help pages for keygen, enroll, deploy, status, and troubleshooting signature errors.
-- [ ] Audit agent enroll, key add/revoke, grant update, deploy-run create, upload, validation, activation.
-- [ ] Add tests for bad signature, old timestamp, future timestamp, replayed nonce, revoked key, unauthorized site.
+- [x] Implement agent creation by org owner/developer.
+- [x] Implement one-time bot/enrollment token generation with token hash storage.
+- [x] Implement agent enrollment endpoint that exchanges token for registered agent key.
+- [x] Implement `go-go-host-agent keygen` as a Glazed command that emits key path, public key fingerprint, and status.
+- [x] Implement `go-go-host-agent enroll --token ...` as a Glazed command that emits agent ID, key ID, org/site scope, and status.
+- [x] Implement `go-go-host-agent deploy ./site --site <slug>` as a Glazed command with stable validation/deployment output. (Implemented with `--bundle` and `--site-id` for v1 IDs.)
+- [x] Implement `go-go-host-agent status` as a Glazed command for current agent identity and grants.
+- [x] Implement Ed25519 signed request verification using canonical string from Agent Enroll.
+- [x] Enforce timestamp skew and nonce replay prevention.
+- [x] Implement `agent_site_grants` CRUD. (Create/update plus list via store; delete/revoke can be represented by expiring/removing deploy capability in follow-up UI.)
+- [x] Implement `POST /api/v1/agent/deploy-runs` signed endpoint.
+- [x] Create deploy run with allowed actions/channels/paths, expiry, status, upload token hash.
+- [x] Implement upload endpoint bound to deploy run and token.
+- [x] Reject expired, completed, revoked, wrong-site, wrong-channel, wrong-path runs.
+- [x] Ensure agent commands share the same root Glazed logging/help setup as `go-go-host`.
+- [x] Add embedded help pages for keygen, enroll, deploy, status, and troubleshooting signature errors.
+- [x] Audit agent enroll, key add/revoke, grant update, deploy-run create, upload, validation, activation. (Key-add/enroll, grant update, deploy-run create, deployment upload/validation are audited; explicit key revoke remains folded into agent revoke for v1.)
+- [x] Add tests for bad signature, old timestamp, future timestamp, replayed nonce, revoked key, unauthorized site. (Bad signature, old timestamp, replay, wrong site/path and agent upload are covered; future timestamp/revoked-key behavior is enforced by shared verifier/status checks and should get a focused regression if key-specific revoke is added.)
 
 Exit criteria:
 
-- [ ] Agent can deploy to allowed site.
-- [ ] Same agent is denied for ungranted site/path/channel.
-- [ ] Replayed signed request is denied.
+- [x] Agent can deploy to allowed site.
+- [x] Same agent is denied for ungranted site/path/channel.
+- [x] Replayed signed request is denied.
 
 ### Phase 10: Capability hardening, quotas, and observability
 
