@@ -1,50 +1,59 @@
 ---
-Title: "Agent Setup Preview"
+Title: "Agent Setup"
 Slug: "agent-setup"
-Short: "Understand the planned agent deployment workflow and current CLI status."
+Short: "Create deployment agents, grants, and enrollment tokens for machine deploys."
 Topics:
   - go-go-host
   - agents
   - deployments
 Commands:
-  - go-go-host-agent
-  - deploy
+  - agents
+  - audit
 Flags:
   - dev-user
+  - org-id
+  - site-id
 IsTopLevel: false
 IsTemplate: false
 ShowPerDefault: true
 SectionType: GeneralTopic
 ---
 
-This page explains the intended agent workflow for go-go-host. The v1 control-plane foundations already include agent tables, but the human CLI agent commands are intentionally deferred until the agent APIs are implemented.
+Agent deployment is implemented in v1. A human operator creates the agent and site grant with `go-go-host agents create`; the machine then uses `go-go-host-agent keygen`, `enroll`, and `deploy`.
 
-## Current status
-
-Use human deployment commands for now:
+For the complete operator guide, run:
 
 ```bash
-go-go-host deploy --site-id site_123 --path ./bundle.tar.gz --dev-user alice
-go-go-host deployments activate --deployment-id dep_123 --dev-user alice
+go-go-host help agent-guide
 ```
 
-The separate `go-go-host-agent` binary exists as a scaffold for future non-human deployment flows.
+For the machine-side guide, run:
 
-## Planned flow
+```bash
+go-go-host-agent help agent-guide
+go-go-host-agent help agent-keygen-enroll-deploy
+go-go-host-agent help agent-signature-troubleshooting
+```
 
-The planned agent workflow will let an org owner create an agent, grant scoped site/channel/path permissions, and hand the agent a one-time enrollment command. Agents will upload bundles through constrained deploy runs rather than broad user sessions.
+The shortest local flow is:
 
-The deployment validator already contains path and channel policy hooks so the later agent API can reuse the same checks.
+```bash
+go-go-host agents create \
+  --api-url http://127.0.0.1:8080 \
+  --dev-user alice \
+  --org-id ORG_ID \
+  --name ci-agent \
+  --site-id SITE_ID \
+  --channel default \
+  --path '**' \
+  --can-activate \
+  --output json
+```
 
-## Troubleshooting
+Then on the machine:
 
-| Problem | Cause | Solution |
-| --- | --- | --- |
-| `go-go-host agents list` is not available | Agent HTTP APIs are not implemented yet | Use human deployment commands in v1 until Phase 9 |
-| Agent binary has limited commands | It is currently a scaffold | Track the agent API phase before depending on it |
-| Need path/channel restrictions today | Bundle validation supports policy hooks, but no user-facing grant editor exists yet | Keep deployments manual or add policy plumbing in the next phase |
-
-## See Also
-
-- `deploy-workflow`
-- `rollback-workflow`
+```bash
+go-go-host-agent keygen --config ./agent.json --api-url http://127.0.0.1:8080
+go-go-host-agent enroll --config ./agent.json --api-url http://127.0.0.1:8080 --token ENROLLMENT_TOKEN
+go-go-host-agent deploy --config ./agent.json --bundle ./site.tar.gz --site-id SITE_ID --channel default --path bundles/site.tar.gz --activate
+```
