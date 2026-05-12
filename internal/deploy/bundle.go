@@ -312,7 +312,7 @@ func allowsPath(path string, allowed []string) bool {
 		if pattern == "" {
 			continue
 		}
-		if pattern == path {
+		if pattern == "**" || pattern == path {
 			return true
 		}
 		if strings.HasSuffix(pattern, "/**") && strings.HasPrefix(path, strings.TrimSuffix(pattern, "**")) {
