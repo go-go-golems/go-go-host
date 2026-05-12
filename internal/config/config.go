@@ -65,6 +65,7 @@ func Load(path string) (Config, error) {
 	if err != nil {
 		return Config{}, fmt.Errorf("read config %s: %w", path, err)
 	}
+	data = []byte(os.ExpandEnv(string(data)))
 	switch strings.ToLower(filepath.Ext(path)) {
 	case ".json":
 		if err := json.Unmarshal(data, &cfg); err != nil {
