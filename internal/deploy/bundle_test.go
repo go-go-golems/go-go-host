@@ -32,6 +32,17 @@ func TestValidateAndStoreAcceptsDotSlashManifest(t *testing.T) {
 	}
 }
 
+func TestValidateAndStoreAllowsDoubleStarPolicy(t *testing.T) {
+	bundle := writeTestTarGz(t, map[string]string{"go-go-host.json": `{"scriptsDir":"scripts","entrypoint":"scripts/app.js","smokePath":"/"}`, "scripts/app.js": "console.log('hi')", "assets/style.css": "body{}"})
+	prepared, err := ValidateAndStore(context.Background(), bundle, filepath.Join(t.TempDir(), "bundle.tgz"), filepath.Join(t.TempDir(), "unpack"), Options{MaxBytes: 1024 * 1024, AllowedPaths: []string{"**"}})
+	if err != nil {
+		t.Fatalf("validate: %v", err)
+	}
+	if !prepared.Report.Valid {
+		t.Fatalf("expected double-star policy to allow nested archive paths, got %#v", prepared.Report)
+	}
+}
+
 func TestValidateAndStoreRejectsMissingManifest(t *testing.T) {
 	bundle := writeTestTarGz(t, map[string]string{"scripts/app.js": "console.log('hi')"})
 	prepared, err := ValidateAndStore(context.Background(), bundle, filepath.Join(t.TempDir(), "bundle.tgz"), filepath.Join(t.TempDir(), "unpack"), Options{MaxBytes: 1024 * 1024})
