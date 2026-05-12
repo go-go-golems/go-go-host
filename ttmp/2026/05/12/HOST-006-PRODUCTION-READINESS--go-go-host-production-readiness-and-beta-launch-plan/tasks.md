@@ -65,7 +65,7 @@ Intent: long-term
 - [ ] Add fake DNS resolver tests.
 - [x] Write and exercise edge/TLS routing recipe for the beta dashboard/API host `hosting.yolo.scapegoat.dev`.
 - [x] Add DNS wildcard `*.hosting.yolo.scapegoat.dev` for future generated site hosts.
-- [ ] Add wildcard TLS strategy for generated site hosts; current HTTP-01 issuer only covers explicit ingress hosts.
+- [x] Add wildcard TLS strategy for generated site hosts through DigitalOcean DNS-01, wildcard Certificate, and wildcard Ingress rule.
 - [ ] Add domain recheck/expiry policy.
 
 ## P1: Runtime isolation

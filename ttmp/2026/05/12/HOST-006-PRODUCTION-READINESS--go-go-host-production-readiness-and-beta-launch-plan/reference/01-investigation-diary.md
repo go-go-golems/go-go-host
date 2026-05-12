@@ -918,3 +918,215 @@ Terraform repo:
 - DNS for `*.hosting.yolo.scapegoat.dev` exists, but wildcard TLS for arbitrary hosted sub-sites is not implemented. The current `letsencrypt-prod` issuer uses HTTP-01, so wildcard certs would require a DNS-01 issuer or a different sub-site TLS strategy.
 - The Deployment currently has a manual `kubectl.kubernetes.io/restartedAt` annotation from the rollout restart. This is acceptable but could be removed in a later GitOps cleanup if Argo reports drift.
 - The app repo still has unrelated dirty files in `cmd/go-go-host*/cmds/support.go` and an unrelated untracked HOST-005 workspace; I did not touch them.
+
+## Step 15: DigitalOcean DNS-01 wildcard TLS for generated site hosts
+
+The user asked whether the cluster already had cert-manager support for wildcard certificates and then asked me to add the missing pieces to the K3s Argo CD deployment, likely through the existing `platform-cert-issuer` application.
+
+### Prompt Context
+
+**User prompt (verbatim):** "don't we already have a cert-manager to do that?"
+
+**User prompt (verbatim):** "can you add that to k3s argo cd deploy (probably as part of the platform-cert-issuer application) ?"
+
+**Assistant interpretation:** Verify the existing cert-manager/issuer state, then add a GitOps-managed DNS-01 issuer and wire go-go-host to use wildcard TLS for generated site hosts.
+
+### What I found
+
+The cluster already had cert-manager and a ready HTTP-01 ClusterIssuer:
+
+```text
+clusterissuer.cert-manager.io/letsencrypt-prod   True
+```
+
+The GitOps manifest at `gitops/kustomize/platform-cert-issuer/clusterissuer.yaml` uses only an HTTP-01 solver:
+
+```yaml
+solvers:
+  - http01:
+      ingress:
+        ingressClassName: traefik
+```
+
+That explains why exact hosts such as `hosting.yolo.scapegoat.dev` work but wildcard certs cannot be issued by that issuer.
+
+I also found an existing cert-manager namespace secret:
+
+```text
+cert-manager/digitalocean-dns
+key: access-token
+```
+
+So the cluster already had the DigitalOcean API token material needed for DNS-01; it just lacked a DNS-01 ClusterIssuer and a go-go-host wildcard Certificate/Ingress wiring.
+
+### GitOps changes
+
+In the K3s repo, I added a second platform ClusterIssuer:
+
+- `gitops/kustomize/platform-cert-issuer/clusterissuer-dns01-digitalocean.yaml`
+- referenced from `gitops/kustomize/platform-cert-issuer/kustomization.yaml`
+
+The new issuer is:
+
+```text
+letsencrypt-prod-dns01-digitalocean
+```
+
+and uses:
+
+```yaml
+dns01:
+  digitalocean:
+    tokenSecretRef:
+      name: digitalocean-dns
+      key: access-token
+```
+
+For go-go-host I added:
+
+- `gitops/kustomize/go-go-host/certificate.yaml`
+- `gitops/kustomize/go-go-host/kustomization.yaml` entry
+- updated `gitops/kustomize/go-go-host/ingress.yaml`
+- updated `docs/go-go-host-beta-deployment-playbook.md`
+
+The new Certificate requests both:
+
+```text
+hosting.yolo.scapegoat.dev
+*.hosting.yolo.scapegoat.dev
+```
+
+into secret:
+
+```text
+go-go-host-wildcard-tls
+```
+
+The Ingress now has two rules:
+
+```text
+hosting.yolo.scapegoat.dev
+*.hosting.yolo.scapegoat.dev
+```
+
+both forwarding to the same `go-go-host` service. This lets Traefik forward generated site subdomains to the daemon, where the runtime supervisor routes by `Host` header to the active site runtime.
+
+I removed the Ingress `cert-manager.io/cluster-issuer: letsencrypt-prod` annotation to avoid ingress-shim trying to create an HTTP-01 certificate for a wildcard host. The wildcard cert is now an explicit Certificate object using the DNS-01 issuer.
+
+### Validation before push
+
+I rendered both Kustomize packages:
+
+```bash
+kubectl kustomize gitops/kustomize/platform-cert-issuer >/tmp/platform-cert-issuer.yaml
+kubectl kustomize gitops/kustomize/go-go-host >/tmp/go-go-host-kustomize.yaml
+```
+
+I also used server-side dry-run against the cluster:
+
+```bash
+kubectl apply --dry-run=server -k gitops/kustomize/platform-cert-issuer
+kubectl apply --dry-run=server -k gitops/kustomize/go-go-host
+```
+
+Both dry-runs passed. Existing Argo-managed objects emitted `last-applied-configuration` warnings because Argo uses server-side apply, but the new ClusterIssuer and Certificate validated correctly.
+
+### Commit and rollout
+
+K3s repo commit:
+
+```text
+4d521ef Add DigitalOcean DNS01 wildcard TLS
+```
+
+I pushed it to `origin/main`, then refreshed Argo:
+
+```bash
+kubectl -n argocd annotate application platform-cert-issuer argocd.argoproj.io/refresh=hard --overwrite
+kubectl -n argocd annotate application go-go-host argocd.argoproj.io/refresh=hard --overwrite
+```
+
+Argo converged to:
+
+```text
+platform-cert-issuer   Synced Healthy
+ go-go-host            Synced Healthy
+```
+
+The DNS-01 ClusterIssuer became ready:
+
+```text
+letsencrypt-prod-dns01-digitalocean   True   The ACME account was registered with the ACME server
+```
+
+The wildcard certificate was issued successfully:
+
+```text
+certificate.cert-manager.io/go-go-host-wildcard-tls   True   go-go-host-wildcard-tls
+```
+
+Certificate details:
+
+```text
+Dns Names:
+  hosting.yolo.scapegoat.dev
+  *.hosting.yolo.scapegoat.dev
+Issuer Ref:
+  ClusterIssuer/letsencrypt-prod-dns01-digitalocean
+Not After:
+  2026-08-10T20:16:06Z
+Renewal Time:
+  2026-07-11T20:16:06Z
+```
+
+The Ingress now advertises:
+
+```text
+hosting.yolo.scapegoat.dev,*.hosting.yolo.scapegoat.dev
+```
+
+### Smoke test
+
+I verified both exact-host and wildcard-host TLS routing:
+
+```bash
+curl -fsSI https://hosting.yolo.scapegoat.dev/healthz
+curl -fsSI https://foo.hosting.yolo.scapegoat.dev/healthz
+```
+
+Both returned:
+
+```text
+HTTP/2 200
+```
+
+I also checked the wildcard root path:
+
+```bash
+curl -sSI https://foo.hosting.yolo.scapegoat.dev/
+```
+
+It returned:
+
+```text
+HTTP/2 404
+```
+
+That 404 is expected because `foo.hosting.yolo.scapegoat.dev` is not currently an active site host in the go-go-host runtime supervisor. The important part is that TLS and Traefik wildcard ingress work; once a site with primary host `foo.hosting.yolo.scapegoat.dev` has an active deployment, the daemon can route it by Host header.
+
+### Current site-host access model
+
+Generated user sites are now intended to be reachable as:
+
+```text
+https://<site-slug>.hosting.yolo.scapegoat.dev
+```
+
+provided that:
+
+1. the site exists,
+2. its slug maps to `<site-slug>.hosting.yolo.scapegoat.dev`,
+3. it has an active deployment, and
+4. the runtime supervisor has activated the deployment and registered that host.
+
+The wildcard DNS, wildcard cert, and wildcard ingress pieces are now in place.

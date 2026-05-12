@@ -75,3 +75,14 @@ Backfilled detailed K3s/Argo/Keycloak/Vault/DNS beta deployment diary, including
 - /home/manuel/code/wesen/terraform/keycloak/apps/go-go-host/envs/k3s-beta — Keycloak beta realm Terraform
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/12/HOST-006-PRODUCTION-READINESS--go-go-host-production-readiness-and-beta-launch-plan/reference/01-investigation-diary.md — backfilled beta deployment diary
 
+
+## 2026-05-12
+
+Added K3s GitOps-managed DigitalOcean DNS-01 ClusterIssuer and go-go-host wildcard Certificate/Ingress so generated site hosts under *.hosting.yolo.scapegoat.dev can terminate TLS and reach the daemon.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/go-go-host/certificate.yaml — wildcard TLS Certificate for hosting.yolo.scapegoat.dev
+- /home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/go-go-host/ingress.yaml — wildcard ingress rule for generated site hosts
+- /home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/platform-cert-issuer/clusterissuer-dns01-digitalocean.yaml — DNS-01 ClusterIssuer for DigitalOcean
+
