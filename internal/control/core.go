@@ -18,6 +18,7 @@ type Core struct {
 	Deployments *DeploymentService
 	Agents      *AgentService
 	Audit       *AuditService
+	Maintenance *MaintenanceService
 }
 
 func NewCore(cfg config.Config) *Core {
@@ -31,5 +32,6 @@ func NewCoreWithStore(cfg config.Config, st *store.Store) *Core {
 	c.Deployments = &DeploymentService{store: st, supervisor: c.Supervisor, dataDir: cfg.DataDir}
 	c.Agents = &AgentService{store: st}
 	c.Audit = &AuditService{store: st}
+	c.Maintenance = &MaintenanceService{store: st, dataDir: cfg.DataDir}
 	return c
 }

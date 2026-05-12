@@ -3,6 +3,7 @@ package httpapi
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/go-go-golems/go-go-host/internal/control"
@@ -14,7 +15,7 @@ const Version = "0.1.0-dev"
 func NewHandler(core *control.Core) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", handleHealth)
-	mux.HandleFunc("GET /readyz", handleReady)
+	mux.HandleFunc("GET /readyz", handleReady(core))
 	mux.HandleFunc("GET /api/v1/version", handleVersion)
 	dashboard := webadmin.NewHandler()
 	mux.Handle("/app", http.StripPrefix("/app", dashboard))
@@ -61,7 +62,11 @@ func NewHandler(core *control.Core) http.Handler {
 	api.HandleFunc("POST /api/v1/sites/{site_id}/deployments", handleUploadDeployment(core))
 	api.HandleFunc("GET /api/v1/sites/{site_id}/deployments", handleListDeployments(core))
 	api.HandleFunc("POST /api/v1/sites/{site_id}/rollback", handleRollbackDeployment(core))
+	api.HandleFunc("GET /api/v1/sites/{site_id}/export/metadata", handleExportSiteMetadata(core))
+	api.HandleFunc("GET /api/v1/sites/{site_id}/export/db", handleExportSiteDB(core))
+	api.HandleFunc("POST /api/v1/sites/{site_id}/deployments/prune", handlePruneDeployments(core))
 	api.HandleFunc("GET /api/v1/deployments/{deployment_id}", handleGetDeployment(core))
+	api.HandleFunc("GET /api/v1/deployments/{deployment_id}/bundle", handleExportDeploymentBundle(core))
 	api.HandleFunc("POST /api/v1/deployments/{deployment_id}/activate", handleActivateDeployment(core))
 	api.HandleFunc("GET /api/v1/admin/runtimes/summary", handleAdminRuntimeSummary(core))
 	api.HandleFunc("POST /api/v1/admin/runtimes/{site_id}/restart", handleAdminRuntimeRestart(core))
@@ -76,6 +81,7 @@ func NewHandler(core *control.Core) http.Handler {
 	api.HandleFunc("GET /api/v1/admin/quotas", handleAdminListQuotas(core))
 	api.HandleFunc("GET /api/v1/admin/capabilities", handleAdminListCapabilities(core))
 	api.HandleFunc("GET /api/v1/admin/domains", handleAdminListDomains(core))
+	api.HandleFunc("POST /api/v1/admin/audit/retention", handleAuditRetention(core))
 	authn := &oidcAuthenticator{cfg: core.Config, st: core.Store}
 	authedAPI := authMiddleware(api, authn, core.Config.DevAuth)
 	mux.Handle("/api/v1/me", authedAPI)
@@ -93,8 +99,31 @@ func handleHealth(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }
 
-func handleReady(w http.ResponseWriter, _ *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]string{"status": "ready"})
+func handleReady(core *control.Core) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		checks := map[string]string{"db": "ok", "dataDir": "ok"}
+		status := http.StatusOK
+		if core.Store == nil || core.Store.Ping(r.Context()) != nil {
+			checks["db"] = "failed"
+			status = http.StatusServiceUnavailable
+		}
+		if err := os.MkdirAll(core.Config.DataDir, 0o755); err != nil {
+			checks["dataDir"] = "failed"
+			status = http.StatusServiceUnavailable
+		} else if f, err := os.CreateTemp(core.Config.DataDir, ".readyz-*"); err != nil {
+			checks["dataDir"] = "failed"
+			status = http.StatusServiceUnavailable
+		} else {
+			name := f.Name()
+			_ = f.Close()
+			_ = os.Remove(name)
+		}
+		state := "ready"
+		if status != http.StatusOK {
+			state = "not_ready"
+		}
+		writeJSON(w, status, map[string]any{"status": state, "checks": checks})
+	}
 }
 
 func handleVersion(w http.ResponseWriter, _ *http.Request) {

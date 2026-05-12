@@ -106,6 +106,13 @@ func (s *Store) applyMigration(ctx context.Context, name string) error {
 
 func (s *Store) Queries() *storedb.Queries { return s.q }
 
+func (s *Store) Ping(ctx context.Context) error {
+	if s == nil || s.pool == nil {
+		return errors.New("store is not open")
+	}
+	return s.pool.Ping(ctx)
+}
+
 func (s *Store) WithTx(ctx context.Context, fn func(*storedb.Queries) error) error {
 	tx, err := s.pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
