@@ -1,12 +1,12 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type { AdminRuntimeSummary, Agent, AuditEvent, ConfigResponse, CreateAgentRequest, CreateOrgRequest, CreateSiteRequest, Deployment, MeResponse, Org, RevokeAgentRequest, RuntimeStatus, Site, UploadDeploymentResponse } from './types';
+import type { AdminDeployment, AdminOrg, AdminRuntimeSummary, AdminSite, AdminUser, Agent, AuditEvent, ConfigResponse, CreateAgentRequest, CreateOrgRequest, CreateSiteRequest, Deployment, MeResponse, Org, RevokeAgentRequest, RuntimeStatus, Site, UploadDeploymentResponse } from './types';
 
 export interface UploadDeploymentRequest { siteId: string; file: File; message?: string; channel?: string; }
 
 export const goGoHostApi = createApi({
   reducerPath: 'goGoHostApi',
   baseQuery: fetchBaseQuery({ baseUrl: '/api/v1' }),
-  tagTypes: ['Me', 'Org', 'Site', 'Deployment', 'Runtime', 'AdminRuntime', 'Agent', 'Audit', 'Config'],
+  tagTypes: ['Me', 'Org', 'Site', 'Deployment', 'Runtime', 'AdminRuntime', 'AdminInventory', 'Agent', 'Audit', 'Config'],
   endpoints: (build) => ({
     getConfig: build.query<ConfigResponse, void>({ query: () => '/config', providesTags: ['Config'] }),
     getMe: build.query<MeResponse, void>({ query: () => '/me', providesTags: ['Me', 'Org'] }),
@@ -21,6 +21,13 @@ export const goGoHostApi = createApi({
     }),
     getRuntime: build.query<RuntimeStatus, string>({ query: (siteId) => `/sites/${siteId}/runtime`, providesTags: (_r, _e, siteId) => [{ type: 'Runtime', id: siteId }] }),
     getAdminRuntimeSummary: build.query<AdminRuntimeSummary, void>({ query: () => '/admin/runtimes/summary', providesTags: ['AdminRuntime'] }),
+    listAdminOrgs: build.query<AdminOrg[], void>({ query: () => '/admin/orgs', providesTags: [{ type: 'AdminInventory', id: 'ORGS' }] }),
+    listAdminUsers: build.query<AdminUser[], void>({ query: () => '/admin/users', providesTags: [{ type: 'AdminInventory', id: 'USERS' }] }),
+    listAdminSites: build.query<AdminSite[], void>({ query: () => '/admin/sites', providesTags: [{ type: 'AdminInventory', id: 'SITES' }] }),
+    listAdminDeployments: build.query<AdminDeployment[], { orgId?: string; siteId?: string; status?: string; limit?: number } | void>({
+      query: (params) => ({ url: '/admin/deployments', params: params ?? undefined }),
+      providesTags: [{ type: 'AdminInventory', id: 'DEPLOYMENTS' }],
+    }),
     listDeployments: build.query<Deployment[], string>({ query: (siteId) => `/sites/${siteId}/deployments`, providesTags: (_r, _e, siteId) => [{ type: 'Deployment', id: `SITE:${siteId}` }] }),
     getDeployment: build.query<Deployment, string>({ query: (deploymentId) => `/deployments/${deploymentId}`, providesTags: (_r, _e, deploymentId) => [{ type: 'Deployment', id: deploymentId }] }),
     uploadDeployment: build.mutation<UploadDeploymentResponse, UploadDeploymentRequest>({
@@ -64,4 +71,4 @@ export const goGoHostApi = createApi({
   }),
 });
 
-export const { useGetConfigQuery, useGetMeQuery, useCreateOrgMutation, useListSitesQuery, useCreateSiteMutation, useGetRuntimeQuery, useGetAdminRuntimeSummaryQuery, useListDeploymentsQuery, useGetDeploymentQuery, useUploadDeploymentMutation, useActivateDeploymentMutation, useRollbackDeploymentMutation, useListAgentsQuery, useCreateAgentMutation, useRevokeAgentMutation, useListAuditQuery } = goGoHostApi;
+export const { useGetConfigQuery, useGetMeQuery, useCreateOrgMutation, useListSitesQuery, useCreateSiteMutation, useGetRuntimeQuery, useGetAdminRuntimeSummaryQuery, useListAdminOrgsQuery, useListAdminUsersQuery, useListAdminSitesQuery, useListAdminDeploymentsQuery, useListDeploymentsQuery, useGetDeploymentQuery, useUploadDeploymentMutation, useActivateDeploymentMutation, useRollbackDeploymentMutation, useListAgentsQuery, useCreateAgentMutation, useRevokeAgentMutation, useListAuditQuery } = goGoHostApi;

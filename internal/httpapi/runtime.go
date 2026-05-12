@@ -34,18 +34,7 @@ func handleRuntimeStatus(core *control.Core) http.HandlerFunc {
 
 func handleAdminRuntimeSummary(core *control.Core) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		p, err := requirePrincipal(r)
-		if err != nil {
-			writeError(w, http.StatusUnauthorized, err.Error())
-			return
-		}
-		admin, err := core.Store.IsPlatformAdmin(r.Context(), p.User.ID)
-		if err != nil {
-			writeError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		if !admin {
-			writeError(w, http.StatusForbidden, "platform admin required")
+		if _, ok := requirePlatformAdmin(core, w, r); !ok {
 			return
 		}
 		writeJSON(w, http.StatusOK, core.Supervisor.Summary())

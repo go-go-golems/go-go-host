@@ -1,0 +1,10 @@
+import type { Meta, StoryObj } from '@storybook/react';
+import { http, HttpResponse } from 'msw';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { AdminOrgsPage } from './AdminOrgsPage';
+const Wrapped = () => <MemoryRouter initialEntries={['/admin/orgs']}><Routes><Route path="/admin/orgs" element={<AdminOrgsPage />} /></Routes></MemoryRouter>;
+const meta = { title: 'Admin Pages/AdminOrgsPage', component: Wrapped } satisfies Meta<typeof Wrapped>;
+export default meta; type Story = StoryObj<typeof meta>;
+export const Populated: Story = {};
+export const Empty: Story = { parameters: { msw: { handlers: [http.get('/api/v1/admin/orgs', () => HttpResponse.json([]))] } } };
+export const Forbidden: Story = { parameters: { msw: { handlers: [http.get('/api/v1/admin/orgs', () => HttpResponse.json({ error: 'platform admin required' }, { status: 403 }))] } } };

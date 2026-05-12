@@ -1,4 +1,4 @@
-import type { AdminRuntimeSummary, Agent, AuditEvent, Deployment, MeResponse, RuntimeStatus, Site } from '../types';
+import type { AdminDeployment, AdminOrg, AdminRuntimeSummary, AdminSite, AdminUser, Agent, AuditEvent, Deployment, MeResponse, RuntimeStatus, Site } from '../types';
 
 export const fixtures = {
   me: {
@@ -29,4 +29,20 @@ export const fixtures = {
     { siteId: 'site_123', orgId: 'org_123', deploymentId: 'dep_4', hosts: ['hello.localhost'], status: 'ready', startedAt: '2026-05-11T22:20:00Z', requestsTotal: 1234, errorsTotal: 2 },
     { siteId: 'site_456', orgId: 'org_123', deploymentId: 'dep_bad', hosts: ['docs.localhost'], status: 'failed', startedAt: '2026-05-11T22:25:00Z', lastError: 'dry-run smoke check failed', requestsTotal: 15, errorsTotal: 7 },
   ] } satisfies AdminRuntimeSummary,
+  adminOrgs: [
+    { id: 'org_123', slug: 'demo', name: 'Demo Org', createdAt: '2026-05-11T20:00:00Z', memberCount: 3, siteCount: 2, deploymentCount: 4 },
+    { id: 'org_456', slug: 'labs', name: 'Labs Org', createdAt: '2026-05-11T21:00:00Z', memberCount: 1, siteCount: 0, deploymentCount: 0 },
+  ] satisfies AdminOrg[],
+  adminUsers: [
+    { id: 'usr_admin', email: 'admin@dev.local', displayName: 'Platform Admin', createdAt: '2026-05-11T19:00:00Z', platformAdmin: true, orgCount: 1 },
+    { id: 'usr_123', email: 'alice@dev.local', displayName: 'Alice', createdAt: '2026-05-11T20:00:00Z', platformAdmin: false, orgCount: 1 },
+  ] satisfies AdminUser[],
+  adminSites: [
+    { id: 'site_123', orgId: 'org_123', orgSlug: 'demo', orgName: 'Demo Org', slug: 'hello', name: 'Hello Site', primaryHost: 'hello.localhost', status: 'active', activeDeploymentId: 'dep_4', createdAt: '2026-05-11T20:10:00Z', runtimeStatus: 'ready', requestsTotal: 1234, errorsTotal: 2 },
+    { id: 'site_456', orgId: 'org_123', orgSlug: 'demo', orgName: 'Demo Org', slug: 'docs', name: 'Docs Site', primaryHost: 'docs.localhost', status: 'active', activeDeploymentId: 'dep_bad', createdAt: '2026-05-11T20:15:00Z', runtimeStatus: 'failed', requestsTotal: 15, errorsTotal: 7, lastError: 'dry-run smoke check failed' },
+  ] satisfies AdminSite[],
+  adminDeployments: [
+    { id: 'dep_4', siteId: 'site_123', siteSlug: 'hello', primaryHost: 'hello.localhost', orgId: 'org_123', orgSlug: 'demo', orgName: 'Demo Org', version: 4, status: 'active', bundleRef: 'bundles/site_123/dep_4.tar.gz', unpackedPath: 'sites/site_123/deployments/dep_4', manifestJson: '{}', validationJson: '{"valid":true}', createdByType: 'user', createdById: 'usr_123', createdAt: '2026-05-11T22:10:00Z', activatedAt: '2026-05-11T22:20:00Z' },
+    { id: 'dep_bad', siteId: 'site_456', siteSlug: 'docs', primaryHost: 'docs.localhost', orgId: 'org_123', orgSlug: 'demo', orgName: 'Demo Org', version: 2, status: 'rejected', bundleRef: 'bundles/site_456/dep_bad.tar.gz', unpackedPath: '', manifestJson: '{}', validationJson: '{"valid":false,"errors":["smoke failed"]}', createdByType: 'user', createdById: 'usr_123', createdAt: '2026-05-11T22:15:00Z' },
+  ] satisfies AdminDeployment[],
 };

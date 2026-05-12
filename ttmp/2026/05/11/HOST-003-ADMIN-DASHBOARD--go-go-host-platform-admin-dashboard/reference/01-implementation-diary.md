@@ -120,3 +120,77 @@ Screenshots:
 - Local dev user is not seeded as a platform admin, so embedded `/admin` currently verifies the denial path. Add a dev runbook or seed command for platform-admin browser verification.
 - Storybook still emits noisy MSW warnings for unhandled static/module requests during browser inspection; production Storybook build passes.
 - Admin shell denied state is functional but should get a dedicated Storybook guard story and perhaps a more centered panel treatment.
+
+## Step 3: Admin inventory APIs and first inventory pages
+
+I continued from the admin runtime MVP into the next platform inventory slice.
+
+### What changed
+
+Backend/store:
+
+- Added sqlc admin inventory queries in `internal/store/queries/admin.sql`.
+- Generated `internal/store/db/admin.sql.go`.
+- Added store wrappers in `internal/store/admin.go` for:
+  - org inventory,
+  - user inventory,
+  - site inventory with runtime status,
+  - deployment inventory with org/site/status filters and limit.
+- Added platform-admin-gated HTTP endpoints:
+  - `GET /api/v1/admin/orgs`,
+  - `GET /api/v1/admin/users`,
+  - `GET /api/v1/admin/sites`,
+  - `GET /api/v1/admin/deployments`.
+- Reused the same `requirePlatformAdmin` helper for runtime summary and inventory endpoints.
+
+Frontend:
+
+- Added TypeScript contracts for admin org/user/site/deployment rows.
+- Added RTK Query endpoints:
+  - `useListAdminOrgsQuery`,
+  - `useListAdminUsersQuery`,
+  - `useListAdminSitesQuery`,
+  - `useListAdminDeploymentsQuery`.
+- Added MSW fixtures and handlers for the inventory endpoints.
+- Added routes/pages:
+  - `/admin/orgs` → `AdminOrgsPage`,
+  - `/admin/users` → `AdminUsersPage`,
+  - `/admin/sites` → `AdminSitesPage`,
+  - `/admin/deployments` → `AdminDeploymentsPage`.
+- Added Storybook stories for populated/empty/forbidden or filtered states.
+
+### Validation
+
+Commands run:
+
+```bash
+sqlc generate
+make web-build
+go test ./...
+make storybook-build
+go run ./cmd/build-web
+```
+
+Results:
+
+- sqlc generation succeeded.
+- TypeScript/Vite build passed.
+- Go tests passed.
+- Storybook production build passed.
+- Dagger build-web exported embedded admin assets.
+
+### Browser verification
+
+Playwright checked:
+
+- `http://127.0.0.1:6007/?path=/story/admin-pages-adminsitespage--populated`
+
+Screenshot:
+
+- `storybook-admin-sites-inventory.png`
+
+### Follow-ups
+
+- Add backend integration tests with a seeded platform admin to prove inventory endpoints return all tenants.
+- Add a dev runbook or seed command so `/admin` can be inspected against the real embedded daemon as a platform admin.
+- Add global admin audit and agent inventory endpoints next.

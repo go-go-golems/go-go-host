@@ -30,9 +30,9 @@
 
 ## Phase 3 — Platform inventory APIs
 
-- [ ] Add admin-only API endpoint for all orgs with counts and creation timestamps.
-- [ ] Add admin-only API endpoint for all sites with org, host, status, active deployment, and runtime status.
-- [ ] Add admin-only API endpoint for all deployments with org/site filters, deployment status filters, and limit.
+- [x] Add admin-only API endpoint for all orgs with counts and creation timestamps.
+- [x] Add admin-only API endpoint for all sites with org, host, status, active deployment, and runtime status.
+- [x] Add admin-only API endpoint for all deployments with org/site filters, deployment status filters, and limit.
 - [ ] Add admin-only API endpoint for global agents with org/site/grant context.
 - [ ] Add admin-only global audit endpoint with filters for actor, org, resource, action, and time range.
 - [ ] Add backend tests proving platform admins can query all tenants.
@@ -40,15 +40,15 @@
 
 ## Phase 4 — Admin orgs/users/sites pages
 
-- [ ] Add `AdminOrgsPage` with org list, membership count, site count, deployment count, and quick links.
-- [ ] Add `AdminUsersPage` with known users, platform-admin marker, membership summary, and last activity placeholder.
-- [ ] Add `AdminSitesPage` with global site inventory and filters by org/status/runtime state.
-- [ ] Add Storybook stories and MSW fixtures for each inventory page.
-- [ ] Add empty/error/loading states for every page.
+- [x] Add `AdminOrgsPage` with org list, membership count, site count, deployment count, and quick links.
+- [x] Add `AdminUsersPage` with known users, platform-admin marker, membership summary, and last activity placeholder.
+- [x] Add `AdminSitesPage` with global site inventory and filters by org/status/runtime state.
+- [x] Add Storybook stories and MSW fixtures for each inventory page.
+- [x] Add empty/error/loading states for every page.
 
 ## Phase 5 — Admin deployments and audit pages
 
-- [ ] Add `AdminDeploymentsPage` with status/org/site/actor filters.
+- [x] Add `AdminDeploymentsPage` with status/org/site/actor filters.
 - [ ] Add `AdminDeploymentDetailPage` for manifest, validation report, activation timeline, actor, and bundle metadata.
 - [ ] Add `AdminAuditPage` for global audit with URL-backed filters.
 - [ ] Add Storybook interaction stories for filtering and bad JSON metadata.
@@ -91,7 +91,7 @@
 
 - [ ] Add Playwright smoke for non-admin denial under `/admin`.
 - [ ] Add Playwright smoke for admin overview/runtime inventory with seeded platform admin.
-- [ ] Add embedded SPA tests for `/admin/*` fallback behavior.
+- [x] Add embedded SPA tests for `/admin/*` fallback behavior.
 - [ ] Add devctl runbook for creating a local platform admin user.
 - [ ] Run `go test ./...`, `make web-build`, `make storybook-build`, and `go run ./cmd/build-web`.
 - [ ] Upload the final admin dashboard design/task bundle to reMarkable if requested.

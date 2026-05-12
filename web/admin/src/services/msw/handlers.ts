@@ -5,6 +5,14 @@ export const handlers = [
   http.get('/api/v1/config', () => HttpResponse.json({ baseDomain: 'localhost', publicBaseUrl: 'http://127.0.0.1:8080', devAuth: true })),
   http.get('/api/v1/me', () => HttpResponse.json(fixtures.me)),
   http.get('/api/v1/admin/runtimes/summary', () => HttpResponse.json(fixtures.adminRuntimeSummary)),
+  http.get('/api/v1/admin/orgs', () => HttpResponse.json(fixtures.adminOrgs)),
+  http.get('/api/v1/admin/users', () => HttpResponse.json(fixtures.adminUsers)),
+  http.get('/api/v1/admin/sites', () => HttpResponse.json(fixtures.adminSites)),
+  http.get('/api/v1/admin/deployments', ({ request }) => {
+    const url = new URL(request.url);
+    const status = url.searchParams.get('status');
+    return HttpResponse.json(status ? fixtures.adminDeployments.filter((d) => d.status === status) : fixtures.adminDeployments);
+  }),
   http.post('/api/v1/orgs', async ({ request }) => {
     const body = await request.json() as { slug?: string; name?: string };
     if (!body.slug || !body.name) return HttpResponse.json({ error: 'slug and name are required' }, { status: 400 });
