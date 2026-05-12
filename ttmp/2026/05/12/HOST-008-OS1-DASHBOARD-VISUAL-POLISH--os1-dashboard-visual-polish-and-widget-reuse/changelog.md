@@ -46,3 +46,15 @@ Uploaded the OS1 admin UI guidelines playbook to reMarkable.
 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/12/HOST-008-OS1-DASHBOARD-VISUAL-POLISH--os1-dashboard-visual-polish-and-widget-reuse/playbook/01-os1-admin-dashboard-ui-work-guidelines.md — Source document uploaded as HOST-008_OS1_Admin_UI_Guidelines.pdf
 
+
+## 2026-05-12
+
+Applied the OS1 UI guidelines to the Agents page: checkbox widget for auto-activation, semantic highlights, compact OS1 create form, and normalized agent/signing-key tables.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/components/organisms/AgentKeysTable/AgentKeysTable.css — Signing-key table normalized with subtle status highlights
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/components/organisms/AgentsTable/AgentsTable.css — Agent table normalized to OS1 dense table styling
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/AgentsPage/AgentsPage.css — Agents page OS1 form
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/AgentsPage/AgentsPage.tsx — Agents page now uses OS-core Checkbox and semantic highlighted explanatory copy
+

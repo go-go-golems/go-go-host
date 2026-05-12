@@ -327,3 +327,43 @@ Plan:
 3. Normalize Agents page font sizes and table density to the dashboard scale.
 4. Align `AgentsTable` and `AgentKeysTable` with the same 2px outer border / black header pattern used by Sites and Settings.
 5. Capture a Storybook screenshot of the populated Agents page.
+
+## 2026-05-12 — Agents page implementation
+
+Implemented the Agents page OS1 cleanup.
+
+Changed files:
+
+```text
+web/admin/src/pages/AgentsPage/AgentsPage.tsx
+web/admin/src/pages/AgentsPage/AgentsPage.css
+web/admin/src/components/organisms/AgentsTable/AgentsTable.css
+web/admin/src/components/organisms/AgentKeysTable/AgentKeysTable.css
+```
+
+What changed:
+
+- Replaced the native auto-activation checkbox with `@go-go-golems/os-core` `Checkbox`.
+- Reworked page copy with subtle semantic highlights:
+  - machine identity = info,
+  - auto-activation = danger,
+  - trusted pipelines = safe.
+- Converted the create form into a compact OS1 control group with bordered inputs and a warning panel for auto-activation.
+- Added explicit sections for agent records and signing keys with stacked explanatory headers.
+- Normalized Agents and Agent Keys tables to the 2px OS1 outer border / black header / dense cell pattern.
+- Reworked selected row and key status states with subtle OS1-compatible color fills.
+
+Validation:
+
+```bash
+cd web/admin
+pnpm build
+```
+
+Build passed, with the already-known CodeMirror chunk-size warning.
+
+Storybook screenshot captured via Playwright:
+
+```text
+sources/screenshots/host-008-agents-page-os1.png
+```
