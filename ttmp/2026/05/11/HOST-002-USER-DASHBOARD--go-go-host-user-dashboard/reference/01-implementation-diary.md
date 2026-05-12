@@ -623,3 +623,59 @@ Commands run:
 make web-build
 make storybook-build
 ```
+
+## Step 10: Updated devctl to run the full dashboard test stack
+
+The user asked whether devctl runs the dashboard and what to test. I updated the devctl plugin so `devctl up` now starts the complete local stack needed for real browser testing.
+
+### Prompt Context
+
+**User prompt (verbatim):** "ok, can you update devctl to run it (if you haven't already), and tell me what I should test."
+
+**Assistant interpretation:** Make devctl start Postgres, the Go daemon/API, the Vite dashboard, and Storybook together, then provide a concrete manual test checklist.
+
+### What I did
+
+- Updated `plugins/go-go-host-devctl.py` launch plan to include four services:
+  - `postgres` using `docker compose -f deployments/dev/docker-compose.yaml up postgres`,
+  - `go-go-hostd` using `go run ./cmd/go-go-hostd --config configs/dev.yaml`,
+  - `web-admin` using `pnpm dev`,
+  - `storybook` using `pnpm storybook`.
+- Added service config metadata for:
+  - Postgres on `127.0.0.1:55432`,
+  - daemon/API on `127.0.0.1:8080`,
+  - dashboard on `127.0.0.1:5173`,
+  - Storybook on `127.0.0.1:6007`.
+- Made the daemon service wait for Postgres TCP readiness before starting.
+- Added Docker validation to devctl plugin validation.
+- Restarted the dev environment with `devctl up --force --skip-validate`.
+
+### What worked
+
+- `devctl plan` shows all four services.
+- `devctl up --force --skip-validate` started all four services.
+- `devctl status --tail-lines 20` reports all four services alive.
+- `curl http://127.0.0.1:8080/healthz` returns `{"status":"ok"}`.
+- `curl http://127.0.0.1:8080/api/v1/me` works with dev auth.
+- `curl -I http://127.0.0.1:5173/app` returns the Vite app HTML.
+
+### What didn't work
+
+- I used `--skip-validate` when restarting because Docker availability and current environment were already known; normal future `devctl up --force` can run validation.
+
+### What warrants review
+
+- The Postgres devctl service attaches to `docker compose up postgres`; stopping devctl stops the attached process, while Docker may keep or recreate the container depending on Compose signal behavior. If this is annoying, a later refinement can add explicit prepare/cleanup ops.
+
+### Validation
+
+Commands run:
+
+```bash
+devctl plan
+devctl up --force --skip-validate
+devctl status --tail-lines 20
+curl -fsS http://127.0.0.1:8080/healthz
+curl -fsS -H 'X-Go-Go-Host-User: alice' http://127.0.0.1:8080/api/v1/me
+curl -fsSI http://127.0.0.1:5173/app
+```

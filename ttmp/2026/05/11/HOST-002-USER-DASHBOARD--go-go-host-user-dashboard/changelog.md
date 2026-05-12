@@ -86,3 +86,12 @@ Completed practical Phase 6-8 dashboard workflow: org/site create, site layout/r
 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/app/routes.tsx — Nested site and deployment route tree
 
+
+## 2026-05-11
+
+Updated devctl to run the full local dashboard test stack: Postgres, go-go-hostd, Vite web-admin, and Storybook.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/plugins/go-go-host-devctl.py — Full dashboard devctl launch plan
+
