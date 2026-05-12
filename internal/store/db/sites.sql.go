@@ -77,6 +77,68 @@ func (q *Queries) CreateSite(ctx context.Context, arg CreateSiteParams) (Site, e
 	return i, err
 }
 
+const createSiteDomain = `-- name: CreateSiteDomain :one
+INSERT INTO site_domains (id, site_id, hostname, status, verification_token, verified_at, created_at)
+VALUES ($1, $2, $3, $4, $5, NULL, $6)
+RETURNING id, site_id, hostname, status, verification_token, verified_at, created_at
+`
+
+type CreateSiteDomainParams struct {
+	ID                string             `json:"id"`
+	SiteID            string             `json:"site_id"`
+	Hostname          string             `json:"hostname"`
+	Status            string             `json:"status"`
+	VerificationToken string             `json:"verification_token"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) CreateSiteDomain(ctx context.Context, arg CreateSiteDomainParams) (SiteDomain, error) {
+	row := q.db.QueryRow(ctx, createSiteDomain,
+		arg.ID,
+		arg.SiteID,
+		arg.Hostname,
+		arg.Status,
+		arg.VerificationToken,
+		arg.CreatedAt,
+	)
+	var i SiteDomain
+	err := row.Scan(
+		&i.ID,
+		&i.SiteID,
+		&i.Hostname,
+		&i.Status,
+		&i.VerificationToken,
+		&i.VerifiedAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const deleteSiteConfig = `-- name: DeleteSiteConfig :exec
+DELETE FROM site_config
+WHERE site_id = $1 AND key = $2
+`
+
+type DeleteSiteConfigParams struct {
+	SiteID string `json:"site_id"`
+	Key    string `json:"key"`
+}
+
+func (q *Queries) DeleteSiteConfig(ctx context.Context, arg DeleteSiteConfigParams) error {
+	_, err := q.db.Exec(ctx, deleteSiteConfig, arg.SiteID, arg.Key)
+	return err
+}
+
+const deleteSiteDomain = `-- name: DeleteSiteDomain :exec
+DELETE FROM site_domains
+WHERE id = $1
+`
+
+func (q *Queries) DeleteSiteDomain(ctx context.Context, id string) error {
+	_, err := q.db.Exec(ctx, deleteSiteDomain, id)
+	return err
+}
+
 const getSite = `-- name: GetSite :one
 SELECT id, org_id, slug, name, primary_host, status, active_deployment_id, created_at
 FROM sites
@@ -94,6 +156,27 @@ func (q *Queries) GetSite(ctx context.Context, id string) (Site, error) {
 		&i.PrimaryHost,
 		&i.Status,
 		&i.ActiveDeploymentID,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getSiteDomain = `-- name: GetSiteDomain :one
+SELECT id, site_id, hostname, status, verification_token, verified_at, created_at
+FROM site_domains
+WHERE id = $1
+`
+
+func (q *Queries) GetSiteDomain(ctx context.Context, id string) (SiteDomain, error) {
+	row := q.db.QueryRow(ctx, getSiteDomain, id)
+	var i SiteDomain
+	err := row.Scan(
+		&i.ID,
+		&i.SiteID,
+		&i.Hostname,
+		&i.Status,
+		&i.VerificationToken,
+		&i.VerifiedAt,
 		&i.CreatedAt,
 	)
 	return i, err
@@ -152,6 +235,73 @@ func (q *Queries) ListSiteCapabilities(ctx context.Context, siteID string) ([]Si
 	return items, nil
 }
 
+const listSiteConfig = `-- name: ListSiteConfig :many
+SELECT site_id, key, value_json, updated_at
+FROM site_config
+WHERE site_id = $1
+ORDER BY key
+`
+
+func (q *Queries) ListSiteConfig(ctx context.Context, siteID string) ([]SiteConfig, error) {
+	rows, err := q.db.Query(ctx, listSiteConfig, siteID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []SiteConfig{}
+	for rows.Next() {
+		var i SiteConfig
+		if err := rows.Scan(
+			&i.SiteID,
+			&i.Key,
+			&i.ValueJson,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listSiteDomains = `-- name: ListSiteDomains :many
+SELECT id, site_id, hostname, status, verification_token, verified_at, created_at
+FROM site_domains
+WHERE site_id = $1
+ORDER BY hostname
+`
+
+func (q *Queries) ListSiteDomains(ctx context.Context, siteID string) ([]SiteDomain, error) {
+	rows, err := q.db.Query(ctx, listSiteDomains, siteID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []SiteDomain{}
+	for rows.Next() {
+		var i SiteDomain
+		if err := rows.Scan(
+			&i.ID,
+			&i.SiteID,
+			&i.Hostname,
+			&i.Status,
+			&i.VerificationToken,
+			&i.VerifiedAt,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listSitesByOrg = `-- name: ListSitesByOrg :many
 SELECT id, org_id, slug, name, primary_host, status, active_deployment_id, created_at
 FROM sites
@@ -176,6 +326,41 @@ func (q *Queries) ListSitesByOrg(ctx context.Context, orgID string) ([]Site, err
 			&i.PrimaryHost,
 			&i.Status,
 			&i.ActiveDeploymentID,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listVerifiedSiteDomains = `-- name: ListVerifiedSiteDomains :many
+SELECT id, site_id, hostname, status, verification_token, verified_at, created_at
+FROM site_domains
+WHERE site_id = $1 AND status = 'verified'
+ORDER BY hostname
+`
+
+func (q *Queries) ListVerifiedSiteDomains(ctx context.Context, siteID string) ([]SiteDomain, error) {
+	rows, err := q.db.Query(ctx, listVerifiedSiteDomains, siteID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []SiteDomain{}
+	for rows.Next() {
+		var i SiteDomain
+		if err := rows.Scan(
+			&i.ID,
+			&i.SiteID,
+			&i.Hostname,
+			&i.Status,
+			&i.VerificationToken,
+			&i.VerifiedAt,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -244,4 +429,55 @@ func (q *Queries) UpsertSiteCapability(ctx context.Context, arg UpsertSiteCapabi
 		arg.UpdatedAt,
 	)
 	return err
+}
+
+const upsertSiteConfig = `-- name: UpsertSiteConfig :exec
+INSERT INTO site_config (site_id, key, value_json, updated_at)
+VALUES ($1, $2, $3, $4)
+ON CONFLICT (site_id, key)
+DO UPDATE SET value_json = EXCLUDED.value_json, updated_at = EXCLUDED.updated_at
+`
+
+type UpsertSiteConfigParams struct {
+	SiteID    string             `json:"site_id"`
+	Key       string             `json:"key"`
+	ValueJson []byte             `json:"value_json"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
+func (q *Queries) UpsertSiteConfig(ctx context.Context, arg UpsertSiteConfigParams) error {
+	_, err := q.db.Exec(ctx, upsertSiteConfig,
+		arg.SiteID,
+		arg.Key,
+		arg.ValueJson,
+		arg.UpdatedAt,
+	)
+	return err
+}
+
+const verifySiteDomain = `-- name: VerifySiteDomain :one
+UPDATE site_domains
+SET status = 'verified', verified_at = $2
+WHERE id = $1
+RETURNING id, site_id, hostname, status, verification_token, verified_at, created_at
+`
+
+type VerifySiteDomainParams struct {
+	ID         string             `json:"id"`
+	VerifiedAt pgtype.Timestamptz `json:"verified_at"`
+}
+
+func (q *Queries) VerifySiteDomain(ctx context.Context, arg VerifySiteDomainParams) (SiteDomain, error) {
+	row := q.db.QueryRow(ctx, verifySiteDomain, arg.ID, arg.VerifiedAt)
+	var i SiteDomain
+	err := row.Scan(
+		&i.ID,
+		&i.SiteID,
+		&i.Hostname,
+		&i.Status,
+		&i.VerificationToken,
+		&i.VerifiedAt,
+		&i.CreatedAt,
+	)
+	return i, err
 }

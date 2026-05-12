@@ -212,7 +212,13 @@ func (s *DeploymentService) activate(ctx context.Context, actorType, actorID str
 		unpackedPath = filepath.Join(s.dataDir, "sites", site.ID, "deployments", dep.ID)
 	}
 	quota, _ := s.store.GetSiteQuota(ctx, site.ID)
-	spec := hostruntime.Spec{SiteID: site.ID, OrgID: site.OrgID, DeploymentID: dep.ID, Hosts: []string{site.PrimaryHost}, ScriptsDir: filepath.Join(unpackedPath, filepath.FromSlash(manifest.ScriptsDir)), AssetsDir: filepath.Join(unpackedPath, filepath.FromSlash(manifest.AssetsDir)), DBPath: filepath.Join(s.dataDir, "sites", site.ID, "db", "app.sqlite"), Dev: true, HealthPath: manifest.SmokePath, Capabilities: hostruntime.DefaultCapabilities()}
+	hosts := []string{site.PrimaryHost}
+	if domains, err := s.store.ListVerifiedSiteDomains(ctx, site.ID); err == nil {
+		for _, domain := range domains {
+			hosts = append(hosts, domain.Hostname)
+		}
+	}
+	spec := hostruntime.Spec{SiteID: site.ID, OrgID: site.OrgID, DeploymentID: dep.ID, Hosts: hosts, ScriptsDir: filepath.Join(unpackedPath, filepath.FromSlash(manifest.ScriptsDir)), AssetsDir: filepath.Join(unpackedPath, filepath.FromSlash(manifest.AssetsDir)), DBPath: filepath.Join(s.dataDir, "sites", site.ID, "db", "app.sqlite"), Dev: true, HealthPath: manifest.SmokePath, Capabilities: hostruntime.DefaultCapabilities()}
 	if quota != nil {
 		spec.DBSoftMaxBytes = quota.DBSoftMaxBytes
 		spec.DBHardMaxBytes = quota.DBHardMaxBytes

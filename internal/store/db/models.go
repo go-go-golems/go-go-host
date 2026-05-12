@@ -172,6 +172,13 @@ type SiteCapability struct {
 	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
 }
 
+type SiteConfig struct {
+	SiteID    string             `json:"site_id"`
+	Key       string             `json:"key"`
+	ValueJson []byte             `json:"value_json"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
 type SiteDomain struct {
 	ID                string             `json:"id"`
 	SiteID            string             `json:"site_id"`

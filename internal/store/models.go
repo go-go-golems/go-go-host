@@ -62,6 +62,23 @@ type SiteCapability struct {
 	UpdatedAt  time.Time
 }
 
+type SiteConfigItem struct {
+	SiteID    string
+	Key       string
+	ValueJSON []byte
+	UpdatedAt time.Time
+}
+
+type SiteDomain struct {
+	ID                string
+	SiteID            string
+	Hostname          string
+	Status            string
+	VerificationToken string
+	VerifiedAt        time.Time
+	CreatedAt         time.Time
+}
+
 type RuntimeStatus struct {
 	SiteID        string
 	OrgID         string
