@@ -194,3 +194,49 @@ Screenshot:
 - Add backend integration tests with a seeded platform admin to prove inventory endpoints return all tenants.
 - Add a dev runbook or seed command so `/admin` can be inspected against the real embedded daemon as a platform admin.
 - Add global admin audit and agent inventory endpoints next.
+
+## Step 4: Dev platform-admin seeding and embedded admin verification
+
+I added a local-dev way to seed platform-admin users so the real embedded `/admin` dashboard can be exercised without manually inserting rows into Postgres.
+
+### What changed
+
+- Added `devPlatformAdminSubjects` to daemon config.
+- Default config and `configs/dev.yaml` now include `dev-user`, so the normal browser dev identity becomes a platform admin in local development.
+- Updated dev auth to call `AddPlatformAdmin` after `UpsertUserFromOIDC` when the dev subject is configured as a platform admin.
+- Added integration coverage for admin inventory endpoints:
+  - non-admin dev users get `403`,
+  - configured platform-admin dev users can query tenant org/site inventory.
+
+### Validation
+
+Commands run:
+
+```bash
+go test ./...
+devctl restart go-go-hostd
+curl -fsS http://127.0.0.1:8080/api/v1/me | jq '{email:.user.email, platformAdmin}'
+curl -fsS http://127.0.0.1:8080/api/v1/admin/orgs | jq 'length'
+```
+
+Results:
+
+- Go tests passed.
+- `/api/v1/me` now reports `platformAdmin: true` for `dev-user` under `configs/dev.yaml`.
+- `/api/v1/admin/orgs` returns inventory for the local dev database.
+
+### Browser verification
+
+Playwright checked embedded admin pages against the real daemon:
+
+- `http://127.0.0.1:8080/admin/overview`
+- `http://127.0.0.1:8080/admin/sites`
+
+Screenshots:
+
+- `embedded-admin-overview-dev-admin.png`
+- `embedded-admin-sites-dev-admin.png`
+
+### Notes
+
+This is dev-auth-only behavior. Production OIDC users still need explicit `platform_admins` rows or a later admin bootstrap workflow.

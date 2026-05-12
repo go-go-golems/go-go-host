@@ -35,8 +35,8 @@
 - [x] Add admin-only API endpoint for all deployments with org/site filters, deployment status filters, and limit.
 - [ ] Add admin-only API endpoint for global agents with org/site/grant context.
 - [ ] Add admin-only global audit endpoint with filters for actor, org, resource, action, and time range.
-- [ ] Add backend tests proving platform admins can query all tenants.
-- [ ] Add backend tests proving normal users receive 403 for every `/api/v1/admin/*` inventory endpoint.
+- [x] Add backend tests proving platform admins can query all tenants.
+- [x] Add backend tests proving normal users receive 403 for every `/api/v1/admin/*` inventory endpoint.
 
 ## Phase 4 — Admin orgs/users/sites pages
 
@@ -90,7 +90,7 @@
 ## Phase 10 — E2E validation and release readiness
 
 - [ ] Add Playwright smoke for non-admin denial under `/admin`.
-- [ ] Add Playwright smoke for admin overview/runtime inventory with seeded platform admin.
+- [x] Add Playwright smoke for admin overview/runtime inventory with seeded platform admin.
 - [x] Add embedded SPA tests for `/admin/*` fallback behavior.
 - [ ] Add devctl runbook for creating a local platform admin user.
 - [ ] Run `go test ./...`, `make web-build`, `make storybook-build`, and `go run ./cmd/build-web`.

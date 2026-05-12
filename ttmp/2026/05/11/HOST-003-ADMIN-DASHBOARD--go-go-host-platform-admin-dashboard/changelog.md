@@ -38,3 +38,14 @@ Added platform-admin inventory APIs and initial admin org/user/site/deployment p
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/AdminDeploymentsPage/AdminDeploymentsPage.tsx — admin deployment inventory page
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/AdminSitesPage/AdminSitesPage.tsx — admin site inventory page
 
+
+## 2026-05-11
+
+Added dev platform-admin subject seeding, backend admin inventory access tests, and verified embedded /admin pages as a seeded dev platform admin.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/config/config.go — devPlatformAdminSubjects config
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/admin_inventory_integration_test.go — admin inventory authorization coverage
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/auth.go — dev auth auto-seeds configured platform admins
+

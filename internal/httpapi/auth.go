@@ -34,7 +34,7 @@ func authMiddleware(next http.Handler, authn *oidcAuthenticator, devAuthEnabled 
 		var user *store.User
 		var err error
 		if devAuthEnabled {
-			user, err = authenticateDev(r, authn.st)
+			user, err = authenticateDev(r, authn.st, authn.cfg.DevPlatformAdminSubjects)
 		} else {
 			user, err = authn.authenticate(r)
 		}
@@ -50,7 +50,7 @@ func authMiddleware(next http.Handler, authn *oidcAuthenticator, devAuthEnabled 
 	})
 }
 
-func authenticateDev(r *http.Request, st *store.Store) (*store.User, error) {
+func authenticateDev(r *http.Request, st *store.Store, platformAdminSubjects []string) (*store.User, error) {
 	subject := r.Header.Get("X-Go-Go-Host-User")
 	if subject == "" {
 		subject = "dev-user"
@@ -63,7 +63,19 @@ func authenticateDev(r *http.Request, st *store.Store) (*store.User, error) {
 	if name == "" {
 		name = subject
 	}
-	return st.UpsertUserFromOIDC(r.Context(), "dev", subject, email, name)
+	user, err := st.UpsertUserFromOIDC(r.Context(), "dev", subject, email, name)
+	if err != nil {
+		return nil, err
+	}
+	for _, adminSubject := range platformAdminSubjects {
+		if adminSubject == subject {
+			if err := st.AddPlatformAdmin(r.Context(), user.ID); err != nil {
+				return nil, err
+			}
+			break
+		}
+	}
+	return user, nil
 }
 
 func requirePrincipal(r *http.Request) (principal, error) {
