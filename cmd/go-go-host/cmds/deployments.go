@@ -43,6 +43,7 @@ type deploymentDTO struct {
 	CreatedByID    string `json:"createdById"`
 	CreatedAt      string `json:"createdAt"`
 	ActivatedAt    string `json:"activatedAt"`
+	BundleSHA256   string `json:"bundleSha256"`
 }
 
 type deployResponse struct {
@@ -260,7 +261,7 @@ func decodeDeploymentSettings(vals *values.Values) (*DeploymentSettings, CLIConf
 func deploymentRow(dep deploymentDTO, extra ...types.Row) types.Row {
 	row := types.NewRow(
 		types.MRP("id", dep.ID), types.MRP("site_id", dep.SiteID), types.MRP("version", dep.Version), types.MRP("status", dep.Status),
-		types.MRP("bundle_ref", dep.BundleRef), types.MRP("unpacked_path", dep.UnpackedPath), types.MRP("created_by_type", dep.CreatedByType), types.MRP("created_by_id", dep.CreatedByID), types.MRP("created_at", dep.CreatedAt), types.MRP("activated_at", dep.ActivatedAt), types.MRP("manifest_json", dep.ManifestJSON), types.MRP("validation_json", dep.ValidationJSON),
+		types.MRP("bundle_ref", dep.BundleRef), types.MRP("bundle_sha256", dep.BundleSHA256), types.MRP("unpacked_path", dep.UnpackedPath), types.MRP("created_by_type", dep.CreatedByType), types.MRP("created_by_id", dep.CreatedByID), types.MRP("created_at", dep.CreatedAt), types.MRP("activated_at", dep.ActivatedAt), types.MRP("manifest_json", dep.ManifestJSON), types.MRP("validation_json", dep.ValidationJSON),
 	)
 	for _, e := range extra {
 		for pair := e.Oldest(); pair != nil; pair = pair.Next() {

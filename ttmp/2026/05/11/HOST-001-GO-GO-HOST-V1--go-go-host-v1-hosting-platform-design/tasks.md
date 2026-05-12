@@ -349,31 +349,31 @@ Exit criteria:
 
 Goal: make hosted execution boundaries visible and enforceable.
 
-- [ ] Define default capability set: `express`, `ui.dsl`, scoped `database/db`, `time/timer`, static assets.
-- [ ] Implement capability policy table defaults and per-site overrides.
-- [ ] Implement manifest requested-vs-effective capability report.
-- [ ] Ensure unrestricted `fs` is not available by default.
-- [ ] Ensure `exec` is never available in hosted v1.
-- [ ] Add optional scoped asset read capability if scripts need asset introspection.
-- [ ] Add request timeout enforcement around handler calls where possible.
-- [ ] Add DB guard configuration from site quota.
-- [ ] Add DB stats endpoint.
-- [ ] Add usage collector for request count, error count, DB size, bundle bytes, deployment count.
-- [ ] Add dashboard quota warnings.
+- [x] Define default capability set: `express`, `ui.dsl`, scoped `database/db`, `time/timer`, static assets.
+- [x] Implement capability policy table defaults and per-site overrides.
+- [x] Implement manifest requested-vs-effective capability report.
+- [x] Ensure unrestricted `fs` is not available by default.
+- [x] Ensure `exec` is never available in hosted v1.
+- [x] Add optional scoped asset read capability if scripts need asset introspection.
+- [x] Add request timeout enforcement around handler calls where possible.
+- [x] Add DB guard configuration from site quota.
+- [x] Add DB stats endpoint.
+- [x] Add usage collector for request count, error count, DB size, bundle bytes, deployment count.
+- [x] Add dashboard quota warnings.
 - [x] Add dashboard agent grant UI for `canActivate`, with clear warnings that it permits traffic promotion. (Covered by Phase 10A initial slice; replacement-key success remains for full rotation.)
 - [x] Add agent key inventory UI showing key IDs, created/revoked timestamps, and active/revoked status. (Covered by Phase 10A initial slice; replacement-key success remains for full rotation.)
-- [ ] Add agent key rotation workflow: generate/register replacement key, verify it, then retire old key.
+- [x] Add agent key rotation workflow: generate/register replacement key, verify it, then retire old key.
 - [x] Add agent key revoke endpoint and UI action distinct from whole-agent revoke. (Covered by Phase 10A initial slice; replacement-key success remains for full rotation.)
 - [x] Add tests for revoked-key signed request denial and replacement-key success. (Covered by Phase 10A initial slice; replacement-key success remains for full rotation.)
-- [ ] Add structured logs with request ID/site ID/deployment ID.
-- [ ] Add runtime event table or log stream for start/stop/fail/activate events.
-- [ ] Add tests for DB hard-limit write failure.
-- [ ] Add tests for forbidden capability rejection.
+- [x] Add structured logs with request ID/site ID/deployment ID.
+- [x] Add runtime event table or log stream for start/stop/fail/activate events.
+- [x] Add tests for DB hard-limit write failure.
+- [x] Add tests for forbidden capability rejection.
 
 Exit criteria:
 
-- [ ] Capabilities are explicit in deployment validation and runtime construction.
-- [ ] Users and admins can see quota state and runtime errors.
+- [x] Capabilities are explicit in deployment validation and runtime construction.
+- [x] Users and admins can see quota state and runtime errors.
 
 ### Phase 10A: Immediate agent hardening and operator UX
 
@@ -387,18 +387,18 @@ Goal: make scoped auto-activation safer and easier to operate before broader pro
 - [x] Add dashboard key revoke action.
 - [x] Add signed-request last-used tracking for keys.
 - [x] Add revoked-key signed request denial coverage.
-- [ ] Add structured security failure audit events for bad signature, timestamp skew, replay, revoked key, and grant denied.
-- [ ] Add upload token one-time/in-progress semantics.
-- [ ] Add bundle SHA256 storage and expose it in deployment API/dashboard/audit.
+- [x] Add structured security failure audit events for bad signature, timestamp skew, replay, revoked key, and grant denied.
+- [x] Add upload token one-time/in-progress semantics.
+- [x] Add bundle SHA256 storage and expose it in deployment API/dashboard/audit.
 
 Exit criteria:
 
 - [x] Operators can see and revoke individual agent signing keys.
 - [x] `canActivate` is visible in the dashboard and protected by backend role checks.
 - [x] Revoked keys can no longer create signed deploy runs.
-- [ ] Security failures are visible in audit with stable reason codes.
-- [ ] Upload tokens cannot be reused or raced.
-- [ ] Deployments expose bundle hashes for traceability.
+- [x] Security failures are visible in audit with stable reason codes.
+- [x] Upload tokens cannot be reused or raced.
+- [x] Deployments expose bundle hashes for traceability.
 
 ### Phase 11: Domains, configuration, and site settings
 
