@@ -45,7 +45,7 @@ go-go-host agents create \
   --name ci-agent \
   --site-id SITE_ID \
   --channel default \
-  --path '**' \
+  --bundle-path '**' \
   --can-activate \
   --output json
 ```
@@ -55,5 +55,5 @@ Then on the machine:
 ```bash
 go-go-host-agent keygen --config ./agent.json --api-url http://127.0.0.1:8080
 go-go-host-agent enroll --config ./agent.json --api-url http://127.0.0.1:8080 --token ENROLLMENT_TOKEN
-go-go-host-agent deploy --config ./agent.json --bundle ./site.tar.gz --site-id SITE_ID --channel default --path bundles/site.tar.gz --activate
+go-go-host-agent deploy --config ./agent.json --bundle ./site.tar.gz --site-id SITE_ID --channel default --bundle-path bundles/site.tar.gz --activate
 ```

@@ -58,3 +58,15 @@ Added P0 tasks to rename/fix agent path semantics around allowedBundlePaths, bun
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/12/HOST-007-BETA-SMOKE-AUTH-CLEANUP--beta-smoke-and-oidc-access-token-cleanup/reference/01-investigation-diary.md — bundle path naming decision
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/12/HOST-007-BETA-SMOKE-AUTH-CLEANUP--beta-smoke-and-oidc-access-token-cleanup/tasks.md — agent bundle-path semantics tasks
 
+
+## 2026-05-12
+
+Implemented preferred agent bundle-path semantics locally: allowedBundlePaths/bundlePath API aliases, --bundle-path CLI flags, and removal of agent grant path checks from archive-entry validation.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/cmd/go-go-host-agent/cmds/deploy.go — agent CLI --bundle-path flag
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/cmd/go-go-host/cmds/agents.go — operator CLI --bundle-path grant flag
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/agents_audit.go — allowedBundlePaths and bundlePath API aliases
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/deployments.go — agent uploads no longer pass logical bundle paths to archive validator
+

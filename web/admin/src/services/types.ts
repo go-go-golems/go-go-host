@@ -34,8 +34,8 @@ export interface AdminCapability { siteId: string; siteSlug: string; orgId: stri
 export interface AdminDomain { id: string; siteId: string; siteSlug: string; orgId: string; orgSlug: string; orgName: string; hostname: string; status: string; verificationToken: string; verifiedAt?: string; createdAt: string; }
 export interface Agent { id: string; orgId: string; name: string; status: 'active' | 'revoked'; createdByUserId: string; createdAt: string; lastSeenAt?: string; }
 export interface AgentKey { id: string; agentId: string; fingerprint: string; status: 'active' | 'revoked'; createdAt: string; revokedAt?: string; lastUsedAt?: string; }
-export interface AgentGrant { agentId: string; siteId: string; canDeploy: boolean; canRollback: boolean; canActivate: boolean; allowedChannels: string[]; allowedPaths: string[]; expiresAt?: string; createdAt: string; updatedAt: string; }
-export interface CreateAgentRequest { orgId: string; name: string; siteId?: string; allowedChannels?: string[]; allowedPaths?: string[]; canActivate?: boolean; }
+export interface AgentGrant { agentId: string; siteId: string; canDeploy: boolean; canRollback: boolean; canActivate: boolean; allowedChannels: string[]; allowedBundlePaths?: string[]; allowedPaths: string[]; expiresAt?: string; createdAt: string; updatedAt: string; }
+export interface CreateAgentRequest { orgId: string; name: string; siteId?: string; allowedChannels?: string[]; allowedBundlePaths?: string[]; allowedPaths?: string[]; canActivate?: boolean; }
 export interface CreateAgentResponse { agent: Agent; enrollmentToken?: string; grant?: AgentGrant; }
 export interface RevokeAgentRequest { orgId: string; agentId: string; }
 export interface RevokeAgentKeyRequest { orgId: string; agentId: string; keyId: string; reason?: string; }

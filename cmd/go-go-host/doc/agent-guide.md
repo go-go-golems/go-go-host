@@ -38,7 +38,7 @@ go-go-host agents create \
   --name ci-agent \
   --site-id SITE_ID \
   --channel default \
-  --path 'bundles/**' \
+  --bundle-path 'bundles/**' \
   --output json
 ```
 
@@ -50,7 +50,7 @@ go-go-host agents create \
   --name production-ci \
   --site-id SITE_ID \
   --channel default \
-  --path 'bundles/**' \
+  --bundle-path 'bundles/**' \
   --can-activate \
   --output json
 ```
@@ -65,7 +65,7 @@ Give the machine operator or CI secret store these values:
 apiUrl: http://127.0.0.1:8080
 siteId: SITE_ID
 channel: default
-path pattern: bundles/<git-sha>.tar.gz
+bundle path pattern: bundles/<git-sha>.tar.gz
 enrollmentToken: enroll_...
 ```
 
@@ -74,7 +74,7 @@ The machine then runs:
 ```bash
 go-go-host-agent keygen --config ./agent.json --api-url http://127.0.0.1:8080
 go-go-host-agent enroll --config ./agent.json --api-url http://127.0.0.1:8080 --token enroll_...
-go-go-host-agent deploy --config ./agent.json --bundle ./site.tar.gz --site-id SITE_ID --channel default --path bundles/site.tar.gz
+go-go-host-agent deploy --config ./agent.json --bundle ./site.tar.gz --site-id SITE_ID --channel default --bundle-path bundles/site.tar.gz
 ```
 
 ## Inspect and revoke keys

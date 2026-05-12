@@ -14,12 +14,13 @@ import (
 
 type DeployCommand struct{ *glazedcmds.CommandDescription }
 type DeploySettings struct {
-	Config   string `glazed:"config"`
-	SiteID   string `glazed:"site-id"`
-	Channel  string `glazed:"channel"`
-	Path     string `glazed:"path"`
-	Bundle   string `glazed:"bundle"`
-	Activate bool   `glazed:"activate"`
+	Config     string `glazed:"config"`
+	SiteID     string `glazed:"site-id"`
+	Channel    string `glazed:"channel"`
+	BundlePath string `glazed:"bundle-path"`
+	Path       string `glazed:"path"`
+	Bundle     string `glazed:"bundle"`
+	Activate   bool   `glazed:"activate"`
 }
 
 type deployRunResponse struct {
@@ -61,8 +62,8 @@ func NewDeployCommand() (*DeployCommand, error) {
 	return &DeployCommand{CommandDescription: glazedcmds.NewCommandDescription("deploy", glazedcmds.WithShort("Deploy a bundle with signed agent credentials"), glazedcmds.WithLong(`Create a signed deploy run and upload a bundle archive.
 
 Examples:
-  go-go-host-agent deploy --bundle ./site.tar.gz --site-id site_123
-`), glazedcmds.WithFlags(fields.New("config", fields.TypeString, fields.WithHelp("agent config path")), fields.New("bundle", fields.TypeString, fields.WithRequired(true), fields.WithHelp("bundle tar.gz or zip path")), fields.New("site-id", fields.TypeString, fields.WithHelp("site ID; defaults to enrolled grant site")), fields.New("channel", fields.TypeString, fields.WithDefault("default"), fields.WithHelp("deployment channel")), fields.New("path", fields.TypeString, fields.WithHelp("logical deploy path checked against grant")), fields.New("activate", fields.TypeBool, fields.WithHelp("request auto-activation; requires agent grant can_activate"))), glazedcmds.WithSections(glazedSection, commandSettingsSection))}, nil
+  go-go-host-agent deploy --bundle ./site.tar.gz --bundle-path bundles/site.tar.gz --site-id site_123
+`), glazedcmds.WithFlags(fields.New("config", fields.TypeString, fields.WithHelp("agent config path")), fields.New("bundle", fields.TypeString, fields.WithRequired(true), fields.WithHelp("local bundle tar.gz or zip path")), fields.New("site-id", fields.TypeString, fields.WithHelp("site ID; defaults to enrolled grant site")), fields.New("channel", fields.TypeString, fields.WithDefault("default"), fields.WithHelp("deployment channel")), fields.New("bundle-path", fields.TypeString, fields.WithHelp("logical bundle path checked against grant")), fields.New("path", fields.TypeString, fields.WithHelp("deprecated alias for --bundle-path")), fields.New("activate", fields.TypeBool, fields.WithHelp("request auto-activation; requires agent grant can_activate"))), glazedcmds.WithSections(glazedSection, commandSettingsSection))}, nil
 }
 
 func (c *DeployCommand) RunIntoGlazeProcessor(ctx context.Context, vals *values.Values, gp middlewares.Processor) error {
@@ -78,12 +79,15 @@ func (c *DeployCommand) RunIntoGlazeProcessor(ctx context.Context, vals *values.
 	if siteID == "" {
 		siteID = cfg.SiteID
 	}
-	logicalPath := settings.Path
+	logicalPath := settings.BundlePath
+	if logicalPath == "" {
+		logicalPath = settings.Path
+	}
 	if logicalPath == "" {
 		logicalPath = settings.Bundle
 	}
 	var run deployRunResponse
-	if err := signedPostJSON(cfg.APIURL, "/api/v1/agent/deploy-runs", map[string]any{"siteId": siteID, "channel": settings.Channel, "path": logicalPath, "action": "deploy", "activate": settings.Activate}, cfg, &run); err != nil {
+	if err := signedPostJSON(cfg.APIURL, "/api/v1/agent/deploy-runs", map[string]any{"siteId": siteID, "channel": settings.Channel, "bundlePath": logicalPath, "action": "deploy", "activate": settings.Activate}, cfg, &run); err != nil {
 		return err
 	}
 	var upload uploadResponse

@@ -106,7 +106,7 @@ func handleAgentDeployRunUpload(core *control.Core) http.HandlerFunc {
 		if len(run.AllowedChannels) > 0 && run.AllowedChannels[0] != "" {
 			channel = run.AllowedChannels[0]
 		}
-		result, err := core.Deployments.Upload(r.Context(), control.UploadDeploymentInput{ActorType: "agent", ActorID: agent.ID, SiteID: run.SiteID, BundlePath: tmp.Name(), Channel: channel, AllowedPaths: run.AllowedPaths})
+		result, err := core.Deployments.Upload(r.Context(), control.UploadDeploymentInput{ActorType: "agent", ActorID: agent.ID, SiteID: run.SiteID, BundlePath: tmp.Name(), Channel: channel})
 		if err != nil {
 			_ = core.Store.FinishDeployRun(r.Context(), run.ID, store.DeployRunStatusRejected)
 			writeDeploymentError(w, err)

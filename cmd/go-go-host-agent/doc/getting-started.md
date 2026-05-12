@@ -42,7 +42,7 @@ go-go-host-agent deploy \
   --bundle ./site.tar.gz \
   --site-id site_123 \
   --channel default \
-  --path bundles/site.tar.gz
+  --bundle-path bundles/site.tar.gz
 ```
 
 Add `--activate` only when the human-created grant includes scoped auto-activation permission for that site.

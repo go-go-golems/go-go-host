@@ -686,3 +686,100 @@ cmd/go-go-host/cmds/agents.go
 cmd/go-go-host-agent/cmds/deploy.go
 internal/httpapi/agent_signed_integration_test.go
 ```
+
+## Step 7: Implement agent `bundlePath` / `allowedBundlePaths` semantics
+
+I implemented the naming and behavior change planned in Step 6. Agent grants now expose `allowedBundlePaths` as the preferred API name, deploy-run creation accepts `bundlePath` as the preferred request field, and both CLIs expose `--bundle-path` while retaining the old `--path` flag as a deprecated alias.
+
+Most importantly, agent grant paths no longer constrain files inside the uploaded tar/zip archive. They authorize only the logical bundle path supplied during deploy-run creation. The regular bundle validator still checks archive safety, manifest paths, capability policy, size limits, and manifest-declared `allowedPaths`.
+
+### Prompt Context
+
+**User prompt (verbatim):** "implement."
+
+**Assistant interpretation:** Implement the P0 agent bundle-path semantics tasks added in the previous step.
+
+**Inferred user intent:** Make the live agent publishing path behave as expected with narrow `bundles/**` grants, rather than requiring broad `**` grants for normal app bundles.
+
+**Commit (code):** pending at time of diary entry.
+
+### What I did
+
+- Updated API request structs:
+  - `createAgentRequest` now accepts `allowedBundlePaths` and old `allowedPaths`.
+  - `upsertAgentGrantRequest` now accepts `allowedBundlePaths` and old `allowedPaths`.
+  - `createDeployRunRequest` now accepts `bundlePath` and old `path`.
+- Updated API responses:
+  - grant DTOs expose `allowedBundlePaths` and retain `allowedPaths` for compatibility.
+  - deploy-run response exposes `allowedBundlePaths` and retains `allowedPaths`.
+- Updated agent upload handling so `run.AllowedPaths` is no longer passed into `deploy.ValidateAndStore` as archive-entry policy.
+- Updated operator CLI:
+  - preferred flag: `go-go-host agents create --bundle-path`.
+  - deprecated alias: `--path`.
+- Updated agent CLI:
+  - preferred flag: `go-go-host-agent deploy --bundle-path`.
+  - deprecated alias: `--path`.
+- Updated docs to explain `allowedBundlePaths` and `--bundle-path`.
+- Updated `internal/httpapi/agent_signed_integration_test.go` to use `allowedBundlePaths` and `bundlePath`.
+- Updated frontend service types to include `allowedBundlePaths` while retaining `allowedPaths`.
+
+### Why
+
+The live smoke showed that `bundles/**` is the right policy shape for CI/CD artifact namespaces, but the old implementation incorrectly reused that policy as an archive-entry allowlist. That forced broad `**` grants for normal bundles and made the CLI terminology confusing.
+
+### What worked
+
+Local validation passed:
+
+```bash
+go test ./internal/httpapi ./cmd/go-go-host/cmds ./cmd/go-go-host-agent/cmds
+go test ./...
+pnpm --dir web/admin build
+BUILD_WEB_LOCAL=1 go run ./cmd/build-web
+```
+
+The CLI help now shows:
+
+```text
+go-go-host agents create --bundle-path
+go-go-host-agent deploy --bundle-path
+```
+
+with `--path` marked as a deprecated alias.
+
+### What didn't work
+
+No implementation failure occurred locally. Live validation still needs a new image build and K3s rollout before the corrected semantics are available in beta.
+
+### What I learned
+
+The database column can remain `allowed_paths` for this beta phase. The public API/CLI can use clearer names while the store layer keeps its existing field name as an implementation detail.
+
+### What was tricky to build
+
+The main compatibility issue is accepting both old and new request names without making responses ambiguous. The implementation prefers the new fields when present and falls back to old fields. Responses include both names for beta compatibility.
+
+### What warrants a second pair of eyes
+
+- Whether response DTOs should keep both `allowedBundlePaths` and `allowedPaths`, or whether we should drop old response names while still accepting old request names.
+- Whether `--path` should stay visible as a deprecated flag or be hidden if Glazed supports hidden aliases.
+
+### What should be done in the future
+
+- Build and deploy the new image.
+- Run live agent publishing smoke with `allowedBundlePaths: ["bundles/**"]` and `--bundle-path bundles/hello-beta-agent-smoke.tar.gz`.
+- Add an automated `scripts/beta-agent-smoke.sh` once the live behavior is confirmed.
+
+### Code review instructions
+
+Review:
+
+```text
+internal/httpapi/agents_audit.go
+internal/httpapi/deployments.go
+cmd/go-go-host/cmds/agents.go
+cmd/go-go-host-agent/cmds/deploy.go
+internal/httpapi/agent_signed_integration_test.go
+cmd/go-go-host/doc/agent-guide.md
+cmd/go-go-host-agent/doc/agent-guide.md
+```

@@ -29,7 +29,7 @@ SectionType: Tutorial
 
 A go-go-host agent is a machine identity that can deploy to a site without borrowing a human user's credentials. The human operator creates the agent, grants it access to one or more sites, and hands the machine a one-time enrollment token. The machine generates an Ed25519 key pair, enrolls the public key, and uses the private key to sign deploy-run requests.
 
-This design gives the platform a useful security property: the agent can be powerful enough to deploy, but still narrower than a human account. Its grant names the site, channel, path policy, and whether it may activate traffic. Its signing key can be rotated or revoked without deleting the whole agent.
+This design gives the platform a useful security property: the agent can be powerful enough to deploy, but still narrower than a human account. Its grant names the site, channel, bundle path policy, and whether it may activate traffic. Its signing key can be rotated or revoked without deleting the whole agent.
 
 ## The three actors
 
@@ -55,7 +55,7 @@ go-go-host agents create \
   --name ci-agent \
   --site-id SITE_ID \
   --channel default \
-  --path '**' \
+  --bundle-path '**' \
   --can-activate \
   --output json
 ```
@@ -66,7 +66,7 @@ The grant is the important part. It says what the agent may do.
 | --- | --- |
 | `siteId` | The only site this grant applies to. |
 | `allowedChannels` | The deploy channels this agent may request, commonly `default`. |
-| `allowedPaths` | Archive/logical path policy. `**` means all bundle paths. |
+| `allowedBundlePaths` | Logical bundle path policy. `**` means all bundle paths; this does not constrain files inside the tar/zip archive. |
 | `canDeploy` | Allows deploy-run creation and bundle upload. |
 | `canActivate` | Allows the agent to request `--activate` and promote traffic automatically. |
 | `expiresAt` | Optional expiry for temporary automation. |
@@ -136,7 +136,7 @@ go-go-host-agent deploy \
   --bundle ./site.tar.gz \
   --site-id SITE_ID \
   --channel default \
-  --path bundles/site.tar.gz \
+  --bundle-path bundles/site.tar.gz \
   --output json
 ```
 
@@ -149,7 +149,7 @@ go-go-host-agent deploy \
   --bundle ./site.tar.gz \
   --site-id SITE_ID \
   --channel default \
-  --path bundles/site.tar.gz \
+  --bundle-path bundles/site.tar.gz \
   --activate \
   --output json
 ```
@@ -183,7 +183,7 @@ go-go-host-agent deploy \
   --bundle site.tar.gz \
   --site-id "$GO_GO_HOST_SITE_ID" \
   --channel default \
-  --path "bundles/${GITHUB_SHA:-manual}.tar.gz" \
+  --bundle-path "bundles/${GITHUB_SHA:-manual}.tar.gz" \
   --activate \
   --output json
 ```
@@ -240,7 +240,7 @@ Use the dashboard Agents page for key inventory and revoke actions, or use the r
 | `agent_timestamp_skew` | Machine clock differs from daemon clock. | Sync NTP on the CI runner. |
 | `agent_nonce_replay` | A signed request was retried with the same nonce. | Run the CLI again; do not replay captured signed requests. |
 | `agent_key_revoked` | The key was revoked or inactive. | Enroll a replacement key or ask an owner to reactivate policy through a new token. |
-| `agent_grant_denied` | Site, channel, path, or activation request does not match the grant. | Compare `--site-id`, `--channel`, `--path`, and `--activate` with the grant. |
+| `agent_grant_denied` | Site, channel, bundle path, or activation request does not match the grant. | Compare `--site-id`, `--channel`, `--bundle-path`, and `--activate` with the grant. |
 | `upload_token_invalid` | Upload token expired, was reused, or does not belong to the run. | Start a fresh deploy command. |
 | Bundle validates but does not serve traffic | The grant lacks `canActivate` or `--activate` was not used. | Ask a human to activate the deployment or grant scoped activation. |
 
@@ -248,7 +248,7 @@ Use JSON output while debugging:
 
 ```bash
 go-go-host-agent status --config "$AGENT_CONFIG" --output json
-go-go-host-agent deploy --config "$AGENT_CONFIG" --bundle ./site.tar.gz --site-id SITE_ID --channel default --path bundles/debug.tar.gz --output json
+go-go-host-agent deploy --config "$AGENT_CONFIG" --bundle ./site.tar.gz --site-id SITE_ID --channel default --bundle-path bundles/debug.tar.gz --output json
 ```
 
 ## What to tell a deployment agent
@@ -259,7 +259,7 @@ A deployment agent needs five facts and one file:
 API URL:        https://host.example.com
 site ID:        site_...
 channel:        default
-path policy:    bundles/<sha>.tar.gz, matching the human grant
+bundle path:    bundles/<sha>.tar.gz, matching the human grant
 activation:     whether --activate is allowed
 config file:    enrolled go-go-host-agent JSON config
 ```
@@ -273,7 +273,7 @@ go-go-host-agent deploy \
   --bundle ./site.tar.gz \
   --site-id site_... \
   --channel default \
-  --path bundles/$GIT_SHA.tar.gz \
+  --bundle-path bundles/$GIT_SHA.tar.gz \
   --activate
 ```
 

@@ -27,7 +27,7 @@ func TestAgentSignedDeployRunSecurity(t *testing.T) {
 	site := createTestSiteViaAPI(t, h, user, org.ID, "signed-agent-site-"+suffix)
 	otherSite := createTestSiteViaAPI(t, h, user, org.ID, "signed-agent-other-"+suffix)
 
-	createBody := []byte(`{"name":"ci","siteId":"` + site.ID + `","allowedChannels":["default"],"allowedPaths":["bundles/**"],"canActivate":true}`)
+	createBody := []byte(`{"name":"ci","siteId":"` + site.ID + `","allowedChannels":["default"],"allowedBundlePaths":["bundles/**"],"canActivate":true}`)
 	createReq := httptest.NewRequest(http.MethodPost, "/api/v1/orgs/"+org.ID+"/agents", bytes.NewReader(createBody))
 	createReq.Header.Set("X-Go-Go-Host-User", user)
 	createReq.Header.Set("Content-Type", "application/json")
@@ -58,7 +58,7 @@ func TestAgentSignedDeployRunSecurity(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	goodBody := []byte(`{"siteId":"` + site.ID + `","channel":"default","path":"bundles/app.tar.gz","action":"deploy","activate":true}`)
+	goodBody := []byte(`{"siteId":"` + site.ID + `","channel":"default","bundlePath":"bundles/app.tar.gz","action":"deploy","activate":true}`)
 	goodReq := signedAgentRequest(t, http.MethodPost, "/api/v1/agent/deploy-runs", goodBody, created.Agent.ID, enrolled.KeyID, priv, time.Now().UTC(), "nonce-good")
 	goodRec := httptest.NewRecorder()
 	h.ServeHTTP(goodRec, goodReq)
@@ -113,7 +113,7 @@ func TestAgentSignedDeployRunSecurity(t *testing.T) {
 		t.Fatalf("expected old timestamp denial, got %d %s", oldRec.Code, oldRec.Body.String())
 	}
 
-	wrongPathBody := []byte(`{"siteId":"` + site.ID + `","channel":"default","path":"private/app.tar.gz","action":"deploy"}`)
+	wrongPathBody := []byte(`{"siteId":"` + site.ID + `","channel":"default","bundlePath":"private/app.tar.gz","action":"deploy"}`)
 	wrongPathReq := signedAgentRequest(t, http.MethodPost, "/api/v1/agent/deploy-runs", wrongPathBody, created.Agent.ID, enrolled.KeyID, priv, time.Now().UTC(), "nonce-wrong-path")
 	wrongPathRec := httptest.NewRecorder()
 	h.ServeHTTP(wrongPathRec, wrongPathReq)
@@ -121,7 +121,7 @@ func TestAgentSignedDeployRunSecurity(t *testing.T) {
 		t.Fatalf("expected wrong path denial, got %d %s", wrongPathRec.Code, wrongPathRec.Body.String())
 	}
 
-	wrongSiteBody := []byte(`{"siteId":"` + otherSite.ID + `","channel":"default","path":"bundles/app.tar.gz","action":"deploy"}`)
+	wrongSiteBody := []byte(`{"siteId":"` + otherSite.ID + `","channel":"default","bundlePath":"bundles/app.tar.gz","action":"deploy"}`)
 	wrongSiteReq := signedAgentRequest(t, http.MethodPost, "/api/v1/agent/deploy-runs", wrongSiteBody, created.Agent.ID, enrolled.KeyID, priv, time.Now().UTC(), "nonce-wrong-site")
 	wrongSiteRec := httptest.NewRecorder()
 	h.ServeHTTP(wrongSiteRec, wrongSiteReq)

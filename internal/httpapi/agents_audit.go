@@ -18,21 +18,23 @@ import (
 )
 
 type createAgentRequest struct {
-	Name            string   `json:"name"`
-	SiteID          string   `json:"siteId"`
-	AllowedChannels []string `json:"allowedChannels"`
-	AllowedPaths    []string `json:"allowedPaths"`
-	CanActivate     bool     `json:"canActivate"`
+	Name               string   `json:"name"`
+	SiteID             string   `json:"siteId"`
+	AllowedChannels    []string `json:"allowedChannels"`
+	AllowedBundlePaths []string `json:"allowedBundlePaths"`
+	AllowedPaths       []string `json:"allowedPaths"`
+	CanActivate        bool     `json:"canActivate"`
 }
 
 type upsertAgentGrantRequest struct {
-	SiteID          string   `json:"siteId"`
-	CanDeploy       bool     `json:"canDeploy"`
-	CanRollback     bool     `json:"canRollback"`
-	CanActivate     bool     `json:"canActivate"`
-	AllowedChannels []string `json:"allowedChannels"`
-	AllowedPaths    []string `json:"allowedPaths"`
-	ExpiresAt       string   `json:"expiresAt"`
+	SiteID             string   `json:"siteId"`
+	CanDeploy          bool     `json:"canDeploy"`
+	CanRollback        bool     `json:"canRollback"`
+	CanActivate        bool     `json:"canActivate"`
+	AllowedChannels    []string `json:"allowedChannels"`
+	AllowedBundlePaths []string `json:"allowedBundlePaths"`
+	AllowedPaths       []string `json:"allowedPaths"`
+	ExpiresAt          string   `json:"expiresAt"`
 }
 
 type revokeAgentKeyRequest struct {
@@ -70,16 +72,17 @@ type agentDTO struct {
 }
 
 type agentGrantDTO struct {
-	AgentID         string   `json:"agentId"`
-	SiteID          string   `json:"siteId"`
-	CanDeploy       bool     `json:"canDeploy"`
-	CanRollback     bool     `json:"canRollback"`
-	CanActivate     bool     `json:"canActivate"`
-	AllowedChannels []string `json:"allowedChannels"`
-	AllowedPaths    []string `json:"allowedPaths"`
-	ExpiresAt       string   `json:"expiresAt,omitempty"`
-	CreatedAt       string   `json:"createdAt"`
-	UpdatedAt       string   `json:"updatedAt"`
+	AgentID            string   `json:"agentId"`
+	SiteID             string   `json:"siteId"`
+	CanDeploy          bool     `json:"canDeploy"`
+	CanRollback        bool     `json:"canRollback"`
+	CanActivate        bool     `json:"canActivate"`
+	AllowedChannels    []string `json:"allowedChannels"`
+	AllowedBundlePaths []string `json:"allowedBundlePaths"`
+	AllowedPaths       []string `json:"allowedPaths"`
+	ExpiresAt          string   `json:"expiresAt,omitempty"`
+	CreatedAt          string   `json:"createdAt"`
+	UpdatedAt          string   `json:"updatedAt"`
 }
 
 type enrollAgentRequest struct {
@@ -94,20 +97,22 @@ type enrollAgentResponse struct {
 }
 
 type createDeployRunRequest struct {
-	SiteID   string `json:"siteId"`
-	Channel  string `json:"channel"`
-	Path     string `json:"path"`
-	Action   string `json:"action"`
-	Activate bool   `json:"activate"`
+	SiteID     string `json:"siteId"`
+	Channel    string `json:"channel"`
+	BundlePath string `json:"bundlePath"`
+	Path       string `json:"path"`
+	Action     string `json:"action"`
+	Activate   bool   `json:"activate"`
 }
 
 type createDeployRunResponse struct {
-	ID           string   `json:"id"`
-	SiteID       string   `json:"siteId"`
-	Status       string   `json:"status"`
-	UploadToken  string   `json:"uploadToken"`
-	ExpiresAt    string   `json:"expiresAt"`
-	AllowedPaths []string `json:"allowedPaths"`
+	ID                 string   `json:"id"`
+	SiteID             string   `json:"siteId"`
+	Status             string   `json:"status"`
+	UploadToken        string   `json:"uploadToken"`
+	ExpiresAt          string   `json:"expiresAt"`
+	AllowedBundlePaths []string `json:"allowedBundlePaths"`
+	AllowedPaths       []string `json:"allowedPaths"`
 }
 
 type auditDTO struct {
@@ -156,7 +161,7 @@ func handleCreateAgent(core *control.Core) http.HandlerFunc {
 			writeError(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		result, err := core.Agents.CreateWithEnrollmentToken(r.Context(), control.CreateAgentWithTokenInput{ActorUserID: p.User.ID, OrgID: r.PathValue("org_id"), Name: req.Name, SiteID: req.SiteID, AllowedChannels: req.AllowedChannels, AllowedPaths: req.AllowedPaths, CanActivate: req.CanActivate})
+		result, err := core.Agents.CreateWithEnrollmentToken(r.Context(), control.CreateAgentWithTokenInput{ActorUserID: p.User.ID, OrgID: r.PathValue("org_id"), Name: req.Name, SiteID: req.SiteID, AllowedChannels: req.AllowedChannels, AllowedPaths: preferredStrings(req.AllowedBundlePaths, req.AllowedPaths), CanActivate: req.CanActivate})
 		if err != nil {
 			writeDeploymentError(w, err)
 			return
@@ -255,7 +260,7 @@ func handleUpsertAgentGrant(core *control.Core) http.HandlerFunc {
 				return
 			}
 		}
-		grant, err := core.Agents.UpsertGrant(r.Context(), p.User.ID, r.PathValue("org_id"), store.UpsertAgentGrantInput{AgentID: r.PathValue("agent_id"), SiteID: req.SiteID, CanDeploy: req.CanDeploy, CanRollback: req.CanRollback, CanActivate: req.CanActivate, AllowedChannels: req.AllowedChannels, AllowedPaths: req.AllowedPaths, ExpiresAt: expires})
+		grant, err := core.Agents.UpsertGrant(r.Context(), p.User.ID, r.PathValue("org_id"), store.UpsertAgentGrantInput{AgentID: r.PathValue("agent_id"), SiteID: req.SiteID, CanDeploy: req.CanDeploy, CanRollback: req.CanRollback, CanActivate: req.CanActivate, AllowedChannels: req.AllowedChannels, AllowedPaths: preferredStrings(req.AllowedBundlePaths, req.AllowedPaths), ExpiresAt: expires})
 		if err != nil {
 			writeDeploymentError(w, err)
 			return
@@ -297,12 +302,12 @@ func handleCreateAgentDeployRun(core *control.Core) http.HandlerFunc {
 			writeDeploymentError(w, err)
 			return
 		}
-		result, err := core.Agents.CreateDeployRun(r.Context(), control.CreateDeployRunInput{AgentID: agent.ID, SiteID: req.SiteID, Channel: req.Channel, Path: req.Path, Action: req.Action, Activate: req.Activate})
+		result, err := core.Agents.CreateDeployRun(r.Context(), control.CreateDeployRunInput{AgentID: agent.ID, SiteID: req.SiteID, Channel: req.Channel, Path: defaultString(req.BundlePath, req.Path), Action: req.Action, Activate: req.Activate})
 		if err != nil {
 			writeDeploymentError(w, err)
 			return
 		}
-		writeJSON(w, http.StatusCreated, createDeployRunResponse{ID: result.Run.ID, SiteID: result.Run.SiteID, Status: result.Run.Status, UploadToken: result.UploadToken, ExpiresAt: result.Run.ExpiresAt.Format(time.RFC3339), AllowedPaths: result.Run.AllowedPaths})
+		writeJSON(w, http.StatusCreated, createDeployRunResponse{ID: result.Run.ID, SiteID: result.Run.SiteID, Status: result.Run.Status, UploadToken: result.UploadToken, ExpiresAt: result.Run.ExpiresAt.Format(time.RFC3339), AllowedBundlePaths: result.Run.AllowedPaths, AllowedPaths: result.Run.AllowedPaths})
 	}
 }
 
@@ -364,7 +369,21 @@ func grantToDTO(grant *store.AgentSiteGrant) *agentGrantDTO {
 	if grant == nil {
 		return nil
 	}
-	return &agentGrantDTO{AgentID: grant.AgentID, SiteID: grant.SiteID, CanDeploy: grant.CanDeploy, CanRollback: grant.CanRollback, CanActivate: grant.CanActivate, AllowedChannels: grant.AllowedChannels, AllowedPaths: grant.AllowedPaths, ExpiresAt: grant.ExpiresAt.Format(time.RFC3339), CreatedAt: grant.CreatedAt.Format(time.RFC3339), UpdatedAt: grant.UpdatedAt.Format(time.RFC3339)}
+	return &agentGrantDTO{AgentID: grant.AgentID, SiteID: grant.SiteID, CanDeploy: grant.CanDeploy, CanRollback: grant.CanRollback, CanActivate: grant.CanActivate, AllowedChannels: grant.AllowedChannels, AllowedBundlePaths: grant.AllowedPaths, AllowedPaths: grant.AllowedPaths, ExpiresAt: grant.ExpiresAt.Format(time.RFC3339), CreatedAt: grant.CreatedAt.Format(time.RFC3339), UpdatedAt: grant.UpdatedAt.Format(time.RFC3339)}
+}
+
+func preferredStrings(preferred, fallback []string) []string {
+	if len(preferred) > 0 {
+		return preferred
+	}
+	return fallback
+}
+
+func defaultString(v, fallback string) string {
+	if strings.TrimSpace(v) == "" {
+		return fallback
+	}
+	return v
 }
 
 func auditToDTO(event store.AuditEvent) auditDTO {

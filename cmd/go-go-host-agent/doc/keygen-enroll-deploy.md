@@ -37,7 +37,7 @@ go-go-host-agent deploy \
   --bundle ./site.tar.gz \
   --site-id site_123 \
   --channel default \
-  --path bundles/site.tar.gz
+  --bundle-path bundles/site.tar.gz
 ```
 
 If the grant was created with `canActivate`, the agent can request scoped auto-activation:
@@ -48,7 +48,7 @@ go-go-host-agent deploy \
   --bundle ./site.tar.gz \
   --site-id site_123 \
   --channel default \
-  --path bundles/site.tar.gz \
+  --bundle-path bundles/site.tar.gz \
   --activate
 ```
 
