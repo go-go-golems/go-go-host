@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 )
 
@@ -130,6 +131,42 @@ func TestSupervisorRestart(t *testing.T) {
 	sup.ServeHTTP(rec, req)
 	if rec.Code != http.StatusOK {
 		t.Fatalf("expected restarted runtime to serve, got %d", rec.Code)
+	}
+}
+
+func TestSupervisorConcurrentLoadSmoke(t *testing.T) {
+	ctx := context.Background()
+	sup := NewSupervisor()
+	if err := sup.Activate(ctx, fixtureSpec(t, "site_a", "a.localhost")); err != nil {
+		t.Fatalf("activate: %v", err)
+	}
+	const workers = 16
+	const perWorker = 25
+	var wg sync.WaitGroup
+	errs := make(chan string, workers*perWorker)
+	for w := 0; w < workers; w++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for i := 0; i < perWorker; i++ {
+				rec := httptest.NewRecorder()
+				req := httptest.NewRequest(http.MethodGet, "http://a.localhost/", nil)
+				req.Host = "a.localhost"
+				sup.ServeHTTP(rec, req)
+				if rec.Code != http.StatusOK {
+					errs <- rec.Body.String()
+				}
+			}
+		}()
+	}
+	wg.Wait()
+	close(errs)
+	for err := range errs {
+		t.Fatalf("concurrent request failed: %s", err)
+	}
+	st, ok := sup.Status("site_a")
+	if !ok || st.RequestsTotal != workers*perWorker {
+		t.Fatalf("expected %d requests, got %#v ok=%v", workers*perWorker, st, ok)
 	}
 }
 
