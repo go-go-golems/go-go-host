@@ -288,3 +288,15 @@ Ran live devctl Phase 9 agent smoke; fixed deploy-run path-policy propagation an
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/deploy/bundle.go — double-star path policy support found by live smoke
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/deploy/bundle_test.go — regression for double-star nested archive paths
 
+
+## 2026-05-12
+
+Added Phase 9A scoped agent auto-activation with can_activate grants, --can-activate human CLI flag, --activate agent deploy flag, agent-attributed activation audit, automated coverage, and live devctl smoke.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/control/agent_runs.go — deploy-run activate authorization from agent grants
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/control/deployments.go — ActivateAsAgent scoped activation path
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/deployments.go — auto-activate after valid agent upload
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/11/HOST-001-GO-GO-HOST-V1--go-go-host-v1-hosting-platform-design/tasks.md — new Phase 9A tasks
+

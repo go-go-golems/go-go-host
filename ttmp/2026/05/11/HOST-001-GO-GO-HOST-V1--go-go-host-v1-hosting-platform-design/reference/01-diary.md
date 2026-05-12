@@ -2328,3 +2328,123 @@ key: ak_aaa7d034-a01e-4f7b-a75b-9e2a4c87e05a
 deploy run: dr_75846d83-0ffc-46a8-8f4f-c81d34f4c133
 deployment: dep_4710ba96-8150-4df8-aebb-4eb7ea807ab1
 ```
+
+## Step 24: Scoped agent auto-activation
+
+The user asked whether human activation was done in the UI, then asked to add scoped agent auto-activation. I added a new Phase 9A rather than silently expanding Phase 9, because this changes the trust model: some agents can now promote validated deployments to live traffic, but only when a human-created site grant explicitly includes `can_activate`.
+
+The resulting flow keeps the safe default from Phase 9: normal agents still upload and validate only. Auto-activation requires both grant permission (`canActivate`) and an explicit agent request (`go-go-host-agent deploy --activate`). When both are present, the upload endpoint validates the bundle, activates the deployment as the agent, returns `activated: true`, and audit records `deployment.activate` with `actor_type=agent`.
+
+### Prompt Context
+
+**User prompt (verbatim):** "add scoped agent auto-activation. Add new phase and new tasks and then build it"
+
+**Assistant interpretation:** Add a new HOST-001 phase for scoped agent activation, update tasks first, then implement backend, CLI, tests, docs, and live validation.
+
+**Inferred user intent:** Allow CI/trusted agents to deploy directly to live traffic in controlled scopes instead of requiring a human promotion step every time.
+
+**Commit (code):** 248494d649cc32501f219bfd075b3b4847740224 — "Add scoped agent auto activation"
+
+**Commit (docs/tasks):** fb4a7cbd8baa8aec8f648773073d30522b43d6b8 — "Document scoped agent auto activation"
+
+### What I did
+
+- Added migration `005_agent_auto_activate.sql` with `agent_site_grants.can_activate`.
+- Updated sqlc queries/generated code and store models for `can_activate`.
+- Extended agent creation/grant APIs with `canActivate`.
+- Added human CLI flag:
+  - `go-go-host agents create --can-activate`.
+- Added agent CLI flag:
+  - `go-go-host-agent deploy --activate`.
+- Updated signed deploy-run creation so `activate` is appended to `allowed_actions` only when the grant has `CanActivate`.
+- Added `DeploymentService.ActivateAsAgent()` and shared activation internals so user and agent activations use the same runtime swap/DB update path but produce different audit actors.
+- Updated agent upload handling so a valid upload with deploy-run action `activate` auto-activates before returning.
+- Updated the signed-agent integration test so the happy path requests auto-activation and asserts the upload response is `active` / `activated: true`.
+- Added Phase 9A tasks and exit criteria to HOST-001.
+- Updated agent help docs to mention `--activate` and the required grant.
+
+### Why
+
+- Some CI agents should be able to continuously deploy to a known site/channel/path without a human click after every validation.
+- This should not be a global agent capability. It belongs on the same site grant that already scopes deploy rights.
+- Requiring `--activate` keeps auto-promotion explicit per deploy-run even for agents that are allowed to do it.
+
+### What worked
+
+- `go test ./...` passed after the schema/model/API/CLI changes.
+- Live devctl smoke succeeded with:
+
+```text
+"activated": true
+"status": "active"
+```
+
+- The public Host-header route served the auto-activated deployment immediately after agent deploy.
+- Audit showed:
+
+```text
+deployment.activate actor_type=agent
+```
+
+### What didn't work
+
+- No compile failures after the main implementation beyond the expected sqlc row-shape adjustment in store wrappers: adding `can_activate` changed sqlc return types from the table model to generated row structs for explicit SELECT/RETURNING lists. I fixed this by adding separate `agentGrantFromListRow` and `agentGrantFromUpsertRow` helpers.
+
+### What I learned
+
+- The Phase 9 deploy-run model already anticipated multiple actions via `allowed_actions`, so auto-activation fit naturally as an additional action rather than a separate deploy-run table.
+- Keeping activation in `DeploymentService` avoided duplicating runtime supervisor swap logic in HTTP handlers.
+
+### What was tricky to build
+
+- The tricky part was preserving authorization layering. The signed deploy-run endpoint decides whether the run may include `activate`; the upload endpoint only executes activation if the already-created deploy run contains that action. This avoids trusting an upload-time request parameter.
+- User activation and agent activation share most mechanics but must differ in authorization and audit attribution. I split the public methods (`Activate`, `ActivateAsAgent`) and moved common work to a private `activate` helper.
+
+### What warrants a second pair of eyes
+
+- Review `ActivateAsAgent` to ensure grant expiry/status/org checks are sufficient for production.
+- Review whether `can_activate` should be constrained by channel in a stronger way than the deploy-run's existing channel grant check.
+- Review whether auto-activation should be limited to deployments created by the same agent. The current upload path naturally activates the deployment it just created; the service method is more general and relies on agent/site grant.
+
+### What should be done in the future
+
+- Add dashboard UI for `canActivate` grants with strong warnings.
+- Add an admin/user audit filter preset for agent activations.
+- Add key rotation/revoke before treating auto-activation as production-ready for high-risk sites.
+
+### Code review instructions
+
+- Review `internal/control/agent_runs.go` for deploy-run `activate` authorization.
+- Review `internal/control/deployments.go` for `ActivateAsAgent` and shared `activate` behavior.
+- Review `internal/httpapi/deployments.go` for upload-time auto-activation behavior.
+- Review `cmd/go-go-host-agent/cmds/deploy.go` and `cmd/go-go-host/cmds/agents.go` for the new CLI flags.
+- Validate with:
+
+```bash
+go test ./...
+devctl restart go-go-hostd
+# create org/site/agent with --can-activate, enroll, deploy with --activate
+```
+
+### Technical details
+
+Successful live scoped auto-activation smoke:
+
+```text
+org: org_7bca711c-991a-4bc1-959a-9a3ac728e7f0
+site: site_61c023b3-ad2a-4e5b-888d-36752f2df7c6
+agent: agt_d3855b5a-44cc-4279-bef3-50af4b77446e
+key: ak_24993377-21e9-4a71-bc57-42f4d77aeac7
+deploy run: dr_5762f6f6-e1b5-4ece-b894-f27834816597
+deployment: dep_0790020c-9c3d-4cc2-a918-48ad9e3b2eff
+```
+
+Agent deploy output:
+
+```json
+{
+  "activated": true,
+  "status": "active",
+  "valid": true
+}
+```
