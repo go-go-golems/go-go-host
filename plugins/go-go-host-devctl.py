@@ -83,25 +83,25 @@ for line in sys.stdin:
                 {
                     "name": "keycloak",
                     "command": ["bash", "--noprofile", "--norc", "-lc", "exec docker compose -f deployments/dev/docker-compose.yaml up keycloak"],
-                    "health": {"type": "http", "url": "http://127.0.0.1:18080/realms/go-go-host/.well-known/openid-configuration", "interval_ms": 1000, "timeout_ms": 2000},
+                    "health": {"type": "http", "url": "http://127.0.0.1:18080/realms/go-go-host/.well-known/openid-configuration", "interval_ms": 1000, "timeout_ms": 240000},
                 },
                 {
                     "name": "go-go-hostd",
                     "command": ["bash", "--noprofile", "--norc", "-lc", wait_for_pg + "\n" + wait_for_keycloak + "\nexec go run ./cmd/go-go-hostd --config configs/dev.keycloak.yaml"],
                     "env": {"GO_GO_HOST_CONFIG": "configs/dev.keycloak.yaml"},
-                    "health": {"type": "http", "url": "http://127.0.0.1:8080/healthz", "interval_ms": 1000, "timeout_ms": 1000},
+                    "health": {"type": "http", "url": "http://127.0.0.1:8080/healthz", "interval_ms": 1000, "timeout_ms": 240000},
                 },
                 {
                     "name": "web-admin",
                     "command": ["bash", "--noprofile", "--norc", "-lc", "cd web/admin && exec pnpm dev"],
                     "env": {"BROWSER": "none", "VITE_GO_GO_HOST_API_TARGET": "http://127.0.0.1:8080"},
-                    "health": {"type": "http", "url": "http://127.0.0.1:5173", "interval_ms": 1000, "timeout_ms": 1000},
+                    "health": {"type": "http", "url": "http://127.0.0.1:5173", "interval_ms": 1000, "timeout_ms": 120000},
                 },
                 {
                     "name": "storybook",
                     "command": ["bash", "--noprofile", "--norc", "-lc", "cd web/admin && exec pnpm storybook"],
                     "env": {"BROWSER": "none"},
-                    "health": {"type": "http", "url": "http://127.0.0.1:6007", "interval_ms": 1000, "timeout_ms": 1000},
+                    "health": {"type": "http", "url": "http://127.0.0.1:6007", "interval_ms": 1000, "timeout_ms": 120000},
                 },
             ]},
         })

@@ -1,4 +1,4 @@
-.PHONY: build test run-dev run-host-status run-agent-status tidy lint web-install web-dev web-build web-embed storybook storybook-build
+.PHONY: build test run-dev run-host-status run-agent-status tidy lint web-install web-dev web-build web-embed storybook storybook-build oidc-e2e
 
 build:
 	go build ./...
@@ -38,3 +38,6 @@ storybook:
 
 storybook-build:
 	cd web/admin && pnpm storybook:build
+
+oidc-e2e:
+	GO_GO_HOST_OIDC_E2E=1 node scripts/oidc-login-playwright.mjs

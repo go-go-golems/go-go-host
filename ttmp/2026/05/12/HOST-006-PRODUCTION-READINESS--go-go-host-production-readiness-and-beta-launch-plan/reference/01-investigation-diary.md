@@ -175,3 +175,27 @@ The user pointed out that the agent has a Playwright browser tool available, so 
 ### Follow-up
 
 The live browser smoke passed through the built-in tool. The remaining work is to convert this manual flow into a repeatable automated test path that does not require the repo-local `playwright` package to be installed separately.
+
+## Step 4: Repeatable OIDC smoke and devctl health hardening
+
+I made the live OIDC browser smoke repeatable from the repository instead of relying only on the agent's interactive Playwright browser tool.
+
+### What changed
+
+- Added `playwright` as a `web/admin` dev dependency so `make web-install` prepares the smoke dependency.
+- Updated `scripts/oidc-login-playwright.mjs` to load Playwright from `web/admin/node_modules`, default to the embedded daemon at `http://127.0.0.1:8080`, and use stricter Keycloak locators.
+- Added `make oidc-e2e` as the local command wrapper.
+- Increased devctl health windows for Keycloak/go-go-hostd/Vite/Storybook so cold Keycloak realm import has enough startup time.
+
+### Validation
+
+- `make oidc-e2e` passed and reported `OIDC E2E ok: admin@example.test platformAdmin=true`.
+- `devctl up --force` passed after the health window changes.
+- `go test ./...` passed.
+- `pnpm --dir web/admin build` passed.
+- `python3 -m py_compile plugins/go-go-host-devctl.py` passed.
+- `docmgr doctor --ticket HOST-006-PRODUCTION-READINESS --stale-after 30` passed.
+
+### Remaining note
+
+The smoke currently verifies the platform-admin path. The Alice/Bob isolation flow was manually verified with the built-in Playwright browser tool; turning that exact multi-user flow into the scripted smoke remains a future enhancement.

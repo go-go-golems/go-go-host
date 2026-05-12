@@ -38,7 +38,8 @@ Intent: long-term
 - [x] Add gated Playwright admin-login OIDC smoke script.
 - [x] Run live Keycloak/browser smoke with Playwright browser tooling after starting devctl.
 - [x] Manually verify logout and non-admin Alice denial on `/admin`.
-- [ ] Convert the live Playwright smoke into a repeatable automated CI/dev script without relying on external npm Playwright availability.
+- [x] Convert the live Playwright smoke into a repeatable dev script (`make oidc-e2e`) using the checked-in web Playwright dependency.
+- [ ] Add CI wiring for the OIDC smoke with managed dev services.
 
 ## P0: Platform-admin bootstrap
 

@@ -39,3 +39,15 @@ Verified Phase 1 OIDC browser flow live with built-in Playwright tooling: Keyclo
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/12/HOST-006-PRODUCTION-READINESS--go-go-host-production-readiness-and-beta-launch-plan/reference/01-investigation-diary.md — live Playwright verification notes
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/12/HOST-006-PRODUCTION-READINESS--go-go-host-production-readiness-and-beta-launch-plan/tasks.md — Phase 1 live smoke task updates
 
+
+## 2026-05-12
+
+Made OIDC smoke repeatable with a Playwright dev dependency, GO_GO_HOST_OIDC_E2E=1 node scripts/oidc-login-playwright.mjs, default embedded-dashboard target, and longer devctl health windows for cold Keycloak startup.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/Makefile — oidc-e2e target
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/plugins/go-go-host-devctl.py — longer health windows for Keycloak and dashboard services
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/scripts/oidc-login-playwright.mjs — repeatable OIDC browser smoke
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/package.json — Playwright dev dependency
+
