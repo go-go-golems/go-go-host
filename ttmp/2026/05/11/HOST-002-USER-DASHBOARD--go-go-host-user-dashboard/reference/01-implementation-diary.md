@@ -239,3 +239,41 @@ make storybook-build
 devctl restart storybook
 devctl status --tail-lines 10
 ```
+
+## Step 4: Switched from local os-core shim to real macOS1 theme imports
+
+The user asked why the dashboard was not using the retro macOS1 look from go-go-os-core. I had initially added a local os-core shim because npm access to the private/package-registry version returned 403, and then added `macos1-bridge.css` as an adapter from the scaffold's generic dashboard classes to HyperCard/macOS1 CSS variables. That was only a temporary bridge, not the final intended architecture.
+
+### What I changed
+
+- Pointed `@go-go-golems/os-core` at the local go-go-os-frontend package checkout using `link:/home/manuel/workspaces/2026-05-11/npm-packages-go-go-os/go-go-os-frontend/packages/os-core`.
+- Replaced shim imports with real os-core imports:
+  - `@go-go-golems/os-core/theme`
+  - `@go-go-golems/os-core/desktop-theme-macos1`
+- Wrapped the app and Storybook stories in the required HyperCard scope manually:
+  - `data-widget="hypercard"`
+  - `className="theme-macos1"`
+- Kept `macos1-bridge.css` as a compatibility adapter so the dashboard scaffold's current classes inherit macOS1 variables while we migrate components toward os-core primitives and `data-part` selectors.
+- Updated `CopyButton` to expose `data-part="btn"` so os-core button styling can apply even without importing the TS `Btn` component.
+
+### Why the bridge exists
+
+The bridge exists because the first dashboard scaffold used local class names like `.dashboard-panel`, `.site-card`, and `.status-pill`, while the macOS1 theme in os-core is scoped to `[data-widget="hypercard"].theme-macos1` and primarily styles os-core `data-part` primitives. The bridge maps our early scaffold classes onto the os-core macOS1 tokens. It should shrink over time as we replace class-only widgets with true os-core primitives or matching `data-part` markup.
+
+### What did not work
+
+Using the local package as a `file:` dependency caused pnpm to pack only part of the source tree, so TypeScript could not resolve several os-core internal exports. Switching to a `link:` dependency fixed the missing files because node_modules now points at the full local checkout.
+
+### Validation
+
+Commands run:
+
+```bash
+cd web/admin && pnpm install
+make web-build
+make storybook-build
+devctl restart storybook
+devctl status --tail-lines 5
+```
+
+Storybook is alive at `http://127.0.0.1:6007`.

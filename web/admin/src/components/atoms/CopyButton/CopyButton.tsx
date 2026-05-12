@@ -7,5 +7,5 @@ export function CopyButton({ value, label = 'Copy' }: CopyButtonProps) {
     try { await navigator.clipboard.writeText(value); setState('copied'); setTimeout(() => setState('idle'), 1200); }
     catch { setState('error'); }
   }
-  return <button className="copy-button" data-state={state} type="button" onClick={copy}>{state === 'copied' ? 'Copied' : state === 'error' ? 'Copy failed' : label}</button>;
+  return <button className="copy-button" data-part="btn" data-state={state} type="button" onClick={copy}>{state === 'copied' ? 'Copied' : state === 'error' ? 'Copy failed' : label}</button>;
 }

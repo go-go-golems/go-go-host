@@ -1,9 +1,0 @@
-{
-  "name": "@go-go-golems/os-core",
-  "version": "0.0.0-local-shim",
-  "type": "module",
-  "exports": {
-    "./theme.css": "./theme.css",
-    "./themes/desktop.css": "./themes/desktop.css"
-  }
-}

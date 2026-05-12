@@ -11,7 +11,7 @@
     "storybook:build": "storybook build"
   },
   "dependencies": {
-    "@go-go-golems/os-core": "file:vendor/os-core",
+    "@go-go-golems/os-core": "link:/home/manuel/workspaces/2026-05-11/npm-packages-go-go-os/go-go-os-frontend/packages/os-core",
     "@reduxjs/toolkit": "^2.5.0",
     "@vitejs/plugin-react": "^4.3.4",
     "react": "^19.0.0",

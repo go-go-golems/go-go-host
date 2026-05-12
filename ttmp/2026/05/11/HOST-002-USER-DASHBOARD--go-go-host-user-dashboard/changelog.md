@@ -32,3 +32,12 @@ Fixed Storybook MSW worker registration and added initial atom components with s
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/public/mockServiceWorker.js — MSW worker served by Storybook
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/components/atoms/index.ts — Atom component barrel exports
 
+
+## 2026-05-11
+
+Switched dashboard from temporary os-core shim to local linked go-go-os-core macOS1 theme imports and documented the macos1 bridge as a temporary class-to-token adapter.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/app/macos1-bridge.css — Temporary bridge from dashboard scaffold classes to os-core macOS1 tokens
+

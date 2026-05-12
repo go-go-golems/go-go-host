@@ -1,9 +1,0 @@
-:root {
-  color-scheme: dark;
-}
-body {
-  margin: 0;
-  background: var(--os-surface-canvas);
-  color: var(--os-text-primary);
-  font-family: var(--os-font-sans);
-}

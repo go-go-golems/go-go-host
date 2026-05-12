@@ -1,0 +1,51 @@
+[data-widget="hypercard"].theme-macos1 {
+  min-height: 100vh;
+  background: var(--hc-color-desktop-bg);
+  color: var(--hc-color-fg);
+  font-family: var(--hc-font-family);
+  font-size: var(--hc-font-size);
+}
+
+[data-widget="hypercard"].theme-macos1 .dashboard-shell {
+  background: var(--hc-color-desktop-bg);
+  color: var(--hc-color-fg);
+  font-family: var(--hc-font-family);
+}
+
+[data-widget="hypercard"].theme-macos1 .dashboard-topbar,
+[data-widget="hypercard"].theme-macos1 .dashboard-panel,
+[data-widget="hypercard"].theme-macos1 .site-card,
+[data-widget="hypercard"].theme-macos1 .empty-state,
+[data-widget="hypercard"].theme-macos1 .code-block {
+  background: var(--hc-color-bg);
+  color: var(--hc-color-fg);
+  border: 1px solid var(--hc-color-border);
+  border-radius: var(--hc-border-radius);
+  box-shadow: var(--hc-window-shadow);
+}
+
+[data-widget="hypercard"].theme-macos1 .muted,
+[data-widget="hypercard"].theme-macos1 .site-card p,
+[data-widget="hypercard"].theme-macos1 .empty-state,
+[data-widget="hypercard"].theme-macos1 .error-callout p {
+  color: var(--hc-color-muted);
+}
+
+[data-widget="hypercard"].theme-macos1 .status-pill,
+[data-widget="hypercard"].theme-macos1 .role-badge {
+  border: 1px solid var(--hc-color-border);
+  border-radius: 0;
+  color: var(--hc-color-fg);
+  background: var(--hc-color-bg);
+  text-transform: none;
+}
+
+[data-widget="hypercard"].theme-macos1 .runtime-status-dot {
+  border-radius: 0;
+  box-shadow: none;
+  outline: 1px solid var(--hc-color-border);
+}
+
+[data-widget="hypercard"].theme-macos1 .copy-button {
+  font-family: var(--hc-font-family);
+}
