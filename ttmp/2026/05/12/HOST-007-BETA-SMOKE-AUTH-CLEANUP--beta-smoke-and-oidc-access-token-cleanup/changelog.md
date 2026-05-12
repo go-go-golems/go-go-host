@@ -91,3 +91,13 @@ Added host-aware root redirect so the dashboard host / redirects to /app without
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/handler.go — host-aware root redirect
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/webadmin_integration_test.go — root redirect test
 
+
+## 2026-05-12
+
+Deployed sha-6911d87 root redirect; https://hosting.yolo.scapegoat.dev/ now returns 302 Location /app while hello hosted-site root remains 200 and beta smoke passes.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/go-go-host/deployment.yaml — live image now sha-6911d87
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/handler.go — deployed host-aware root redirect
+

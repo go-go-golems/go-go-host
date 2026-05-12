@@ -1009,3 +1009,104 @@ Validate:
 go test ./internal/httpapi
 go test ./...
 ```
+
+## Step 10: Deploy and verify dashboard-root redirect
+
+I built and deployed the host-aware root redirect. The beta dashboard root now redirects to `/app`, and hosted-site roots still serve application traffic.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 9)
+
+**Assistant interpretation:** Finish the redirect change by deploying and validating it live.
+
+**Inferred user intent:** Make the production beta URL user-friendly at the root path.
+
+**Commit (code):** `6911d87` — "Redirect dashboard root to app"
+
+### What I did
+
+- Built and pushed:
+
+```text
+ghcr.io/go-go-golems/go-go-host:sha-6911d87
+```
+
+- Updated K3s GitOps and pushed:
+
+```text
+647dd17 Deploy go-go-host root redirect
+```
+
+- Waited for Argo to converge with image `sha-6911d87`.
+- Verified:
+
+```bash
+curl -fsSI https://hosting.yolo.scapegoat.dev/
+```
+
+returned:
+
+```text
+HTTP/2 302
+location: /app
+```
+
+- Verified hosted-site root still works:
+
+```bash
+curl -fsSI https://hello.hosting.yolo.scapegoat.dev/
+```
+
+returned:
+
+```text
+HTTP/2 200
+```
+
+- Re-ran `scripts/beta-smoke.sh`; it passed.
+
+### Why
+
+The control-plane root should lead users into the dashboard, but generated site roots must remain available for hosted apps. The live validation proved both constraints are satisfied.
+
+### What worked
+
+The final host-aware wrapper behavior worked in the cluster exactly as intended.
+
+### What didn't work
+
+No new failure occurred after deploying `sha-6911d87`.
+
+### What I learned
+
+The public smoke script continues to be a useful guardrail after small UX changes because it would catch accidental breakage of the hosted-site root path.
+
+### What was tricky to build
+
+The host-aware redirect logic had to avoid stealing `/` from generated hosted-site subdomains. The live check against `hello.hosting.yolo.scapegoat.dev` confirmed this.
+
+### What warrants a second pair of eyes
+
+N/A beyond the review notes in Step 9.
+
+### What should be done in the future
+
+- Consider whether `/admin` root should redirect to `/admin/overview` similarly, though current SPA routing already handles it.
+
+### Code review instructions
+
+Review:
+
+```text
+internal/httpapi/handler.go
+internal/httpapi/webadmin_integration_test.go
+```
+
+Live validation:
+
+```bash
+curl -fsSI https://hosting.yolo.scapegoat.dev/
+curl -fsSI https://hello.hosting.yolo.scapegoat.dev/
+scripts/beta-smoke.sh
+```
