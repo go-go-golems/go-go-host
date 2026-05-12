@@ -223,3 +223,49 @@ The component creates an `EditorView` with JSON language support, line numbers, 
 Validation: `pnpm build` passed.
 
 Commit: `36b846e Add CodeMirror JSON editor atom`.
+
+## 2026-05-12 — Settings page implementation
+
+Implemented the requested settings-page slice.
+
+Code changes:
+
+```text
+web/admin/src/pages/SiteSettingsPage/SiteSettingsPage.tsx
+web/admin/src/pages/SiteSettingsPage/SiteSettingsPage.css
+web/admin/src/app/macos1-bridge.css
+web/admin/src/components/atoms/JsonEditor/JsonEditor.tsx
+web/admin/src/components/atoms/JsonEditor/JsonEditor.css
+web/admin/package.json
+web/admin/pnpm-lock.yaml
+```
+
+What changed:
+
+- Replaced the editable JSON `<textarea>` with the reusable CodeMirror `JsonEditor`.
+- Added explicit CodeMirror JSON syntax highlighting through `HighlightStyle`/`syntaxHighlighting`, covering property names, strings, numbers, booleans, nulls, and punctuation.
+- Replaced capability Enable/Disable button semantics with `@go-go-golems/os-core` `Checkbox` widgets in the settings capability table. The checkbox toggles the same API mutation and is disabled while the mutation is in flight.
+- Added subtle semantic highlights:
+  - green for safe/non-secret/supported values,
+  - blue for informational tokens,
+  - yellow for warnings/deferred features,
+  - red for unavailable/dangerous capabilities such as `exec`, `fs`, and secrets.
+- Normalized settings-page font sizes around a small OS1 scale (`--ggh-font-xs`, `--ggh-font-sm`, `--ggh-font-md`, `--ggh-font-lg`, `--ggh-font-code`).
+- Overrode settings page headers to stack title/body copy instead of inheriting the generic dashboard header's split left/right layout; this makes explanatory text easier to read.
+
+Validation:
+
+```bash
+cd web/admin
+pnpm build
+```
+
+Build passed. The build now emits a chunk-size warning because CodeMirror increases the admin bundle from roughly 445 KB minified JS to roughly 752 KB. This is acceptable for the current beta slice, but we should consider lazy-loading the settings page or the JSON editor before broad production use.
+
+Playwright screenshot captured:
+
+```text
+sources/screenshots/host-008-site-settings-final.png
+```
+
+Commit: `3def444 Polish settings page OS1 controls`.

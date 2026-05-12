@@ -16,3 +16,15 @@ Created OS1 dashboard visual polish ticket, captured public/reference screenshot
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/components/organisms/AppShell/AppShell.tsx — Sidebar now uses OS-core window data-part structure
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/components/organisms/SitesTable/SitesTable.css — Sites table spacing and borders normalized for OS1 style
 
+
+## 2026-05-12
+
+Polished the site settings page with OS-core checkbox widgets, subtle semantic text highlights, unified OS1 font sizing, and a CodeMirror JSON editor with syntax highlighting.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/package.json — Adds CodeMirror dependencies
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/components/atoms/JsonEditor/JsonEditor.tsx — Reusable CodeMirror JSON editor atom with syntax highlighting
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/SiteSettingsPage/SiteSettingsPage.css — Settings-specific OS1 font scale
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/SiteSettingsPage/SiteSettingsPage.tsx — Settings page now uses JsonEditor
+

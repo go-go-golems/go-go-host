@@ -17,18 +17,25 @@ RelatedFiles:
       Note: Reference OS-core window frame/title/body data-part styles reused by the dashboard
     - Path: web/admin/src/app/macos1-bridge.css
       Note: Bridge layer mapping dashboard panels and legacy atoms onto macOS1 theme tokens
+    - Path: web/admin/src/components/atoms/JsonEditor/JsonEditor.tsx
+      Note: Reusable CodeMirror JSON editor introduced for editable JSON fields
     - Path: web/admin/src/components/organisms/AppShell/AppShell.css
       Note: Global centered desktop workspace and menu/sidebar layout styling
     - Path: web/admin/src/components/organisms/AppShell/AppShell.tsx
       Note: Dashboard shell structure now wraps navigation as an OS1 window palette
     - Path: web/admin/src/components/organisms/SitesTable/SitesTable.css
       Note: Representative table styling to align data grids with the OS1 visual system
+    - Path: web/admin/src/pages/SiteSettingsPage/SiteSettingsPage.css
+      Note: Settings-page font scale
+    - Path: web/admin/src/pages/SiteSettingsPage/SiteSettingsPage.tsx
+      Note: Representative settings-page migration to OS1 controls
 ExternalSources: []
 Summary: ""
 LastUpdated: 0001-01-01T00:00:00Z
 WhatFor: ""
 WhenToUse: ""
 ---
+
 
 
 # OS1 Dashboard Visual Redesign Investigation
