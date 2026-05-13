@@ -25,6 +25,12 @@ topics:
       description: 'HOST-004 hardening topic: deployments'
     - slug: hardening
       description: 'HOST-004 hardening topic: hardening'
+    - slug: contributor-guidelines
+      description: Contributor guidelines, contribution workflows, and repository development conventions.
+    - slug: documentation
+      description: Project documentation, doc organization, and durable knowledge management.
+    - slug: onboarding
+      description: New contributor and intern onboarding material.
 docTypes:
     - slug: index
       description: Ticket index document.
