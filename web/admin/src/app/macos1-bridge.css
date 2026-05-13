@@ -12,6 +12,25 @@
   --ggh-font-code: 11px;
   font-family: var(--hc-font-family);
   font-size: var(--ggh-font-sm);
+  /* Override OS desktop shell overflow: hidden — the dashboard
+     is a scrollable document, not a fixed-viewport desktop. */
+  overflow: visible !important;
+  height: auto !important;
+}
+
+/* The icon-layer (desktop background) must also allow scroll. */
+[data-widget="hypercard"].theme-macos1 [data-part="windowing-icon-layer"] {
+  overflow: visible !important;
+  position: relative !important;
+  inset: auto !important;
+  height: auto !important;
+}
+
+/* Windows inside the dashboard should scroll their own content. */
+[data-widget="hypercard"].theme-macos1 [data-part="windowing-window"] {
+  overflow: visible !important;
+  height: auto !important;
+  min-height: 0 !important;
 }
 
 [data-widget="hypercard"].theme-macos1 .dashboard-shell {
@@ -44,7 +63,7 @@
   border: 2px solid var(--hc-color-border);
   border-radius: var(--hc-window-border-radius, var(--hc-border-radius));
   box-shadow: var(--hc-window-shadow);
-  overflow: hidden;
+  overflow: visible;
 }
 
 [data-widget="hypercard"].theme-macos1 .dashboard-panel::before {

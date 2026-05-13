@@ -3,6 +3,7 @@
   background: #fff;
   color: var(--hc-color-fg);
   font-family: var(--hc-font-family);
+  overflow-x: hidden;
 }
 
 .app-shell__menubar {
@@ -38,7 +39,6 @@
   grid-template-columns: 15rem minmax(0, 1fr);
   gap: 1.25rem;
   width: min(1180px, calc(100vw - 3rem));
-  min-height: calc(100vh - var(--hc-desktop-menubar-height, 32px));
   margin: 0 auto;
   padding: 1.25rem 0 2rem;
   background-color: #fff;
