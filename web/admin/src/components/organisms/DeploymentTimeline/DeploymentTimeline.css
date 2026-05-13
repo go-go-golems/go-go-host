@@ -1,3 +1,33 @@
-.deployment-timeline { display: grid; gap: 0.5rem; list-style: none; padding: 0; margin: 0; }
-.deployment-timeline button { display: grid; grid-template-columns: 3rem 8rem 1fr max-content; gap: 0.75rem; align-items: center; width: 100%; border: 1px solid var(--hc-color-border); background: var(--hc-color-bg); color: var(--hc-color-fg); font-family: var(--hc-font-family); padding: 0.5rem; text-align: left; cursor: pointer; }
-.deployment-timeline button:hover { filter: invert(1); }
+.deployment-timeline {
+  display: grid;
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.deployment-timeline button {
+  display: grid;
+  grid-template-columns: 3rem 8rem 1fr max-content;
+  gap: 0.75rem;
+  align-items: center;
+  width: 100%;
+  border: 2px solid var(--hc-color-border);
+  background: var(--hc-color-bg);
+  color: var(--hc-color-fg);
+  font-family: var(--hc-font-family);
+  font-size: var(--ggh-font-sm);
+  padding: 0.5rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.deployment-timeline button:hover {
+  background: color-mix(in srgb, var(--hc-color-desktop-bg) 35%, var(--hc-color-bg));
+}
+
+@media (max-width: 760px) {
+  .deployment-timeline button {
+    grid-template-columns: 1fr;
+  }
+}

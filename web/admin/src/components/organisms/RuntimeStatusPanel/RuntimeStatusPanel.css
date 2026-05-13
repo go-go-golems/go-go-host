@@ -1,7 +1,36 @@
-.runtime-status-panel { display: grid; gap: 1rem; border: 1px solid var(--hc-color-border); background: var(--hc-color-bg); padding: var(--os-space-4); box-shadow: var(--hc-window-shadow); }
-.runtime-status-panel header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.runtime-status-panel {
+  display: grid;
+  gap: 1rem;
+  border: 2px solid var(--hc-color-border);
+  background: var(--hc-color-bg);
+  padding: 0.85rem;
+  box-shadow: 2px 2px 0 var(--hc-color-border);
+  font-size: var(--ggh-font-sm);
+}
+
+.runtime-status-panel header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  border-bottom: 2px solid var(--hc-color-border);
+  padding-bottom: 0.5rem;
+}
+
 .runtime-status-panel h2 { margin: 0; }
-.runtime-status-panel__grid { display: flex; flex-wrap: wrap; gap: 0.75rem; }
-.runtime-status-panel dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.4rem 1rem; margin: 0; }
+
+.runtime-status-panel__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.runtime-status-panel dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.4rem 1rem;
+  margin: 0;
+}
+
 .runtime-status-panel dt { color: var(--hc-color-muted); }
 .runtime-status-panel dd { margin: 0; }

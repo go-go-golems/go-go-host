@@ -367,3 +367,48 @@ Storybook screenshot captured via Playwright:
 ```text
 sources/screenshots/host-008-agents-page-os1.png
 ```
+
+## 2026-05-12 — Cross-page normalization and color-accent correction
+
+User clarified an important visual rule: color accents should be used for badge colors and buttons, not really for inline body text.
+
+Adjusted direction accordingly:
+
+- updated the OS1 UI playbook to discourage colored inline prose highlights;
+- kept legacy `__highlight` classes neutral/bold for compatibility instead of colored backgrounds;
+- moved color emphasis into `StatusPill`, `RoleBadge`, `MetricCard` values, copy-button states, warning/error panels, and table status treatments.
+
+Implemented a cross-page CSS normalization pass rather than page-by-page rewrites for every simple inventory page:
+
+- normalized `dashboard-panel` header behavior, form controls, links, admin inventory tables, runtime panels, upload panels, timeline lists, code blocks, empty/error states, and badges;
+- tightened Audit and Create Site page layouts;
+- normalized Admin Overview/Runtimes/Inventory page font scale and table density;
+- normalized DeploymentTimeline and AuditTimeline away from harsh invert hover and toward OS1 bordered rows;
+- normalized RuntimeStatusPanel and DeploymentUploadPanel to 2px OS1 panel styling;
+- converted text highlight classes in Settings/Agents to neutral bold emphasis.
+
+Validation:
+
+```bash
+cd web/admin
+pnpm build
+```
+
+Build passed with the known CodeMirror chunk-size warning.
+
+Captured Storybook screenshots for representative remaining pages:
+
+```text
+sources/screenshots/host-008-admin-overview-os1-pass.png
+sources/screenshots/host-008-admin-orgs-os1-pass.png
+sources/screenshots/host-008-admin-deployments-os1-pass.png
+sources/screenshots/host-008-admin-audit-os1-pass.png
+sources/screenshots/host-008-audit-os1-pass.png
+sources/screenshots/host-008-create-site-os1-pass.png
+sources/screenshots/host-008-site-overview-os1-pass.png
+sources/screenshots/host-008-deployments-os1-pass.png
+sources/screenshots/host-008-usage-os1-pass.png
+sources/screenshots/host-008-members-os1-pass.png
+```
+
+These screenshots do not mean every page is perfect, but they cover the main page families and verify the shared normalization pass applies broadly.

@@ -84,21 +84,14 @@
 }
 
 .agents-page__highlight {
-  padding: 0.05rem 0.18rem;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
+  padding: 0;
+  font-weight: 700;
 }
 
-.agents-page__highlight--safe {
-  background: color-mix(in srgb, #8fd18f 22%, transparent);
-}
-
-.agents-page__highlight--info {
-  background: color-mix(in srgb, #8fb7d1 22%, transparent);
-}
-
+.agents-page__highlight--safe,
+.agents-page__highlight--info,
 .agents-page__highlight--danger {
-  background: color-mix(in srgb, #ff9b9b 24%, transparent);
+  background: transparent;
 }
 
 @media (max-width: 920px) {

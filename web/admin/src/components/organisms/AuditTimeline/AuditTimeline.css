@@ -1,4 +1,47 @@
-.audit-timeline { list-style: none; display: grid; gap: 0.5rem; padding: 0; margin: 0; }
-.audit-timeline button { display: grid; grid-template-columns: 10rem 1fr 1fr 1fr; gap: 0.75rem; width: 100%; border: 1px solid var(--hc-color-border); background: var(--hc-color-bg); color: var(--hc-color-fg); font-family: var(--hc-font-family); padding: 0.5rem; text-align: left; }
-.audit-timeline button[data-selected='true'] { background: var(--hc-color-fg); color: var(--hc-color-bg); }
-.audit-timeline pre { margin: 0; border: 1px solid var(--hc-color-border); border-top: 0; padding: 0.5rem; background: var(--hc-color-bg); overflow: auto; }
+.audit-timeline {
+  list-style: none;
+  display: grid;
+  gap: 0.5rem;
+  padding: 0;
+  margin: 0;
+}
+
+.audit-timeline button {
+  display: grid;
+  grid-template-columns: 10rem 1fr 1fr 1fr;
+  gap: 0.75rem;
+  width: 100%;
+  border: 2px solid var(--hc-color-border);
+  background: var(--hc-color-bg);
+  color: var(--hc-color-fg);
+  font-family: var(--hc-font-family);
+  font-size: var(--ggh-font-sm);
+  padding: 0.5rem;
+  text-align: left;
+}
+
+.audit-timeline button:hover {
+  background: color-mix(in srgb, var(--hc-color-desktop-bg) 35%, var(--hc-color-bg));
+}
+
+.audit-timeline button[data-selected='true'] {
+  background: var(--hc-color-fg);
+  color: var(--hc-color-bg);
+}
+
+.audit-timeline pre {
+  margin: 0;
+  border: 2px solid var(--hc-color-border);
+  border-top: 0;
+  padding: 0.5rem;
+  background: var(--hc-color-bg);
+  overflow: auto;
+  font-family: var(--hc-font-family);
+  font-size: var(--ggh-font-code);
+}
+
+@media (max-width: 860px) {
+  .audit-timeline button {
+    grid-template-columns: 1fr;
+  }
+}

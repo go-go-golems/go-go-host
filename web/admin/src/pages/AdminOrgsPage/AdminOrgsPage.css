@@ -1,8 +1,47 @@
-.admin-inventory-page { display: grid; gap: 1rem; }
-.admin-inventory-page h1 { margin: 0 0 0.35rem; }
-.admin-inventory-page p { margin: 0; color: var(--hc-color-muted); }
-.admin-inventory-page { overflow-x: auto; }
-.admin-inventory-page table { width: 100%; border-collapse: collapse; background: var(--hc-color-bg); }
-.admin-inventory-page th, .admin-inventory-page td { border: 1px solid var(--hc-color-border); padding: 0.35rem 0.5rem; text-align: left; vertical-align: top; }
-.admin-inventory-page th { background: var(--hc-color-border); color: var(--hc-color-bg); }
-.admin-inventory-page code { font-family: var(--hc-font-family); font-size: 0.95em; }
+.admin-inventory-page {
+  display: grid;
+  gap: 1rem;
+  overflow-x: auto;
+  font-size: var(--ggh-font-sm);
+}
+
+.admin-inventory-page h1 {
+  margin: 0 0 0.35rem;
+}
+
+.admin-inventory-page p {
+  margin: 0;
+  color: var(--hc-color-muted);
+}
+
+.admin-inventory-page table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--hc-color-bg);
+  border: 2px solid var(--hc-color-border);
+  box-shadow: 2px 2px 0 var(--hc-color-border);
+}
+
+.admin-inventory-page th,
+.admin-inventory-page td {
+  border: 1px solid var(--hc-color-border);
+  padding: 0.5rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.admin-inventory-page th {
+  background: var(--hc-color-fg);
+  color: var(--hc-color-bg);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.admin-inventory-page code {
+  font-family: var(--hc-font-family);
+  font-size: var(--ggh-font-code);
+}
+
+.admin-inventory-page small {
+  color: var(--hc-color-muted);
+}

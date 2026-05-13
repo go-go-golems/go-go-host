@@ -243,35 +243,40 @@ Before accepting a page, inspect a full-page screenshot and ask:
 - Would a user think the page failed to load?
 - Is a table pushed down by accidental grid/flex stretching?
 
-### 6. Use semantic highlights, not loud color themes
+### 6. Use color accents on badges, buttons, and panels — not inline prose
 
-Color should annotate meaning. It should not become the primary layout system.
+Color should annotate UI state. It should not turn body copy into a rainbow. Inline explanatory text should usually remain black/neutral; use plain `strong` emphasis for important terms.
 
-Use subtle highlights:
-
-```css
-.highlight {
-  padding: 0.05rem 0.18rem;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
-}
-
-.highlight--safe    { background: color-mix(in srgb, #8fd18f 22%, transparent); }
-.highlight--info    { background: color-mix(in srgb, #8fb7d1 22%, transparent); }
-.highlight--warning { background: color-mix(in srgb, #ffd966 28%, transparent); }
-.highlight--danger  { background: color-mix(in srgb, #ff9b9b 24%, transparent); }
-```
-
-Use cases:
+Preferred color locations:
 
 | Tone | Use for |
 |---|---|
-| safe | non-secret values, verified domains, enabled safe capabilities |
-| info | JSON values, verification tokens, policy concepts |
-| warning | deferred features, manual placeholder flows, beta caveats |
-| danger | secrets, `exec`, unrestricted `fs`, destructive actions |
+| safe | status pills, success buttons, verified-domain badges, enabled capability badges |
+| info | informational badges, selected rows, copy-success buttons |
+| warning | warning callouts, pending badges, manual placeholder panels |
+| danger | destructive buttons, error callouts, revoked/failed/rejected badges |
 
-Keep highlights short. Highlight terms or clauses, not whole paragraphs unless the whole paragraph is a warning.
+Good:
+
+```tsx
+<StatusPill status="verified" tone="success" />
+<button data-part="btn" data-variant="danger">Revoke</button>
+<div className="warning-panel">Auto-activation requires a trusted pipeline.</div>
+```
+
+Avoid:
+
+```tsx
+<p>Store <span className="green-highlight">non-secret values</span> here.</p>
+```
+
+If a term in prose needs emphasis, use neutral emphasis instead:
+
+```tsx
+<p>Store <strong>non-secret values</strong> here.</p>
+```
+
+The current dashboard CSS keeps legacy `__highlight` classes neutral/bold for compatibility, but new pages should avoid colored inline text highlights.
 
 ### 7. Use OS widgets for boolean controls
 

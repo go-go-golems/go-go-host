@@ -1,3 +1,15 @@
-.error-callout { border: 1px solid color-mix(in srgb, var(--os-color-danger-500) 70%, transparent); background: color-mix(in srgb, var(--os-color-danger-500) 12%, transparent); border-radius: var(--os-radius-md); padding: var(--os-space-4); }
-.error-callout h2 { margin-top: 0; color: var(--os-color-danger-500); }
-.error-callout p { color: var(--os-text-secondary); }
+.error-callout {
+  border: 2px solid var(--hc-color-border, #111);
+  background: color-mix(in srgb, #ff9b9b 24%, var(--hc-color-bg, #fff));
+  border-radius: 0;
+  padding: 0.75rem;
+  box-shadow: 2px 2px 0 var(--hc-color-border, #111);
+}
+
+.error-callout h2 {
+  margin-top: 0;
+  color: var(--hc-color-fg, #111);
+  font-size: 14px;
+}
+
+.error-callout p { color: var(--hc-color-fg, #111); }

@@ -58,3 +58,17 @@ Applied the OS1 UI guidelines to the Agents page: checkbox widget for auto-activ
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/AgentsPage/AgentsPage.css — Agents page OS1 form
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/AgentsPage/AgentsPage.tsx — Agents page now uses OS-core Checkbox and semantic highlighted explanatory copy
 
+
+## 2026-05-12
+
+Applied cross-page OS1 normalization and updated color guidance so accents are used for badges/buttons/panels rather than inline body text.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/12/HOST-008-OS1-DASHBOARD-VISUAL-POLISH--os1-dashboard-visual-polish-and-widget-reuse/playbook/01-os1-admin-dashboard-ui-work-guidelines.md — Updated color guidance to avoid colored inline prose highlights
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/app/macos1-bridge.css — Shared cross-page OS1 form
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/components/atoms/CodeBlock/CodeBlock.css — Read-only code blocks aligned with OS1 surface styling
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/components/atoms/StatusPill/StatusPill.css — Status accents moved into badge backgrounds
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/components/organisms/AuditTimeline/AuditTimeline.css — Timeline rows normalized to OS1 bordered rows
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/components/organisms/DeploymentTimeline/DeploymentTimeline.css — Deployment history rows normalized to OS1 bordered rows
+
