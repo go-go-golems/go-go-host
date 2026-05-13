@@ -152,3 +152,55 @@ The API transport now has the same responsibility for all dashboard pages: attac
 - Refresh threshold: 60 seconds before `expiresAt`.
 - Refresh grant body: `grant_type=refresh_token`, `client_id=<dashboard client>`, `refresh_token=<stored refresh token>`.
 - Retry policy: at most one forced refresh after a `401`.
+
+---
+
+## Step 3: Rebuild embedded dashboard assets
+
+This step rebuilt the production dashboard bundle and copied it into the Go embed directory. The previous commit changed TypeScript source files, but the Go binary serves `internal/webadmin/dist`; without rebuilding that directory, a Docker image built from the repo would still serve the older dashboard JavaScript.
+
+The local build pipeline produced a new JS asset hash and updated `internal/webadmin/dist/index.html` to point at it. I also ran the webadmin embed tests to verify the embedded asset package still compiles.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 1)
+
+**Assistant interpretation:** Finish the implementation so the source change is actually included in the served dashboard bundle.
+
+**Inferred user intent:** Make the fix deployable, not merely present in unembedded frontend source.
+
+### What I did
+- Ran `BUILD_WEB_LOCAL=1 go run ./cmd/build-web`.
+- This ran `pnpm install --frozen-lockfile --prefer-offline`, `pnpm run build`, and copied `web/admin/dist` into `internal/webadmin/dist`.
+- Ran `go test ./internal/webadmin ./cmd/go-go-hostd -count=1`.
+
+### Why
+- Production Docker builds compile the Go server with embedded dashboard assets.
+- Rebuilding `internal/webadmin/dist` keeps the Go binary aligned with the TypeScript source.
+
+### What worked
+- The local build pipeline succeeded.
+- `go test ./internal/webadmin ./cmd/go-go-hostd -count=1` passed.
+
+### What didn't work
+- N/A. Vite still emits the existing large chunk warning, which predates this change and is not a build failure.
+
+### What I learned
+- The refreshed dashboard bundle changed the generated JS asset name from `index-8NdY0pog.js` to `index-BHlgXeht.js`.
+
+### What was tricky to build
+- The implementation itself was already complete, but deployment correctness requires remembering that web source and embedded assets are separate tracked outputs in this repo.
+
+### What warrants a second pair of eyes
+- Confirm whether future frontend-only tickets should always include an embedded asset commit before deployment.
+
+### What should be done in the future
+- Consider a CI check that fails if `web/admin/src` changed but `internal/webadmin/dist` is stale.
+
+### Code review instructions
+- Review `internal/webadmin/dist/index.html` only to confirm it points at the new generated JS asset.
+- Do not review generated JS manually except for build provenance; review TypeScript source instead.
+
+### Technical details
+- Build command: `BUILD_WEB_LOCAL=1 go run ./cmd/build-web`
+- Validation command: `go test ./internal/webadmin ./cmd/go-go-hostd -count=1`

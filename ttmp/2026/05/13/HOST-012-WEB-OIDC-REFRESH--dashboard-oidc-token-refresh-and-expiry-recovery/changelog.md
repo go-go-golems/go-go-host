@@ -27,3 +27,13 @@ Step 2: implemented dashboard OIDC refresh, RTK Query 401 retry, upload retry, a
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/services/goGoHostApi.test.ts — RTK Query refresh and retry tests
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/services/goGoHostApi.ts — Async auth base query
 
+
+## 2026-05-13
+
+Step 3: rebuilt embedded dashboard assets so OIDC refresh ships in the Go binary
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/webadmin/dist/assets/index-BHlgXeht.js — Generated dashboard bundle containing OIDC refresh implementation
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/webadmin/dist/index.html — Embedded dashboard entrypoint updated to new JS bundle
+
