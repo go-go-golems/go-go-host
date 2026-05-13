@@ -32,6 +32,7 @@ services:
       - "18080:8080"
     volumes:
       - ./keycloak/realm-go-go-host.json:/opt/keycloak/data/import/realm-go-go-host.json:ro
+      - ./keycloak/themes/go-go-host:/opt/keycloak/themes/go-go-host:ro
     depends_on:
       keycloak-postgres:
         condition: service_healthy

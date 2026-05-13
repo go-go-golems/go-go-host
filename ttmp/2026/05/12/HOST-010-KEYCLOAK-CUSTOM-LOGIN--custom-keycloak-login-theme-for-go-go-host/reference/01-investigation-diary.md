@@ -11,8 +11,14 @@ DocType: reference
 Intent: long-term
 Owners: []
 RelatedFiles:
+    - Path: ../../../../../../../../../../code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/keycloak/deployment.yaml
+      Note: Production theme JAR mount
+    - Path: ../../../../../../../../../../code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/keycloak/keycloak-theme-configmap.yaml
+      Note: Production Keycloak theme ConfigMap
     - Path: deployments/dev/docker-compose.yaml
-      Note: Added theme volume mount (Step 2)
+      Note: |-
+        Added theme volume mount (Step 2)
+        Dev Keycloak theme volume mount
     - Path: deployments/dev/keycloak/realm-go-go-host.json
       Note: Added loginTheme field (Step 2)
     - Path: deployments/dev/keycloak/themes/go-go-host/login/footer.ftl
@@ -23,12 +29,15 @@ RelatedFiles:
       Note: Pure monochrome OS1 CSS overrides (Step 2)
     - Path: deployments/dev/keycloak/themes/go-go-host/login/theme.properties
       Note: Theme config extending keycloak parent (Step 2)
+    - Path: ttmp/2026/05/12/HOST-010-KEYCLOAK-CUSTOM-LOGIN--custom-keycloak-login-theme-for-go-go-host/scripts/03-add-github-idp.sh
+      Note: Repeatable local GitHub IdP setup script
 ExternalSources: []
 Summary: Step-by-step diary of implementing a custom OS1-styled Keycloak login theme for go-go-host
 LastUpdated: 2026-05-12T21:50:00-04:00
 WhatFor: Record the research, implementation, and deployment steps for the Keycloak login theme customization
 WhenToUse: Resume work on HOST-010, debug theme issues, or deploy to production
 ---
+
 
 
 # Diary
@@ -183,3 +192,99 @@ Created the custom `go-go-host` login theme with pure monochrome OS1 styling, mo
 - Clear theme cache: `docker exec go-go-host-keycloak rm -rf /opt/keycloak/data/tmp/kc-gzip-cache`
 - Production Keycloak image: `quay.io/keycloak/keycloak:26.1.0` at `auth.yolo.scapegoat.dev`
 - Production K3s deployment: `/home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/keycloak/deployment.yaml`
+
+---
+
+## Step 3: Verify GitHub IdP and deploy the theme to production Keycloak
+
+This step completed the end-to-end path: the local realm has a GitHub identity provider so the social-login button renders above the username/password form, and the production Keycloak deployment now loads the go-go-host theme JAR from GitOps. Production was verified by opening the real auth URL for `hosting.yolo.scapegoat.dev` and capturing a screenshot.
+
+The last visual polish was removing the excessive top whitespace inside the card body above the GitHub button. The root cause was combined padding from `#kc-content` and `#kc-social-providers`; after forcing `#kc-content` top padding to zero and removing social-provider top padding, the gap dropped from roughly 30px to about 10–12px while keeping the layout readable.
+
+**Prompt Context**
+
+**User prompt (verbatim):** "continue. Also the title bar lines should stop at the boundaries of the login window, they spread the whole width right  now"
+
+**Assistant interpretation:** Continue the Keycloak IdP/theme work and fix the striped OS1 title bar so it is constrained to the login window, not the entire page width.
+
+**Inferred user intent:** Make the custom Keycloak login page feel like one coherent OS1 window before deploying and verifying it.
+
+**User prompt (verbatim):** "this is good, it was the drop shadow. Let's continue and setup idP, the feedback is not always perfect from pinocchio"
+
+**Assistant interpretation:** Accept the current title bar/card alignment, continue with GitHub IdP setup, and don't over-optimize based on visual model feedback.
+
+**Inferred user intent:** Prioritize functional IdP setup and real-page verification over chasing minor screenshot critique.
+
+**User prompt (verbatim):** "there's whitespace above idp github and the top of the window. it's the margin-top of kc-content-wrapper and then the padding of kc-content or margin higher up."
+
+**Assistant interpretation:** Remove the internal vertical whitespace above the GitHub social login button inside the Keycloak card body.
+
+**Inferred user intent:** Tighten the login layout so social login is prominent and visually attached to the OS1 window body.
+
+### What I did
+- Fixed link hover behavior so footer links no longer invert into a full black box; hover now removes underline and uses a simple black outline.
+- Added/used a GitHub IdP setup script: `scripts/03-add-github-idp.sh`.
+- Added the local GitHub IdP via Keycloak Admin API using `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` from `.envrc`.
+- Verified local realm IdPs via Admin API: `["github"]`.
+- Fixed the title bar width by constraining `#kc-header` / `.login-pf-page-header` to `500px` centered.
+- Fixed excessive whitespace above the GitHub button by setting `#kc-content { padding: 0 1rem 0.75rem }` and `#kc-social-providers { padding-top: 0; margin-top: 0 }`.
+- Repackaged the theme as `go-go-host-keycloak-theme.jar` with `META-INF/keycloak-themes.json`.
+- Created a production Kubernetes ConfigMap from the JAR: `keycloak-theme-go-go-host`.
+- Updated production Keycloak GitOps deployment to mount the JAR into `/opt/keycloak/providers/go-go-host-keycloak-theme.jar`.
+- Added `keycloak-theme-configmap.yaml` to the production Keycloak kustomization.
+- Triggered Argo CD sync for `keycloak`; verified `Synced Healthy` and new pod ready.
+- Set production realm `go-go-host` loginTheme to `go-go-host` using `kcadm.sh` inside the Keycloak pod.
+- Verified production `go-go-host` realm has GitHub IdP enabled and `loginTheme: go-go-host`.
+- Captured production screenshot: `sources/screenshots/host-010-prod-login.png`.
+
+### Why
+- The login theme should work in both local dev and production, and social login should be the obvious primary path.
+- Production Keycloak needs a packaged theme deployment mechanism; a ConfigMap-mounted JAR in `/opt/keycloak/providers/` is simple and GitOps-friendly for this small theme.
+- Realm UI configuration lives in Keycloak's database, so `loginTheme` had to be set via Admin API/kcadm after the provider was available.
+
+### What worked
+- GitHub IdP appeared on the local login page above the local login form with an `OR` divider.
+- Production Keycloak accepted the theme JAR mounted in `/opt/keycloak/providers/` and rendered the custom OS1 theme after rollout.
+- Argo CD synced the production Keycloak deployment successfully; app status: `Synced Healthy`.
+- Production login page at `https://auth.yolo.scapegoat.dev/realms/go-go-host/protocol/openid-connect/auth?...` shows the OS1 theme and GitHub social-login button.
+
+### What didn't work
+- Playwright MCP browser target was closed, so direct browser tools failed with: `Error: browserBackend.callTool: Target page, context or browser has been closed`.
+- Workaround: used the repo-local `playwright` package under `web/admin` with a Node script to render screenshots headlessly.
+- Initial Admin API check returned `[]` for identity providers because the user-created IdP was not yet present in the local Keycloak realm; after running the API setup, it returned `["github"]`.
+- Pinocchio feedback over-emphasized a perceived title-bar/card mismatch; user clarified the visual was acceptable and the apparent issue was mostly the drop shadow.
+
+### What I learned
+- Keycloak production can load small custom theme JARs directly from a ConfigMap mounted into `/opt/keycloak/providers/`.
+- The GitHub IdP renders in the login template only when the realm actually has an enabled identity provider instance; CSS/template work alone is not enough to see the social section.
+- For this Keycloak login DOM, the main contributors to top spacing above social providers are `#kc-content` padding and `#kc-social-providers` padding.
+
+### What was tricky to build
+- The title bar and card are siblings (`#kc-header.login-pf-page-header` and `.card-pf`), not a single wrapper. To visually unify them, CSS has to constrain and align both separately rather than relying on shared parent geometry.
+- Deploying a Keycloak theme declaratively is only half the story: the provider JAR can be GitOps-managed, but the realm selection (`loginTheme`) is stored in Keycloak's database and must be set via Admin API/kcadm or Terraform.
+- The local environment's `.envrc` exports GitHub secrets automatically; commands emitted direnv noise in output, so scripts and diary should avoid printing secret values.
+
+### What warrants a second pair of eyes
+- Mounting the JAR from a ConfigMap into `/opt/keycloak/providers/` is simple, but confirm Keycloak provider loading from ConfigMap-backed files remains acceptable for the production lifecycle.
+- Confirm that realm config (`loginTheme`, GitHub IdP settings) is made durable by the intended IaC source (Terraform or a bootstrap job), not only a manual Admin API mutation.
+- Check whether GitHub OAuth app callback URLs are correct for both local and production; GitHub OAuth Apps usually have a single callback URL, so local/prod may need separate apps.
+
+### What should be done in the future
+- Move production realm configuration into Terraform or a repeatable bootstrap script: `loginTheme=go-go-host`, GitHub IdP alias/client credentials, first-broker-login flow settings.
+- Consider adding a Keycloak smoke script that checks the production auth page for `social-github` and `go-go-host` theme assets.
+- Store production GitHub client secret through Vault/Terraform, never in Git.
+
+### Code review instructions
+- Review GitOps commit `7ec5a75` in `/home/manuel/code/wesen/2026-03-27--hetzner-k3s`: it adds the theme ConfigMap and mounts the JAR in Keycloak.
+- Review `deployments/dev/keycloak/themes/go-go-host/login/resources/css/os1-overrides.css` for the final spacing and title-bar constraints.
+- Validate local: open the local OIDC auth URL and check that the GitHub button is above the form with `OR` divider.
+- Validate production: open the production OIDC auth URL and confirm the custom OS1 theme renders.
+
+### Technical details
+- Local GitHub callback URL: `http://127.0.0.1:18080/realms/go-go-host/broker/github/endpoint`
+- Production GitHub callback URL: `https://auth.yolo.scapegoat.dev/realms/go-go-host/broker/github/endpoint`
+- Production Keycloak pod verification:
+  - `kubectl get application keycloak -n argocd -o jsonpath='{.status.sync.status} {.status.health.status}'`
+  - `kubectl exec -n keycloak <pod> -- /opt/keycloak/bin/kcadm.sh get realms/go-go-host | grep loginTheme`
+- Theme JAR mount path: `/opt/keycloak/providers/go-go-host-keycloak-theme.jar`
+- Production screenshot: `ttmp/2026/05/12/HOST-010-KEYCLOAK-CUSTOM-LOGIN--custom-keycloak-login-theme-for-go-go-host/sources/screenshots/host-010-prod-login.png`
