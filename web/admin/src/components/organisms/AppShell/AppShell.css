@@ -3,7 +3,6 @@
   background: #fff;
   color: var(--hc-color-fg);
   font-family: var(--hc-font-family);
-  overflow-x: hidden;
 }
 
 .app-shell__menubar {
@@ -38,7 +37,8 @@
   display: grid;
   grid-template-columns: 15rem minmax(0, 1fr);
   gap: 1.25rem;
-  width: min(1180px, calc(100vw - 3rem));
+  max-width: 1180px;
+  width: calc(100% - 3rem);
   margin: 0 auto;
   padding: 1.25rem 0 2rem;
   background-color: #fff;
@@ -75,7 +75,8 @@
 @media (max-width: 840px) {
   .app-shell__body {
     grid-template-columns: 1fr;
-    width: min(100% - 1.5rem, 48rem);
+    width: calc(100% - 1.5rem);
+    max-width: 48rem;
     padding-top: 0.75rem;
   }
 
