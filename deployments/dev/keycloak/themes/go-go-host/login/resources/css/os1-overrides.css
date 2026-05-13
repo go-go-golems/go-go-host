@@ -104,17 +104,7 @@ body#kc-login {
   margin-top: -2px !important;
 }
 
-.login-pf-header {
-  border-bottom: 2px solid #111 !important;
-  padding: 0.65rem 1rem 0.35rem !important;
-}
-
-#kc-page-title {
-  font-size: 14px !important;
-  font-weight: 700 !important;
-  color: #111 !important;
-  margin: 0 !important;
-}
+/* .login-pf-header and #kc-page-title styling moved to per-page sections below */
 
 /* ── Form inputs ─────────────────────────────────────────── */
 
@@ -161,8 +151,7 @@ label {
 /* ── Primary button (Sign In) ─────────────────────────────── */
 
 .pf-c-button.pf-m-primary,
-input#kc-login,
-input[type="submit"] {
+input#kc-login {
   background: #111 !important;
   color: #fff !important;
   border: 2px solid #111 !important;
@@ -304,15 +293,38 @@ a:focus {
   margin-top: 0 !important;
 }
 
-/* Also kill any header margin/padding that adds space */
-.login-pf-header {
+/* Also kill any header margin/padding that adds space (login page only —
+   detected by ABSENCE of #kc-oauth in the card) */
+.card-pf:not(:has(#kc-oauth)) .login-pf-header {
   margin: 0 !important;
   padding: 0 !important;
   border: none !important;
 }
 
-#kc-page-title {
+/* Hide page title on login page (OS1 title bar replaces it);
+   show it on consent/oauth pages where the client name matters.
+   Detected by presence of #kc-oauth inside the card. */
+.card-pf:not(:has(#kc-oauth)) #kc-page-title {
   display: none !important;
+}
+
+/* On consent pages, show the header with OS1 styling */
+.card-pf:has(#kc-oauth) .login-pf-header {
+  border-bottom: 2px solid #111 !important;
+  padding: 0.65rem 1rem 0.35rem !important;
+  margin: 0 !important;
+}
+
+.card-pf:has(#kc-oauth) #kc-page-title {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: #111 !important;
+  margin: 0 !important;
+  display: block !important;
+}
+
+.card-pf:has(#kc-oauth) #kc-page-title p {
+  margin: 0 !important;
 }
 
 /* Social providers: no top padding */
@@ -439,4 +451,95 @@ a:focus {
 
 #kc-info-wrapper {
   font-size: 11px !important;
+}
+
+/* ── OAuth consent page (device flow grant) ────────────────── */
+
+/* Content area needs more breathing room */
+.card-pf:has(#kc-oauth) #kc-content {
+  padding: 1rem 1rem 0.75rem !important;
+}
+
+/* Heading: "Do you grant these access privileges?" */
+#kc-oauth h3 {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.03em !important;
+  color: #111 !important;
+  margin: 0 0 0.65rem 0 !important;
+  padding: 0 !important;
+}
+
+/* Scope list: simple list with muted accent */
+#kc-oauth ul,
+#kc-oauth-scopes {
+  list-style: disc !important;
+  padding-left: 1.25rem !important;
+  margin: 0 0 1rem 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+#kc-oauth li {
+  padding: 0.15rem 0 !important;
+  margin: 0 !important;
+  border-bottom: none !important;
+  font-size: 10px !important;
+  color: #666 !important;
+  line-height: 1.35 !important;
+}
+
+#kc-oauth li span {
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.02em !important;
+  color: #666 !important;
+}
+
+/* Button container: clear gap between Yes and No */
+#kc-oauth .kc-oauth-buttons,
+#kc-oauth #kc-form-buttons {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.65rem !important;
+  margin: 0 !important;
+}
+
+/* "No" / Cancel button: lighter secondary style */
+input#kc-cancel,
+.pf-c-button.btn-default,
+.pf-c-button.pf-m-secondary {
+  background: #fff !important;
+  color: #666 !important;
+  border: 1px solid #999 !important;
+  border-radius: 0 !important;
+  box-shadow: 1px 1px 0 #999 !important;
+  font-family: inherit !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.03em !important;
+  text-transform: uppercase !important;
+  padding: 0.4rem 1rem !important;
+  cursor: pointer !important;
+  width: 100% !important;
+  height: auto !important;
+  line-height: 1.4 !important;
+}
+
+input#kc-cancel:hover,
+.pf-c-button.btn-default:hover,
+.pf-c-button.pf-m-secondary:hover {
+  color: #111 !important;
+  border-color: #111 !important;
+  box-shadow: 1px 1px 0 #111 !important;
+}
+
+input#kc-cancel:active,
+.pf-c-button.btn-default:active,
+.pf-c-button.pf-m-secondary:active {
+  background: #f5f5f5 !important;
+  box-shadow: none !important;
+  transform: translate(1px, 1px) !important;
 }
