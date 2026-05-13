@@ -288,3 +288,153 @@ The last visual polish was removing the excessive top whitespace inside the card
   - `kubectl exec -n keycloak <pod> -- /opt/keycloak/bin/kcadm.sh get realms/go-go-host | grep loginTheme`
 - Theme JAR mount path: `/opt/keycloak/providers/go-go-host-keycloak-theme.jar`
 - Production screenshot: `ttmp/2026/05/12/HOST-010-KEYCLOAK-CUSTOM-LOGIN--custom-keycloak-login-theme-for-go-go-host/sources/screenshots/host-010-prod-login.png`
+
+---
+
+## Step 4: Move Keycloak realm configuration into Terraform and document the deployment pipeline
+
+This step made the Keycloak realm configuration durable by moving the go-go-host login theme selection and GitHub identity provider into the existing Terraform environment for the beta realm. It also added a top-level deployment document in the app repo that explains the whole release path: local dev, embedded dashboard build, Docker image, GitOps rollout, Keycloak runtime, Terraform-managed realm state, DNS, and secrets.
+
+The important ownership split is now explicit: GitOps owns Kubernetes runtime artifacts such as the Keycloak pod and mounted theme JAR, while Terraform owns Keycloak realm state such as `loginTheme` and GitHub IdP configuration. The existing manual GitHub IdP was imported into Terraform state before applying, and a follow-up plan verified no drift.
+
+**Prompt Context**
+
+**User prompt (verbatim):** "do 2. move realm config to terraform. Write a document in docs/deployment.md about how this is all set up and works (not justk eycloak, the entire deployment pipeline)"
+
+**Assistant interpretation:** Make the previously manual production Keycloak realm settings durable in Terraform, then write a broad deployment pipeline document for go-go-host.
+
+**Inferred user intent:** Remove manual drift from production auth setup and create a stable operator-facing reference for future deployments.
+
+### What I did
+- Updated Terraform module `keycloak/modules/realm-base` with optional `login_theme` support.
+- Updated Terraform env `keycloak/apps/go-go-host/envs/k3s-beta` to pass `login_theme = "go-go-host"` into the realm module.
+- Added Terraform-managed `keycloak_oidc_github_identity_provider.github` for the production `go-go-host` realm.
+- Added GitHub IdP input variables and outputs to the go-go-host k3s-beta Terraform env.
+- Added `ignore_changes = [federated_identity]` to the managed `wesen` user so Terraform does not remove runtime account links created by Keycloak first-broker-login.
+- Imported existing production GitHub IdP into Terraform state with ID `go-go-host/github`.
+- Ran `terraform apply`; it updated the GitHub IdP metadata/settings.
+- Ran a final `terraform plan -detailed-exitcode`; it reported `No changes`.
+- Added `docs/deployment.md` in the app repo documenting the full deployment pipeline.
+
+### Why
+- Production realm settings were previously manual Keycloak DB state. If the realm was recreated or drifted, the pod would still have the theme JAR but the realm might stop selecting it.
+- GitHub IdP configuration contains operational policy decisions (`trust_email`, `sync_mode`, visibility, display name) that should be versioned and reviewed.
+- The project needed a single deployment overview that includes more than Keycloak: app build, dashboard embedding, image tagging, GitOps, Argo CD, Terraform, DNS, and secrets.
+
+### What worked
+- `terraform init` and `terraform validate` succeeded for `keycloak/apps/go-go-host/envs/k3s-beta`.
+- `terraform import 'keycloak_oidc_github_identity_provider.github[0]' go-go-host/github` succeeded.
+- The first full plan revealed a real risk: Terraform would remove an existing `federated_identity` block from the `wesen` user.
+- Adding `ignore_changes = [federated_identity]` prevented Terraform from removing runtime GitHub account linking.
+- `terraform apply /tmp/go-go-host-kc.plan` completed successfully with `0 added, 1 changed, 0 destroyed`.
+- Final `terraform plan -detailed-exitcode` reported `No changes`.
+
+### What didn't work
+- Initial `terraform state list` failed because AWS credentials for the S3 backend were not selected:
+  - `Error: No valid credential sources found`
+  - `failed to refresh cached credentials, no EC2 IMDS role found`
+- Fix: run Terraform with `AWS_PROFILE=manuel`.
+- The first full plan would have removed the user's existing GitHub federated identity link. This was not acceptable because those links are runtime account state created by users logging in.
+
+### What I learned
+- The existing Terraform repo already had a `go-go-host/envs/k3s-beta` environment; we did not need to create a new Terraform stack.
+- The Keycloak provider imports a GitHub IdP using ID format `realm/alias`, e.g. `go-go-host/github`.
+- Keycloak user resources can observe runtime `federated_identity` links; without lifecycle ignore settings, Terraform may try to remove user-linked IdP state.
+
+### What was tricky to build
+- Separating realm-owned configuration from runtime user state: the GitHub IdP belongs in Terraform, but individual users' federated identity links are created dynamically by the broker login flow and should not be declared by Terraform.
+- Terraform variables for secrets had to be provided from environment/non-committed sources. The GitHub client secret is now a Terraform input, which means the remote state backend must be treated as secret-bearing infrastructure.
+
+### What warrants a second pair of eyes
+- Confirm that `ignore_changes = [federated_identity]` is the right long-term policy for managed bootstrap users in Keycloak.
+- Confirm whether Terraform should manage the `wesen` bootstrap user at all after GitHub SSO is working.
+- Confirm whether GitHub OAuth credentials should be sourced by Terraform directly or applied by a Vault-backed bootstrap job to avoid secrets in Terraform state.
+
+### What should be done in the future
+- Move GitHub OAuth credentials into the intended long-term secret source, preferably Vault-backed automation rather than ad hoc environment variables.
+- Consider replacing ConfigMap-mounted theme JARs with a custom Keycloak image if theme assets grow.
+- Add a smoke check that verifies the production OIDC login page contains the custom theme and `social-github` link.
+
+### Code review instructions
+- Terraform review starts in `/home/manuel/code/wesen/terraform/keycloak/apps/go-go-host/envs/k3s-beta/main.tf`.
+- Module review starts in `/home/manuel/code/wesen/terraform/keycloak/modules/realm-base/main.tf`.
+- Deployment docs review starts in `docs/deployment.md` in the app repo.
+- Validate Terraform with:
+  - `terraform validate`
+  - `terraform plan -detailed-exitcode` from `keycloak/apps/go-go-host/envs/k3s-beta` with the required `TF_VAR_*` values.
+
+### Technical details
+- Terraform import command used:
+  - `terraform import 'keycloak_oidc_github_identity_provider.github[0]' go-go-host/github`
+- Apply result:
+  - `Apply complete! Resources: 0 added, 1 changed, 0 destroyed.`
+- Final plan result:
+  - `No changes. Your infrastructure matches the configuration.`
+- New app documentation:
+  - `docs/deployment.md`
+
+---
+
+## Step 5: Correct production GitHub OAuth credentials
+
+This step corrected the production GitHub identity-provider credentials after noticing that the first Terraform apply used the generic `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` variables. Those variables correspond to the local OAuth app. Production must use the live OAuth app credentials exposed as `GITHUB_LIVE_CLIENT_ID` and `GITHUB_LIVE_CLIENT_SECRET`.
+
+The Terraform plan with the live variables showed exactly one in-place change: the GitHub identity provider's client ID and client secret. Applying that plan updated production Keycloak, and a final `terraform plan -detailed-exitcode` reported no changes.
+
+**Prompt Context**
+
+**User prompt (verbatim):** "what idp settings did you use for github, i think you might have used the ones for local host and not the ones for the live site. The live site are in .envrc now with +GITHUB_LIVE_CLIENT_SECRET and +GITHUB_LIVE_CLIENT_ID"
+
+**Assistant interpretation:** Check which environment variables were used for the production GitHub IdP and correct production if the local OAuth app credentials were applied.
+
+**Inferred user intent:** Ensure the production Keycloak GitHub broker uses the OAuth app whose callback URL points at `auth.yolo.scapegoat.dev`, not the localhost OAuth app.
+
+### What I did
+- Confirmed the previous production Terraform command used `TF_VAR_github_client_id="$GITHUB_CLIENT_ID"` and `TF_VAR_github_client_secret="$GITHUB_CLIENT_SECRET"`.
+- Re-ran the production Terraform plan using:
+  - `TF_VAR_github_client_id="$GITHUB_LIVE_CLIENT_ID"`
+  - `TF_VAR_github_client_secret="$GITHUB_LIVE_CLIENT_SECRET"`
+- Verified the plan only changed `keycloak_oidc_github_identity_provider.github[0]` client ID/secret in-place.
+- Applied the plan.
+- Ran final `terraform plan -detailed-exitcode`; it reported `No changes`.
+- Updated `docs/deployment.md` to explicitly distinguish local GitHub vars from production live vars.
+
+### Why
+- GitHub OAuth Apps normally have callback URLs tied to a particular environment. The localhost app and production app must not be confused.
+- If production Keycloak uses the local client ID/secret, GitHub login can fail because the callback URL registered in GitHub does not match production's broker endpoint.
+
+### What worked
+- Terraform detected only the intended credential change.
+- Apply completed with `0 added, 1 changed, 0 destroyed`.
+- Final plan reported no drift.
+
+### What didn't work
+- The earlier production apply used the non-live variables. This was a process error caused by ambiguous environment variable names.
+
+### What I learned
+- The `.envrc` now exports both local and live GitHub OAuth credentials. Production Terraform must map `GITHUB_LIVE_*` into `TF_VAR_github_*`.
+- The documentation must spell this out because Terraform variable names are environment-neutral while shell variable names distinguish local vs live.
+
+### What was tricky to build
+- The Terraform resource marks `client_id` and `client_secret` as sensitive, so the plan correctly hides values. That protects secrets but also means the operator must be careful about which shell variables are mapped into Terraform.
+
+### What warrants a second pair of eyes
+- Confirm the live GitHub OAuth app callback URL is exactly `https://auth.yolo.scapegoat.dev/realms/go-go-host/broker/github/endpoint`.
+- Confirm the local GitHub OAuth app callback URL remains `http://127.0.0.1:18080/realms/go-go-host/broker/github/endpoint`.
+
+### What should be done in the future
+- Consider using explicit Terraform variable names such as `github_live_client_id` in production envs, or a wrapper script, to make accidental local/live credential swaps harder.
+- Move GitHub OAuth credentials into a durable secret source and make the mapping explicit there.
+
+### Code review instructions
+- Review `docs/deployment.md` for the live/local variable guidance.
+- Validate production Terraform with the live variables and confirm `terraform plan -detailed-exitcode` returns no changes.
+
+### Technical details
+- Correct production mapping:
+  - `export TF_VAR_github_client_id="$GITHUB_LIVE_CLIENT_ID"`
+  - `export TF_VAR_github_client_secret="$GITHUB_LIVE_CLIENT_SECRET"`
+- Apply result:
+  - `Apply complete! Resources: 0 added, 1 changed, 0 destroyed.`
+- Final plan result:
+  - `No changes. Your infrastructure matches the configuration.`
