@@ -82,3 +82,13 @@ Changed the dashboard page background from light blue to white and recorded rema
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/app/macos1-bridge.css — Overrides the macOS1 desktop background token to white for the admin dashboard
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/components/organisms/AppShell/AppShell.css — Forces the shell and work area background to white instead of light-blue desktop fill
 
+
+## 2026-05-12
+
+Promoted the OS1 admin UI guidelines playbook into docs/contributing/playbooks for future frontend contributors.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/docs/contributing/playbooks/os1-admin-dashboard-ui-work-guidelines.md — Repository-facing contributor playbook for OS1 admin/dashboard UI work
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/12/HOST-008-OS1-DASHBOARD-VISUAL-POLISH--os1-dashboard-visual-polish-and-widget-reuse/playbook/01-os1-admin-dashboard-ui-work-guidelines.md — Ticket-local source/history copy updated with latest background and color-accent guidance
+

@@ -436,3 +436,18 @@ pnpm build
 ```
 
 Build passed with the known CodeMirror chunk-size warning.
+
+## 2026-05-12 — Playbook promoted to contributing docs
+
+User asked to move the playbook into the repository's contributing playbooks folder.
+
+Copied the current, corrected playbook to:
+
+```text
+docs/contributing/playbooks/os1-admin-dashboard-ui-work-guidelines.md
+```
+
+Kept the ticket-local playbook as the docmgr source/history copy and added the repository-facing copy for future contributors. The promoted copy includes the latest corrections:
+
+- page/workspace background should be white, not light blue;
+- color accents belong on badges/buttons/panels rather than inline body text.
