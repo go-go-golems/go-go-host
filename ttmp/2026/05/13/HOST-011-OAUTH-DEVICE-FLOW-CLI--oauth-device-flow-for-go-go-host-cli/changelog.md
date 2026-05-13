@@ -57,3 +57,16 @@ Step 5: enabled local and production Keycloak go-go-host-cli device-flow client 
 - /home/manuel/code/wesen/terraform/keycloak/apps/go-go-host/envs/k3s-beta/main.tf — Production Terraform go-go-host-cli client
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/deployments/dev/keycloak/realm-go-go-host.json — Local go-go-host-cli device-flow client import
 
+
+## 2026-05-13
+
+Step 6: implemented CLI OAuth device login, refresh-aware token config, logout, tests, and CLI docs
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/cmd/go-go-host/cmds/cli_config.go — Structured OIDC session storage and refresh-aware resolution
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/cmd/go-go-host/cmds/login.go — Device flow login mode and token validation
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/cmd/go-go-host/cmds/logout.go — Clears local auth and best-effort revokes refresh token
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/cmd/go-go-host/cmds/oidc_device.go — RFC 8628 device flow
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/cmd/go-go-host/doc/login-and-config.md — Updated CLI login/logout documentation
+

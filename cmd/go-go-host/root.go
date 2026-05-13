@@ -35,6 +35,10 @@ func newRootCommand() (*cobra.Command, error) {
 	if err != nil {
 		return nil, err
 	}
+	logoutCmd, err := commands.NewLogoutCobraCommand()
+	if err != nil {
+		return nil, err
+	}
 	meCmd, err := commands.NewMeCobraCommand()
 	if err != nil {
 		return nil, err
@@ -71,6 +75,6 @@ func newRootCommand() (*cobra.Command, error) {
 	if err != nil {
 		return nil, err
 	}
-	rootCmd.AddCommand(statusCmd, loginCmd, meCmd, orgCmd, siteCmd, deployCmd, deploymentsCmd, rollbackCmd, agentsCmd, auditCmd, maintenanceCmd)
+	rootCmd.AddCommand(statusCmd, loginCmd, logoutCmd, meCmd, orgCmd, siteCmd, deployCmd, deploymentsCmd, rollbackCmd, agentsCmd, auditCmd, maintenanceCmd)
 	return rootCmd, nil
 }

@@ -1,18 +1,32 @@
 package cmds
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"gopkg.in/yaml.v3"
 )
 
 type CLIConfig struct {
-	APIURL      string `yaml:"apiUrl" json:"apiUrl"`
-	DevUser     string `yaml:"devUser" json:"devUser"`
-	BearerToken string `yaml:"bearerToken" json:"bearerToken"`
+	APIURL      string          `yaml:"apiUrl" json:"apiUrl"`
+	DevUser     string          `yaml:"devUser,omitempty" json:"devUser,omitempty"`
+	BearerToken string          `yaml:"bearerToken,omitempty" json:"bearerToken,omitempty"`
+	OIDC        *CLIOIDCSession `yaml:"oidc,omitempty" json:"oidc,omitempty"`
+}
+
+type CLIOIDCSession struct {
+	Issuer       string    `yaml:"issuer" json:"issuer"`
+	ClientID     string    `yaml:"clientId" json:"clientId"`
+	Scopes       []string  `yaml:"scopes,omitempty" json:"scopes,omitempty"`
+	AccessToken  string    `yaml:"accessToken" json:"accessToken"`
+	IDToken      string    `yaml:"idToken,omitempty" json:"idToken,omitempty"`
+	RefreshToken string    `yaml:"refreshToken,omitempty" json:"refreshToken,omitempty"`
+	TokenType    string    `yaml:"tokenType,omitempty" json:"tokenType,omitempty"`
+	ExpiresAt    time.Time `yaml:"expiresAt,omitempty" json:"expiresAt,omitempty"`
 }
 
 func defaultCLIConfigPath() (string, error) {
@@ -64,6 +78,10 @@ func saveCLIConfig(cfg CLIConfig) (string, error) {
 }
 
 func resolveCLISettings(apiURL, devUser, bearerToken string) (CLIConfig, error) {
+	return resolveCLISettingsContext(context.Background(), apiURL, devUser, bearerToken)
+}
+
+func resolveCLISettingsContext(ctx context.Context, apiURL, devUser, bearerToken string) (CLIConfig, error) {
 	cfg, err := loadCLIConfig()
 	if err != nil {
 		return CLIConfig{}, err
@@ -80,5 +98,26 @@ func resolveCLISettings(apiURL, devUser, bearerToken string) (CLIConfig, error) 
 	if bearerToken != "" {
 		cfg.BearerToken = bearerToken
 	}
+	if cfg.DevUser != "" || cfg.BearerToken != "" || cfg.OIDC == nil || cfg.OIDC.AccessToken == "" {
+		return cfg, nil
+	}
+	if tokenExpiresSoon(cfg.OIDC.ExpiresAt) && cfg.OIDC.RefreshToken != "" {
+		refreshed, err := refreshOIDCToken(ctx, cfg.OIDC)
+		if err != nil {
+			return CLIConfig{}, err
+		}
+		cfg.OIDC = refreshed
+		if _, err := saveCLIConfig(cfg); err != nil {
+			return CLIConfig{}, err
+		}
+	}
+	cfg.BearerToken = cfg.OIDC.AccessToken
 	return cfg, nil
+}
+
+func tokenExpiresSoon(expiresAt time.Time) bool {
+	if expiresAt.IsZero() {
+		return false
+	}
+	return time.Until(expiresAt) < 60*time.Second
 }

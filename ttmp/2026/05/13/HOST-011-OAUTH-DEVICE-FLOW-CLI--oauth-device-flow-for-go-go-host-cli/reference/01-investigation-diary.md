@@ -449,3 +449,87 @@ After applying Terraform, the live production device authorization endpoint chan
   - `99bff08 go-go-host: configure CLI OIDC accepted client`
 - Live verification command:
   - `curl -sS -X POST -d 'client_id=go-go-host-cli' -d 'scope=openid profile email' https://auth.yolo.scapegoat.dev/realms/go-go-host/protocol/openid-connect/auth/device`
+
+---
+
+## Step 6: Implement CLI device login, refresh-aware auth, logout, and docs
+
+This step implemented the human CLI side of OAuth Device Authorization Grant. `go-go-host login` now preserves existing dev/manual-token modes, but when neither `--dev-user` nor `--bearer-token` is provided it starts device flow: it reads public server OIDC config, discovers Keycloak endpoints, requests a device code, prints the verification URL and user code, polls the token endpoint according to RFC 8628 behavior, stores structured OIDC tokens, and validates the token with `/api/v1/me`.
+
+The shared CLI config and HTTP helper layer now understands structured OIDC sessions. Commands continue to call the same helper functions, but a stored OIDC session can be refreshed before use when the access token is close to expiry. A new `go-go-host logout` command best-effort revokes the refresh token and clears local auth state.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 4)
+
+**Assistant interpretation:** Continue implementing the next HOST-011 tasks and commit after a coherent CLI-auth milestone.
+
+**Inferred user intent:** Move beyond Keycloak setup into a usable CLI authentication implementation with tests and documentation.
+
+### What I did
+- Added `cmd/go-go-host/cmds/oidc_device.go` with helpers for:
+  - public config bootstrap,
+  - OIDC discovery,
+  - device authorization request,
+  - device-code token polling,
+  - refresh-token grant,
+  - token revocation,
+  - scope parsing,
+  - token-to-session conversion.
+- Extended `CLIConfig` with structured `CLIOIDCSession` token storage.
+- Updated `resolveCLISettings` to refresh OIDC access tokens when they are close to expiry and a refresh token is available.
+- Updated `go-go-host login`:
+  - existing `--dev-user` mode remains,
+  - existing `--bearer-token` mode remains,
+  - default production mode now runs OAuth Device Authorization Grant.
+- Added `go-go-host logout` and registered it on the root command.
+- Updated `cmd/go-go-host/doc/login-and-config.md` to document device flow, logout, troubleshooting, dev auth, and manual bearer fallback.
+- Added tests for device polling behavior and scope parsing.
+
+### Why
+- Human CLI login needs to use the same centralized Keycloak login policies as the dashboard without asking for passwords or pasted tokens.
+- Refresh-aware auth belongs in the shared config/helper layer so existing commands do not duplicate token logic.
+- Logout should clear local tokens and revoke the refresh token when Keycloak supports revocation.
+
+### What worked
+- `go test ./cmd/go-go-host ./cmd/go-go-host/cmds ./internal/config ./internal/httpapi -count=1` passed.
+- Full `go test ./... -count=1` passed.
+- Polling tests cover `authorization_pending`, `slow_down`, success, denial, and scope parsing.
+
+### What didn't work
+- N/A for compilation and tests. Interactive production device login was not completed in this step because it requires browser approval by a human; the live device authorization endpoint itself was already verified in Step 5.
+
+### What I learned
+- The existing command structure made this change smaller than expected because all user commands already pass through shared auth helpers.
+- Keeping dev-user and manual-bearer modes intact is important for local tests and smoke/debug workflows.
+
+### What was tricky to build
+- Polling needed to be testable without real five-second sleeps. I added `pollDeviceTokenWithSleeper` so tests can inject a no-op sleeper and inspect requested intervals.
+- Refresh must preserve an existing refresh token if the provider returns only a new access token. The helper keeps the old refresh token when the token response omits a rotated one.
+- Logout should not fail local cleanup just because network revocation fails. It records `revoke_error` but still clears local auth state.
+
+### What warrants a second pair of eyes
+- Review whether the YAML config should be the long-term token store, or whether a follow-up should move OIDC refresh tokens into the OS keychain.
+- Review whether `go-go-host login` should attempt to open the browser automatically. The first implementation prints the URL only, which is safer for SSH/headless terminals.
+- Review timeout behavior: the polling deadline uses `expires_in`; command cancellation relies on context cancellation from the CLI process.
+
+### What should be done in the future
+- Run a real browser-approved production login smoke once the new app binary with accepted-client support is deployed.
+- Consider adding `--timeout` and `--no-open` flags if browser-opening support is added later.
+
+### Code review instructions
+- Start with `cmd/go-go-host/cmds/login.go` for user-visible login behavior.
+- Review `cmd/go-go-host/cmds/oidc_device.go` for protocol correctness.
+- Review `cmd/go-go-host/cmds/cli_config.go` for token storage and refresh behavior.
+- Review `cmd/go-go-host/cmds/logout.go` for cleanup/revocation semantics.
+- Validate with `go test ./... -count=1`.
+
+### Technical details
+- New files:
+  - `cmd/go-go-host/cmds/oidc_device.go`
+  - `cmd/go-go-host/cmds/oidc_device_test.go`
+  - `cmd/go-go-host/cmds/logout.go`
+- Updated docs:
+  - `cmd/go-go-host/doc/login-and-config.md`
+- Full validation:
+  - `go test ./... -count=1`
