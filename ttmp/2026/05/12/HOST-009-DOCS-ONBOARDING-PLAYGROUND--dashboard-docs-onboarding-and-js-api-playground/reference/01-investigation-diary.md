@@ -33,3 +33,17 @@ Initial repo evidence:
 - The hosted JS runtime modules live under `internal/sitejs/`, especially `web`, `uidsl`, and `dbguard`.
 
 Initial design direction: the dashboard needs a first-class Docs/Learn area that combines prose, examples, copyable bundles, and a safe live playground. The playground should start as a client-side bundle authoring and preview environment, then graduate into controlled server-side dry-run/deploy flows.
+
+## 2026-05-12 — reMarkable upload
+
+Uploaded the brainstorm/design document to reMarkable:
+
+```text
+/ai/2026/05/12/HOST-009-DOCS-ONBOARDING-PLAYGROUND/HOST-009_Dashboard_Docs_Playground_Brainstorm.pdf
+```
+
+Command output:
+
+```text
+OK: uploaded HOST-009_Dashboard_Docs_Playground_Brainstorm.pdf -> /ai/2026/05/12/HOST-009-DOCS-ONBOARDING-PLAYGROUND
+```

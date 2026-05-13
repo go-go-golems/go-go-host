@@ -15,3 +15,12 @@ Created initial dashboard docs/onboarding/playground brainstorm, including Learn
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/examples/hello-beta — Runnable example bundle that should seed the playground quickstart
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/12/HOST-009-DOCS-ONBOARDING-PLAYGROUND--dashboard-docs-onboarding-and-js-api-playground/design-doc/01-dashboard-docs-and-playground-brainstorm.md — Initial design brainstorm for user-facing Learn
 
+
+## 2026-05-12
+
+Uploaded the dashboard docs/playground brainstorm to reMarkable.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/12/HOST-009-DOCS-ONBOARDING-PLAYGROUND--dashboard-docs-onboarding-and-js-api-playground/design-doc/01-dashboard-docs-and-playground-brainstorm.md — Source design document uploaded as HOST-009_Dashboard_Docs_Playground_Brainstorm.pdf
+
