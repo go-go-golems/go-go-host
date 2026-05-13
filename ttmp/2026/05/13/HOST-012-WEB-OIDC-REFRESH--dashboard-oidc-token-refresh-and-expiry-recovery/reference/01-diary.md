@@ -204,3 +204,66 @@ The local build pipeline produced a new JS asset hash and updated `internal/weba
 ### Technical details
 - Build command: `BUILD_WEB_LOCAL=1 go run ./cmd/build-web`
 - Validation command: `go test ./internal/webadmin ./cmd/go-go-hostd -count=1`
+
+---
+
+## Step 4: Deploy dashboard OIDC refresh to beta
+
+This step promoted the HOST-012 dashboard refresh implementation to the beta Kubernetes deployment. I built and pushed a Docker image from commit `6c833cb`, updated the GitOps deployment image tag, synced Argo CD, and verified that production serves the new embedded dashboard JavaScript bundle.
+
+The production app is now running the image that contains the refresh-aware dashboard bundle. A config smoke confirmed OIDC is still enabled with the dashboard and CLI client IDs, and an HTML smoke confirmed `/app/` points at the new generated asset `assets/index-BHlgXeht.js`.
+
+### Prompt Context
+
+**User prompt (verbatim):** "continue"
+
+**Assistant interpretation:** Continue from implementation into deployment and final ticket validation.
+
+**Inferred user intent:** Make the dashboard refresh fix live on beta, not just committed on the branch.
+
+### What I did
+- Built image `ghcr.io/go-go-golems/go-go-host:sha-6c833cb` from the app repo.
+- Pushed the image to GHCR.
+- Updated K3s GitOps deployment image from `sha-0614a5f` to `sha-6c833cb`.
+- Committed and pushed GitOps commit `d0bc4ad go-go-host: deploy dashboard OIDC refresh`.
+- Forced Argo CD refresh and sync for the `go-go-host` app.
+- Waited for Kubernetes rollout completion.
+- Verified Argo CD status is `Synced Healthy`.
+- Verified production deployment image is `ghcr.io/go-go-golems/go-go-host:sha-6c833cb`.
+- Verified `https://hosting.yolo.scapegoat.dev/api/v1/config` still returns expected OIDC config.
+- Verified `https://hosting.yolo.scapegoat.dev/app/` references `assets/index-BHlgXeht.js`.
+
+### Why
+- HOST-012 changed frontend behavior and embedded assets. The production server had to be rebuilt and redeployed before users could benefit from token refresh.
+
+### What worked
+- Docker build and push succeeded.
+- GitOps update and Argo CD sync succeeded.
+- Rollout completed successfully.
+- Production serves the expected new dashboard bundle.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The production HTML asset check is a lightweight way to verify that the embedded dashboard bundle from the source commit is the one currently served.
+
+### What was tricky to build
+- The implementation spans TypeScript source, generated embedded assets, Docker image, and GitOps image pinning. Missing any one of those layers would make the fix appear committed but not actually live.
+
+### What warrants a second pair of eyes
+- A human browser session should be used to observe refresh behavior after a token expires naturally or after temporarily shortening token lifespan in Keycloak/local dev.
+
+### What should be done in the future
+- Add an automated browser smoke that stubs an expired token and verifies refresh/retry behavior in a real page context.
+
+### Code review instructions
+- Review GitOps commit `d0bc4ad` for the deployment image tag.
+- Verify runtime with:
+  - `kubectl -n go-go-host get deployment go-go-host -o jsonpath='{.spec.template.spec.containers[0].image}'`
+  - `curl -fsSL https://hosting.yolo.scapegoat.dev/app/ | rg -o 'assets/index-[A-Za-z0-9_-]+\.js'`
+
+### Technical details
+- App image: `ghcr.io/go-go-golems/go-go-host:sha-6c833cb`
+- GitOps commit: `d0bc4ad go-go-host: deploy dashboard OIDC refresh`
+- Argo status: `Synced Healthy`

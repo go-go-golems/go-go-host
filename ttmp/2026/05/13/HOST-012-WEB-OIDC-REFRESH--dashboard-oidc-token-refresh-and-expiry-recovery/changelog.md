@@ -37,3 +37,12 @@ Step 3: rebuilt embedded dashboard assets so OIDC refresh ships in the Go binary
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/webadmin/dist/assets/index-BHlgXeht.js — Generated dashboard bundle containing OIDC refresh implementation
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/webadmin/dist/index.html — Embedded dashboard entrypoint updated to new JS bundle
 
+
+## 2026-05-13
+
+Step 4: deployed HOST-012 dashboard refresh image sha-6c833cb to beta and verified production serves index-BHlgXeht.js
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/13/HOST-012-WEB-OIDC-REFRESH--dashboard-oidc-token-refresh-and-expiry-recovery/reference/01-diary.md — Deployment diary and validation notes
+
