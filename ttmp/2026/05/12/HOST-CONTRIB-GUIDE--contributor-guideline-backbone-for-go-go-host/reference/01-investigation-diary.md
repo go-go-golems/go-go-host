@@ -247,3 +247,71 @@ I wrote the primary design document and a companion runbook. The design document
   - `ttmp/2026/05/12/HOST-CONTRIB-GUIDE--contributor-guideline-backbone-for-go-go-host/design-doc/01-contributor-guideline-backbone-design.md`
   - `ttmp/2026/05/12/HOST-CONTRIB-GUIDE--contributor-guideline-backbone-for-go-go-host/playbook/01-contributor-documentation-set-runbook.md`
   - `ttmp/2026/05/12/HOST-CONTRIB-GUIDE--contributor-guideline-backbone-for-go-go-host/reference/01-investigation-diary.md`
+
+## Step 5: Implement stable contributor docs and revise style
+
+I implemented the repository-facing documentation set proposed by the design ticket, then revised the first drafts after feedback that they were too informal. The final stable docs use direct professional language and focus on how to work on the codebase: layering, subsystem responsibilities, validation commands, local development, API routes, data model, and docmgr workflow.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Create them, use a textbook writing style (or see also glazed help writing style, but no need for glazed preamble)"
+
+**User follow-up (verbatim):** "ok, these are not good, make them professional and clear. no need for cute intros or so. It should be about communicating how to work on this codebase."
+
+**Assistant interpretation:** Create the stable docs from the design, commit at logical intervals, keep this diary updated, and revise the docs to be practical and professional rather than overly narrative.
+
+**Inferred user intent:** The durable docs should be useful to contributors working in this repository, not a stylized essay.
+
+### What I did
+- Committed the initial ticket package as `84b0a9f docs: add contributor guideline design ticket`.
+- Added `CONTRIBUTING.md`, `docs/contributing/README.md`, `docs/contributing/testing-and-validation.md`, and `docs/runbooks/local-development.md`.
+- Updated `README.md` to point at the contributor docs and to stop describing the repository as only Phase 0 scaffold work.
+- Committed the first stable docs checkpoint as `8841717 docs: add contributor entrypoint and validation guides`.
+- Added the remaining stable docs:
+  - `docs/contributing/architecture-map.md`
+  - `docs/contributing/backend-service-guidelines.md`
+  - `docs/contributing/runtime-and-deployment-guidelines.md`
+  - `docs/contributing/frontend-dashboard-guidelines.md`
+  - `docs/contributing/docmgr-and-ticket-workflow.md`
+  - `docs/architecture/api-surface.md`
+  - `docs/architecture/data-model.md`
+- Rewrote the docs to remove cute/textbook-style framing and make them direct, professional, and task-focused.
+- Committed the subsystem docs checkpoint as `aad3745 docs: add contributor architecture and subsystem guides`.
+- Related the new stable docs back to the HOST-CONTRIB-GUIDE design doc and updated the ticket changelog.
+
+### Why
+- The user asked to create the docs, not only design them.
+- The first writing pass over-indexed on explanatory style. The follow-up clarified that these should be professional codebase contribution docs.
+
+### What worked
+- Committing at intervals kept the work separated into ticket setup, contributor entrypoint/validation docs, and subsystem docs.
+- The final documents now communicate concrete rules, file locations, validation commands, and review checklists.
+
+### What didn't work
+- The initial style was too informal and too essay-like for repository contribution docs. It needed to be rewritten as direct engineering guidance.
+
+### What I learned
+- For this repository, “textbook” should mean clear structure and complete explanations, not narrative openings or rhetorical setup.
+- The most useful contributor docs are operational: they tell people where code belongs, what not to do, and how to validate changes.
+
+### What was tricky to build
+- The main issue was balancing breadth with usefulness. The docs need to cover backend, runtime, dashboard, store, local dev, validation, and docmgr without becoming a design report. Splitting by contribution area made the set easier to use.
+
+### What warrants a second pair of eyes
+- The API surface document is manually derived from `internal/httpapi/handler.go`; it should be reviewed whenever routes change.
+- The data model document should be checked against migration history before relying on it as a schema reference in reviews.
+
+### What should be done in the future
+- Add a lightweight route extraction/check script so `docs/architecture/api-surface.md` cannot drift silently.
+- Add a PR checklist that points to the relevant contribution lane.
+
+### Code review instructions
+- Start with `docs/contributing/README.md` for the entrypoint.
+- Review the backend/runtime/frontend guides for whether they match current maintainer expectations.
+- Verify that `README.md` correctly describes the current repository state.
+
+### Technical details
+- Commits created:
+  - `84b0a9f docs: add contributor guideline design ticket`
+  - `8841717 docs: add contributor entrypoint and validation guides`
+  - `aad3745 docs: add contributor architecture and subsystem guides`

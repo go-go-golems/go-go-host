@@ -15,14 +15,36 @@ RelatedFiles:
       Note: |-
         Current agent-facing project conventions and safety rules
         Current agent-facing coding conventions that should be reconciled with stable contributor docs
+    - Path: CONTRIBUTING.md
+      Note: Top-level contributor entrypoint created from the design
     - Path: README.md
       Note: |-
         Current public orientation and CLI/runtime capability notes
         Public entrypoint that should link to future contributing docs and be refreshed
+    - Path: docs/architecture/api-surface.md
+      Note: Stable API route reference
+    - Path: docs/architecture/data-model.md
+      Note: Stable data model reference
+    - Path: docs/contributing/README.md
+      Note: Stable contributor guide entrypoint
+    - Path: docs/contributing/architecture-map.md
+      Note: Stable architecture map for contributors
+    - Path: docs/contributing/backend-service-guidelines.md
+      Note: Backend contribution rules
+    - Path: docs/contributing/docmgr-and-ticket-workflow.md
+      Note: Ticket and diary workflow
+    - Path: docs/contributing/frontend-dashboard-guidelines.md
+      Note: Dashboard contribution workflow
     - Path: docs/contributing/playbooks/os1-admin-dashboard-ui-work-guidelines.md
       Note: |-
         Existing promoted dashboard contribution playbook
         Existing promoted dashboard guideline used as a model
+    - Path: docs/contributing/runtime-and-deployment-guidelines.md
+      Note: Runtime and deployment contribution rules
+    - Path: docs/contributing/testing-and-validation.md
+      Note: Validation matrix
+    - Path: docs/runbooks/local-development.md
+      Note: Local development commands
     - Path: internal/control/core.go
       Note: Transport-agnostic service boundary
     - Path: internal/deploy/bundle.go
@@ -51,6 +73,7 @@ LastUpdated: 2026-05-12T21:05:00-04:00
 WhatFor: Use this to create stable contribution guidelines and onboarding docs for humans and coding agents working on go-go-host.
 WhenToUse: Read before onboarding contributors, assigning broad feature work, or promoting ttmp research into repository-facing documentation.
 ---
+
 
 
 # Contributor guideline backbone design
