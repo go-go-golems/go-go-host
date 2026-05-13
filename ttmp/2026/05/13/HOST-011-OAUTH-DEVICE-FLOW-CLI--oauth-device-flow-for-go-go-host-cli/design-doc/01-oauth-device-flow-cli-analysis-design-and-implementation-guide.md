@@ -1216,3 +1216,30 @@ The first pull request should do the work in this order:
 4. Update `login` to run device flow by default.
 5. Add refresh-aware auth resolution for all existing commands.
 6. Update docs and run local/prod smoke tests.
+
+## Implementation status as of commit `0614a5f`
+
+The first implementation pass has now completed the main design path described above:
+
+- The backend config supports `oidcDeviceClientId` and `oidcAcceptedClientIds`.
+- The backend OIDC verifier accepts tokens from any configured accepted client by `aud` or `azp` while still verifying issuer, signature, and expiry.
+- Local Keycloak imports a `go-go-host-cli` public client with Device Authorization Grant enabled.
+- Production Terraform manages `keycloak_openid_client.cli` with Device Authorization Grant enabled.
+- Production Keycloak returns real device authorization responses for `client_id=go-go-host-cli`.
+- `go-go-host login` starts device flow by default when neither `--dev-user` nor `--bearer-token` is provided.
+- The CLI stores structured OIDC session data and refreshes access tokens before requests when possible.
+- `go-go-host logout` clears local auth state and best-effort revokes the refresh token.
+- Production app image `ghcr.io/go-go-golems/go-go-host:sha-0614a5f` is deployed through GitOps.
+- Production `/api/v1/config` now publishes `deviceClientId: go-go-host-cli`.
+
+The remaining manual validation step is a browser-approved production login smoke:
+
+```bash
+GO_GO_HOST_CLI_CONFIG=$(mktemp) \
+  go-go-host login --api-url https://hosting.yolo.scapegoat.dev
+
+GO_GO_HOST_CLI_CONFIG=$same \
+  go-go-host me --output table
+```
+
+A non-approved smoke was run with a timeout and confirmed that the CLI prints a live Keycloak verification URL and user code before polling.

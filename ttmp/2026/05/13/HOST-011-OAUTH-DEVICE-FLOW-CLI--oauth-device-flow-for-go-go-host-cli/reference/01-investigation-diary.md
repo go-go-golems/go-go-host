@@ -533,3 +533,79 @@ The shared CLI config and HTTP helper layer now understands structured OIDC sess
   - `cmd/go-go-host/doc/login-and-config.md`
 - Full validation:
   - `go test ./... -count=1`
+
+---
+
+## Step 7: Deploy HOST-011 app support and verify production config
+
+This step deployed the new backend and CLI binaries to beta so production now publishes the CLI device client ID and accepts future CLI-issued tokens. I built and pushed image `ghcr.io/go-go-golems/go-go-host:sha-0614a5f`, updated the K3s GitOps deployment, forced an Argo CD refresh/sync, and waited for the rollout to complete.
+
+Production `/api/v1/config` now returns `deviceClientId: go-go-host-cli` alongside the dashboard client ID. I also ran a bounded CLI login smoke with `timeout`; it printed a live Keycloak verification URL and user code, then was killed before browser approval. That confirms the CLI can reach production config, discover Keycloak, start device authorization, and enter polling.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 4)
+
+**Assistant interpretation:** Continue the implementation through deployment and record the validation results before final ticket delivery.
+
+**Inferred user intent:** Ensure the feature is not only coded but also deployed and reviewable as a working beta path.
+
+### What I did
+- Pushed app branch after implementation commits.
+- Built Docker image:
+  - `ghcr.io/go-go-golems/go-go-host:sha-0614a5f`
+- Pushed the image to GHCR.
+- Updated K3s GitOps deployment image from `sha-0fbc599` to `sha-0614a5f`.
+- Committed/pushed GitOps deployment commit:
+  - `3db8bf8 go-go-host: deploy HOST-011 CLI OIDC support`
+- Forced Argo CD app refresh/sync for `go-go-host`.
+- Waited for rollout completion.
+- Verified Argo CD status:
+  - `Synced Healthy`
+- Verified production `/api/v1/config` includes:
+  - `clientId: go-go-host-dashboard`
+  - `deviceClientId: go-go-host-cli`
+- Ran a bounded CLI login smoke with `timeout 8s` and confirmed it printed a production Keycloak device verification URL and user code.
+
+### Why
+- The GitOps config that accepts CLI tokens requires the new backend config fields to be present in the running binary.
+- The CLI login implementation needs production `/api/v1/config` to publish the device client ID.
+
+### What worked
+- Docker build and push succeeded.
+- Argo CD sync and rollout succeeded.
+- Production config endpoint returned the expected OIDC device client metadata.
+- Bounded CLI login smoke printed a valid production verification URL.
+
+### What didn't work
+- Full interactive login was not completed because it requires a human to approve the Keycloak browser prompt during the command run. The non-approved smoke intentionally timed out with exit code `124` after verifying startup behavior.
+
+### What I learned
+- Argo initially reported `Synced Healthy` before refreshing to the latest Git commit. Annotating the app with `argocd.argoproj.io/refresh=hard` moved it to `OutOfSync`, then patching a sync operation applied the new image.
+
+### What was tricky to build
+- This deployment required ordering across app image, GitOps config, and Keycloak Terraform. Keycloak was already ready; app config became meaningful only after deploying the binary that knows `oidcAcceptedClientIds` and `oidcDeviceClientId`.
+
+### What warrants a second pair of eyes
+- Run the final browser-approved login manually to confirm token acceptance end-to-end.
+- Confirm the timeout smoke did not leave an approved device session; it should expire automatically after 600 seconds.
+
+### What should be done in the future
+- Add an operator smoke script that starts device flow and reports the verification URL, then optionally waits for a human approval.
+- Consider adding automatic browser opening as a follow-up.
+
+### Code review instructions
+- Review deployment commit `3db8bf8` in the GitOps repo.
+- Verify production image with `kubectl -n go-go-host get deployment go-go-host -o jsonpath='{.spec.template.spec.containers[0].image}'`.
+- Verify config with `curl -fsS https://hosting.yolo.scapegoat.dev/api/v1/config | jq '{devAuth, oidc}'`.
+
+### Technical details
+- Image:
+  - `ghcr.io/go-go-golems/go-go-host:sha-0614a5f`
+- GitOps commit:
+  - `3db8bf8 go-go-host: deploy HOST-011 CLI OIDC support`
+- Argo status:
+  - `Synced Healthy`
+- Timeout smoke result:
+  - exit code `124`
+  - printed `https://auth.yolo.scapegoat.dev/realms/go-go-host/device?user_code=...`

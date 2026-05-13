@@ -70,3 +70,13 @@ Step 6: implemented CLI OAuth device login, refresh-aware token config, logout, 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/cmd/go-go-host/cmds/oidc_device.go — RFC 8628 device flow
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/cmd/go-go-host/doc/login-and-config.md — Updated CLI login/logout documentation
 
+
+## 2026-05-13
+
+Step 7: deployed HOST-011 image sha-0614a5f to beta, verified production config publishes go-go-host-cli, and smoke-tested CLI device-flow startup
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/13/HOST-011-OAUTH-DEVICE-FLOW-CLI--oauth-device-flow-for-go-go-host-cli/design-doc/01-oauth-device-flow-cli-analysis-design-and-implementation-guide.md — Updated implementation status after deployment
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/13/HOST-011-OAUTH-DEVICE-FLOW-CLI--oauth-device-flow-for-go-go-host-cli/reference/01-investigation-diary.md — Diary records deployment and production validation
+
