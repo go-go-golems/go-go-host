@@ -72,3 +72,13 @@ Applied cross-page OS1 normalization and updated color guidance so accents are u
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/components/organisms/AuditTimeline/AuditTimeline.css — Timeline rows normalized to OS1 bordered rows
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/components/organisms/DeploymentTimeline/DeploymentTimeline.css — Deployment history rows normalized to OS1 bordered rows
 
+
+## 2026-05-12
+
+Changed the dashboard page background from light blue to white and recorded remaining coverage caveats.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/app/macos1-bridge.css — Overrides the macOS1 desktop background token to white for the admin dashboard
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/components/organisms/AppShell/AppShell.css — Forces the shell and work area background to white instead of light-blue desktop fill
+

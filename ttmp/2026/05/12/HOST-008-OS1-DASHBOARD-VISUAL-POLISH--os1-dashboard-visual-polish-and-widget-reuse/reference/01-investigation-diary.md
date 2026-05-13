@@ -412,3 +412,27 @@ sources/screenshots/host-008-members-os1-pass.png
 ```
 
 These screenshots do not mean every page is perfect, but they cover the main page families and verify the shared normalization pass applies broadly.
+
+## 2026-05-12 — White page background correction
+
+User asked whether all pages/organisms are done and clarified that the page background should be white, not light blue.
+
+I checked coverage quickly:
+
+- all organisms have CSS coverage;
+- several simple pages still do not have dedicated page CSS and rely on shared dashboard normalization (`AuthCallbackPage`, `RuntimePage`, `UsagePage`, `MembersPage`, `DeploymentsPage`, `DeploymentDetailPage`, and several simple admin inventory pages);
+- therefore the work is not honestly "all pages individually polished" yet, but the shared normalization covers the main page families and representative Storybook screenshots have been captured.
+
+Implemented the background correction:
+
+- set the OS1 theme root `--hc-color-desktop-bg` override to white in `macos1-bridge.css`;
+- changed `.app-shell` and `.app-shell__body` backgrounds to white and disabled the inherited desktop checker/light-blue look.
+
+Validation:
+
+```bash
+cd web/admin
+pnpm build
+```
+
+Build passed with the known CodeMirror chunk-size warning.

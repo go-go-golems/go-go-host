@@ -1,6 +1,6 @@
 .app-shell {
   min-height: 100vh;
-  background: var(--hc-color-desktop-bg);
+  background: #fff;
   color: var(--hc-color-fg);
   font-family: var(--hc-font-family);
 }
@@ -41,7 +41,8 @@
   min-height: calc(100vh - var(--hc-desktop-menubar-height, 32px));
   margin: 0 auto;
   padding: 1.25rem 0 2rem;
-  background-color: transparent;
+  background-color: #fff;
+  background-image: none;
 }
 
 .app-shell__sidebar {

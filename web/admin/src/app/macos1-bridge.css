@@ -1,8 +1,9 @@
 /* Temporary dashboard bridge: keep only app-specific legacy class mappings here.
    Theme tokens come from @go-go-golems/os-core. */
 [data-widget="hypercard"].theme-macos1 {
+  --hc-color-desktop-bg: #fff;
   min-height: 100vh;
-  background: var(--hc-color-desktop-bg);
+  background: #fff;
   color: var(--hc-color-fg);
   --ggh-font-xs: 10px;
   --ggh-font-sm: 11px;
@@ -14,7 +15,7 @@
 }
 
 [data-widget="hypercard"].theme-macos1 .dashboard-shell {
-  background: var(--hc-color-desktop-bg);
+  background: #fff;
   color: var(--hc-color-fg);
   font-family: var(--hc-font-family);
 }
