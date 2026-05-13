@@ -1,67 +1,55 @@
 # Testing and validation
 
-Validation is not a ritual at the end of a change. It is how you discover whether you changed the layer you thought you changed. A backend permission change that only passes a React smoke test is not validated. A dashboard page that only passes `go test` is not validated. Each contribution lane has its own evidence.
+Use this document to choose the validation commands for a change. Do not rely on one broad command when the change affects a subsystem that has its own failure modes.
 
-The purpose of this guide is to make that evidence explicit. When you hand off a change, a reviewer should know what was tested, what was not tested, and what still depends on local services such as Postgres, Keycloak, or a browser.
+## Baseline commands
 
-## The baseline
-
-For ordinary Go changes, start with the baseline:
+Run these for most Go changes:
 
 ```bash
 go test ./...
 go build ./...
 ```
 
-This catches compile errors, package-level unit tests, and integration tests that do not need external services. It does not prove that Postgres migrations work against a live database, that browser auth works, or that Storybook states render correctly.
+Run a targeted test while iterating:
+
+```bash
+go test ./internal/control -run TestName -count=1
+```
+
+Use `-count=1` when you need to avoid cached results.
 
 ## Validation matrix
 
-| Change type | Required validation | Why this evidence matters |
-|---|---|---|
-| Go backend logic | `go test ./...`; targeted package test with `-run`; `go build ./...` | Product invariants live in Go services and must be executable without the dashboard. |
-| HTTP API | Relevant `internal/httpapi` tests; forbidden and allowed auth cases | The route may decode correctly but still expose the wrong resource or status code. |
-| Store or migration | Start Postgres; set `GO_GO_HOST_TEST_DATABASE_URL`; run `go test ./internal/store ./internal/control` | sqlc code and migrations need a real database to prove schema behavior. |
-| Deployment validation | `go test ./internal/deploy ./internal/control ./internal/httpapi`; accepted and rejected bundle cases | Bundle validation is a security boundary, not a UI convenience. |
-| Runtime or hosted JS module | `go test ./internal/runtime ./internal/sitejs/...`; runtime smoke fixtures | Goja runtimes are stateful and resource-owning; load, health, and close paths all matter. |
-| Dashboard API state | `cd web/admin && pnpm build`; Storybook/MSW stories | TypeScript and RTK Query tags catch frontend contract mistakes. |
-| Dashboard visual work | Storybook states plus screenshot review | The OS1 visual system depends on layout, not just types. |
-| Embedded dashboard | `go run ./cmd/build-web`; `go test ./internal/webadmin`; `go build ./...` | The production binary serves embedded Vite assets, not the dev server. |
-| OIDC/auth browser flow | dev stack plus `make oidc-e2e` when applicable | Token acquisition and callback handling need a browser-shaped test. |
-| Documentation ticket | `docmgr doctor --ticket <TICKET-ID> --stale-after 30` | Ticket docs should remain searchable, related, and vocabulary-valid. |
+| Change type | Required validation |
+|---|---|
+| Go backend logic | `go test ./...`; targeted package tests; `go build ./...` |
+| HTTP API | Relevant `internal/httpapi` tests; success and forbidden cases; bad-input case where applicable |
+| Store/migration/sqlc | Start Postgres; set `GO_GO_HOST_TEST_DATABASE_URL`; run `go test ./internal/store ./internal/control -count=1` |
+| Deployment validation | `go test ./internal/deploy ./internal/control ./internal/httpapi -count=1`; accepted and rejected bundle cases |
+| Runtime or hosted JS module | `go test ./internal/runtime ./internal/sitejs/... -count=1`; load, health-check, and close behavior |
+| Agent signing/deploy runs | `go test ./internal/control ./internal/httpapi -run 'Agent|DeployRun|Signed' -count=1`; replay/expired/forbidden cases |
+| Dashboard TypeScript/API state | `cd web/admin && pnpm build` |
+| Dashboard visual/component work | `cd web/admin && pnpm storybook:build`; Storybook stories for loading/error/empty/populated states |
+| Embedded dashboard | `go run ./cmd/build-web`; `go test ./internal/webadmin`; `go build ./...` |
+| OIDC/browser auth | Local Keycloak/dev stack plus `make oidc-e2e` when touching browser auth |
+| Documentation ticket | `docmgr doctor --ticket <TICKET-ID> --stale-after 30` |
 
-## How to test a backend API change
+## Postgres-backed tests
 
-A backend API change usually crosses handler, service, store, and DTO code. Test the deepest invariant first, then the transport.
+Use live Postgres validation when changing migrations, sqlc queries, store wrappers, or control services that depend on database behavior.
 
-```text
-control service test
-  proves product rule
-HTTP integration test
-  proves route, auth, JSON, and status mapping
-CLI/frontend test or story
-  proves caller behavior if user-facing
+```bash
+docker compose -f deployments/dev/docker-compose.yaml up -d
+export GO_GO_HOST_TEST_DATABASE_URL='postgres://go_go_host:go_go_host_dev@127.0.0.1:55432/go_go_host?sslmode=disable'
+go test ./internal/store ./internal/control -count=1
 ```
 
-A useful API test usually has at least three cases:
+If the command fails, include the failure in the handoff. Do not silently replace it with `go test ./...` if the changed code needs a real database.
 
-- The actor can perform the operation when they have the right role.
-- The actor receives `403` or an equivalent permission error when they lack the role.
-- Bad input produces a stable client error instead of an internal server error.
+## Dashboard validation
 
-## How to test a dashboard change
-
-Dashboard validation is a state exercise. A page that only renders the happy path is unfinished because the real network has loading, empty, error, denied, and stale states.
-
-For each page or major component, prefer Storybook stories for:
-
-- Loading state.
-- Empty state.
-- Populated state.
-- Error state.
-- Permission-denied or unavailable-action state when relevant.
-
-Run:
+For dashboard changes, validate TypeScript and Storybook separately:
 
 ```bash
 cd web/admin
@@ -69,31 +57,40 @@ pnpm build
 pnpm storybook:build
 ```
 
-If the change is visual, take screenshots from Storybook or the app. Compare them against the OS1 dashboard playbook rather than against generic SaaS dashboard habits.
+A page or component change should normally include Storybook coverage for:
 
-## How to test a deployment/runtime change
+- Loading state.
+- Empty state.
+- Populated state.
+- Error state.
+- Permission-denied or disabled-action state when applicable.
 
-Deployment and runtime tests should prove both rejection and success. A validator that only accepts good input may still let bad input through.
+Visual changes should be checked against `docs/contributing/playbooks/os1-admin-dashboard-ui-work-guidelines.md`.
 
-Useful cases include:
+## Deployment and runtime validation
+
+Deployment and runtime changes must test both acceptance and rejection. Common cases:
 
 - Missing `go-go-host.json` is rejected.
-- Unknown or disabled capability is rejected.
-- Unsafe paths such as `../outside` are rejected.
-- A valid bundle dry-runs and smoke-checks successfully.
-- A runtime that fails health check does not replace live traffic.
-- Closing or replacing a runtime releases resources.
+- Invalid archive paths are rejected.
+- Unknown or disabled capabilities are rejected.
+- Valid bundles unpack and dry-run successfully.
+- Failed runtime health checks do not replace live traffic.
+- Runtime close paths release resources.
 
-## Recording validation in handoff
+Runtime changes should include tests that exercise `NewSiteRuntime`, `HealthCheck`, and `Supervisor.Activate` when relevant.
 
-Every handoff should include a short validation block:
+## Handoff format
+
+Include a validation block in the final handoff or commit notes:
 
 ```text
 Validation:
 - go test ./... ✅
+- go build ./... ✅
 - cd web/admin && pnpm build ✅
 - pnpm storybook:build not run: frontend not changed
 - docmgr doctor --ticket HOST-123 --stale-after 30 ✅
 ```
 
-Do not hide skipped validation. A skipped command is not a failure if it is named and justified. It becomes a problem when reviewers have to infer what was not checked.
+If a command was skipped, say why. If a command failed, include the exact command and error summary.

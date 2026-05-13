@@ -1,84 +1,95 @@
 # Contributing to go-go-host
 
-This repository is a hosting platform, not a single-purpose command-line tool. A change may begin as a small button, a route, or a field in a manifest, but that change often crosses several boundaries: React state, HTTP transport, control-plane authorization, Postgres rows, deployment validation, Goja runtime construction, and operational documentation. The goal of these contribution guides is to help you see those boundaries before you write code.
+This guide explains how to work on `go-go-host` without breaking the codebase's layering, security model, runtime model, or dashboard conventions. It is intended for both human contributors and coding agents.
 
-A contributor who understands the boundaries can make a local change without creating global confusion. A contributor who skips them can easily put authorization in the UI, duplicate runtime policy in a CLI, bypass audit logging, or build a dashboard page that looks unrelated to the rest of the product.
+## Required starting points
 
-## The system in one page
+Before making a non-trivial change, identify the contribution area and read the relevant guide.
 
-`go-go-host` hosts small server-side JavaScript sites inside Go. Humans use the dashboard or `go-go-host` CLI to create organizations, sites, deployments, agents, and settings. Machines use `go-go-host-agent` with signed requests and short-lived deploy runs. The daemon stores control-plane state in Postgres, validates immutable bundle uploads, activates one Goja runtime per live site, and routes public traffic by host name.
+| Area | Read first | Primary files |
+|---|---|---|
+| Backend API or product behavior | [`backend-service-guidelines.md`](backend-service-guidelines.md) | `internal/httpapi`, `internal/control`, `internal/store` |
+| Deployment validation or hosted runtime | [`runtime-and-deployment-guidelines.md`](runtime-and-deployment-guidelines.md) | `internal/deploy`, `internal/runtime`, `internal/sitejs` |
+| Dashboard UI or frontend API state | [`frontend-dashboard-guidelines.md`](frontend-dashboard-guidelines.md) | `web/admin/src`, `docs/contributing/playbooks` |
+| Tests, builds, and handoff validation | [`testing-and-validation.md`](testing-and-validation.md) | `Makefile`, `web/admin/package.json`, `.github/workflows` |
+| Local development and services | [`../runbooks/local-development.md`](../runbooks/local-development.md) | `configs`, `deployments/dev`, `.devctl.yaml` |
+| Ticket docs, diaries, and research reports | [`docmgr-and-ticket-workflow.md`](docmgr-and-ticket-workflow.md) | `ttmp` |
+| System structure | [`architecture-map.md`](architecture-map.md) | `cmd`, `internal`, `web/admin` |
 
-```mermaid
-flowchart TD
-  Human[Human contributor or user] --> Dashboard[React dashboard /app and /admin]
-  Human --> CLI[go-go-host CLI]
-  Agent[go-go-host-agent] --> AgentAPI[Signed agent API]
-  Dashboard --> API[go-go-hostd HTTP API]
-  CLI --> API
-  AgentAPI --> API
-  API --> Core[control services]
-  Core --> Store[(Postgres control plane)]
-  Core --> Deploy[Deployment validation]
-  Deploy --> Data[(bundles, unpacked deployments, SQLite)]
-  Core --> Supervisor[Runtime supervisor]
-  Supervisor --> Runtime[Per-site Goja runtime]
-  Visitor[Public visitor] --> Supervisor
+## Repository structure
+
+| Path | Purpose |
+|---|---|
+| `cmd/go-go-hostd` | Daemon entrypoint. Loads config, opens the store, applies migrations, constructs `control.Core`, and serves HTTP. |
+| `cmd/go-go-host` | Human CLI. Commands should be Glazed commands and should call the API instead of duplicating server rules. |
+| `cmd/go-go-host-agent` | Machine deployment CLI. Handles key generation, enrollment, signing, deploy-run creation, and bundle upload. |
+| `internal/httpapi` | HTTP transport. Owns route registration, request decoding, response DTOs, auth middleware, and HTTP status mapping. |
+| `internal/control` | Product logic. Owns authorization, service invariants, audit events, deployment workflows, and orchestration. |
+| `internal/store` | Persistence. Owns migrations, generated sqlc queries, store wrappers, and database model conversion. |
+| `internal/deploy` | Bundle handling. Owns archive validation, manifest parsing, path policy, capability policy, and bundle storage preparation. |
+| `internal/runtime` | Hosted runtime lifecycle. Owns `SiteRuntime`, `Supervisor`, activation, restart, stop, host dispatch, and runtime status. |
+| `internal/sitejs` | JavaScript-facing host modules and HTTP bridge. Owns `express`, `ui.dsl`, database guard exposure, request/response DTOs, and session helpers. |
+| `internal/webadmin` | Embedded dashboard file serving. Owns `go:embed` of built Vite assets and SPA fallback behavior. |
+| `web/admin` | React dashboard. Owns routes, pages, components, RTK Query API state, MSW fixtures, and Storybook stories. |
+| `docs` | Stable contributor, architecture, and runbook documentation. |
+| `ttmp` | Ticket workspaces, diaries, design docs, screenshots, and temporary research. |
+
+## Layering rules
+
+The normal backend dependency direction is:
+
+```text
+HTTP handler / CLI adapter
+    -> control service
+        -> store wrapper / runtime / deploy package
+            -> database / filesystem / Goja runtime
 ```
 
-The most important rule is that each layer has a job. HTTP handlers decode requests and choose status codes. Control services enforce product rules. Store wrappers and sqlc queries persist data. Runtime code owns Goja and hosted capabilities. Dashboard code presents state and calls APIs; it does not decide what the server should allow.
+Follow these rules:
 
-## Choose your contribution lane
+- Put authorization and product invariants in `internal/control`, not only in HTTP handlers, CLI commands, or React components.
+- Use `internal/httpapi` for transport concerns: JSON decoding, request path variables, auth middleware, response DTOs, and status codes.
+- Use `internal/store` for persistence. Do not add ad-hoc SQL to handlers or frontend-facing code.
+- Use `internal/deploy` for bundle validation and manifest policy. Do not duplicate bundle policy in the UI or CLI as the only enforcement point.
+- Use `internal/runtime` and `internal/sitejs` for hosted JavaScript execution. Do not expose new host capabilities without explicit policy and tests.
+- Use `web/admin/src/services/goGoHostApi.ts` for dashboard API calls. Do not scatter raw `fetch` calls through pages except for special cases such as multipart upload where the API client deliberately wraps the behavior.
 
-Start by naming the lane. The lane tells you which files to read first, which invariants matter, and which validation commands are required.
+## Standard change workflow
 
-| If you are changing... | Start here | Then read |
-|---|---|---|
-| HTTP routes, product behavior, permissions, audit, org/site/deployment logic | [`backend-service-guidelines.md`](backend-service-guidelines.md) | [`../architecture/api-surface.md`](../architecture/api-surface.md), [`../architecture/data-model.md`](../architecture/data-model.md) |
-| Bundle manifests, validation, capabilities, activation, rollback, hosted JS modules | [`runtime-and-deployment-guidelines.md`](runtime-and-deployment-guidelines.md) | [`../architecture/architecture-map.md`](../architecture/architecture-map.md) |
-| Dashboard pages, components, routing, Storybook, visual design | [`frontend-dashboard-guidelines.md`](frontend-dashboard-guidelines.md) | [`playbooks/os1-admin-dashboard-ui-work-guidelines.md`](playbooks/os1-admin-dashboard-ui-work-guidelines.md) |
-| Tests, builds, CI confidence, web embedding | [`testing-and-validation.md`](testing-and-validation.md) | [`../runbooks/local-development.md`](../runbooks/local-development.md) |
-| Ticket docs, diaries, runbooks, design reports | [`docmgr-and-ticket-workflow.md`](docmgr-and-ticket-workflow.md) | Existing `ttmp/2026/05/*` tickets |
-| General orientation | [`architecture-map.md`](architecture-map.md) | The repository `README.md` and `AGENT.md` |
+For a normal feature, use this sequence:
 
-## A small example: where should a new setting go?
+1. Identify the contribution area and read the relevant guide.
+2. Inspect existing code in the same layer before creating new patterns.
+3. Implement the server-side invariant first if the feature changes product behavior.
+4. Add tests at the layer that owns the invariant.
+5. Add transport, CLI, or dashboard integration after the invariant is tested.
+6. Run the validation commands for the contribution area.
+7. Update stable docs or a ticket diary when the change introduces a new workflow, invariant, or debugging lesson.
+8. Commit focused changes at logical checkpoints.
 
-Suppose a contributor wants to add a per-site request timeout setting. It is tempting to start in the dashboard, because that is where the user will see the form. But the dashboard is the last layer, not the first one.
+## Stop and ask before changing
 
-The change really belongs to several layers:
+Get explicit review before making changes in these areas:
 
-1. The schema stores the setting or derives it from existing quota rows.
-2. A store wrapper reads and writes it.
-3. A control service checks whether the actor may update it.
-4. An HTTP handler exposes it as a stable JSON DTO.
-5. The runtime activation path passes it into `runtime.Spec`.
-6. The dashboard edits it through RTK Query.
-7. Tests prove forbidden and allowed updates, runtime wiring, and UI states.
-8. Docs explain what the setting does and how to validate it.
-
-That sequence is slower than editing one React component, but it produces a system feature rather than a screen that only looks like one.
-
-## Stop and ask before changing these things
-
-Some changes are expensive because they alter the platform's safety model. Pause and ask for review before you:
-
-- Expose a new hosted JavaScript capability, especially filesystem, network, process, or host environment access.
-- Change deployment activation semantics, rollback behavior, bundle path validation, or manifest validation.
-- Add backwards-compatibility layers or adapters that were not explicitly requested.
-- Change authentication, platform-admin bootstrap, signed-agent verification, nonce handling, or upload-token semantics.
-- Add a schema migration that cannot be rolled forward safely on existing development data.
-- Diverge from the OS1 dashboard visual system or duplicate the dashboard playbook in a new style.
-- Start a long debugging loop after two failed fixes. Step back, write down what is known, and ask whether the approach is wrong.
+- Authentication, OIDC verification, dev auth, platform-admin bootstrap, or session behavior.
+- Agent signature verification, nonce handling, key status, deploy-run tokens, or grant checks.
+- Deployment activation, rollback, active deployment status transitions, or supervisor traffic swap behavior.
+- Bundle path validation, safe capability policy, or hosted JavaScript module exposure.
+- Runtime isolation, request timeouts, database guard enforcement, or filesystem access.
+- Schema migrations that rewrite existing data or change core entity relationships.
+- Dashboard visual system changes that diverge from the OS1 playbook.
+- Backwards-compatibility adapters or shims that were not explicitly requested.
 
 ## Minimum validation
 
-The minimum validation for most code changes is:
+Run the validation for the changed area. Common commands:
 
 ```bash
 go test ./...
 go build ./...
 ```
 
-Frontend changes usually add:
+For frontend changes:
 
 ```bash
 cd web/admin
@@ -86,22 +97,20 @@ pnpm build
 pnpm storybook:build
 ```
 
-Documentation ticket work adds:
+For docmgr ticket work:
 
 ```bash
 docmgr doctor --ticket <TICKET-ID> --stale-after 30
 ```
 
-The full matrix lives in [`testing-and-validation.md`](testing-and-validation.md). Use the matrix rather than guessing.
+See [`testing-and-validation.md`](testing-and-validation.md) for the full matrix.
 
-## What good contributions leave behind
+## Documentation expectations
 
-A good contribution leaves the repository easier to work in than it found it. That does not mean every pull request needs a long design document. It means the durable knowledge should land somewhere appropriate:
+Use stable docs and ticket docs for different purposes:
 
-- Code comments explain invariants that are easy to break.
-- Tests name the behavior they protect.
-- Stable docs describe mature workflows and contribution rules.
-- `ttmp` tickets preserve investigation, false starts, screenshots, and design tradeoffs.
-- Changelogs and diaries make future debugging easier.
+- Put durable contributor guidance in `docs`.
+- Put investigation logs, design alternatives, implementation diaries, and screenshots in `ttmp` ticket workspaces.
+- Promote a ticket-local lesson into `docs` when it becomes a repeated workflow or a rule future contributors must follow.
 
-The product will grow through many small changes. These guides exist so those changes add up to one coherent system.
+Do not leave important operational knowledge only in chat transcripts or commit messages.
