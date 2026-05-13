@@ -55,3 +55,13 @@ Step 5: corrected production GitHub IdP to use GITHUB_LIVE_CLIENT_ID/GITHUB_LIVE
 
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/docs/deployment.md — Documents live vs local GitHub OAuth credential mapping for production Terraform
 
+
+## 2026-05-12
+
+Step 6: moved production GitHub OAuth Terraform input to Vault KV at kv/apps/go-go-host/prod/github-oauth and validated a clean plan without GitHub TF_VAR credentials
+
+### Related Files
+
+- /home/manuel/code/wesen/terraform/keycloak/apps/go-go-host/envs/k3s-beta/main.tf — Reads production GitHub OAuth credentials from Vault by default
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/docs/deployment.md — Documents Vault-backed production GitHub OAuth credential flow
+

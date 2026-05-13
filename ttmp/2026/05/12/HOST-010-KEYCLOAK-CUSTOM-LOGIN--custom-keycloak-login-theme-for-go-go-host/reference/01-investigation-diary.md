@@ -15,6 +15,10 @@ RelatedFiles:
       Note: Production theme JAR mount
     - Path: ../../../../../../../../../../code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/keycloak/keycloak-theme-configmap.yaml
       Note: Production Keycloak theme ConfigMap
+    - Path: ../../../../../../../../../../code/wesen/terraform/keycloak/apps/go-go-host/envs/k3s-beta/main.tf
+      Note: Vault-backed GitHub OAuth Terraform data source
+    - Path: ../../../../../../../../../../code/wesen/terraform/keycloak/apps/go-go-host/envs/k3s-beta/variables.tf
+      Note: Vault/fallback credential source variables
     - Path: deployments/dev/docker-compose.yaml
       Note: |-
         Added theme volume mount (Step 2)
@@ -29,6 +33,8 @@ RelatedFiles:
       Note: Pure monochrome OS1 CSS overrides (Step 2)
     - Path: deployments/dev/keycloak/themes/go-go-host/login/theme.properties
       Note: Theme config extending keycloak parent (Step 2)
+    - Path: docs/deployment.md
+      Note: Operator docs for Vault-backed production IdP credentials
     - Path: ttmp/2026/05/12/HOST-010-KEYCLOAK-CUSTOM-LOGIN--custom-keycloak-login-theme-for-go-go-host/scripts/03-add-github-idp.sh
       Note: Repeatable local GitHub IdP setup script
 ExternalSources: []
@@ -37,6 +43,7 @@ LastUpdated: 2026-05-12T21:50:00-04:00
 WhatFor: Record the research, implementation, and deployment steps for the Keycloak login theme customization
 WhenToUse: Resume work on HOST-010, debug theme issues, or deploy to production
 ---
+
 
 
 
@@ -437,4 +444,82 @@ The Terraform plan with the live variables showed exactly one in-place change: t
 - Apply result:
   - `Apply complete! Resources: 0 added, 1 changed, 0 destroyed.`
 - Final plan result:
+  - `No changes. Your infrastructure matches the configuration.`
+
+---
+
+## Step 6: Move production GitHub OAuth input to Vault-backed Terraform data
+
+This step made the production Keycloak GitHub identity provider easier to operate safely by moving the normal credential source from shell variables into Vault KV. Terraform still manages the Keycloak IdP resource, but operators no longer need to map `GITHUB_LIVE_CLIENT_ID` and `GITHUB_LIVE_CLIENT_SECRET` into Terraform variables for normal production applies.
+
+The production live OAuth credentials were seeded into Vault at `kv/apps/go-go-host/prod/github-oauth` with keys `client_id` and `client_secret`. The Keycloak Terraform stack now reads that secret through the Vault provider and uses it as the source for `keycloak_oidc_github_identity_provider.github[0]`. A final plan, with no `TF_VAR_github_client_id` or `TF_VAR_github_client_secret` set, reported no changes.
+
+**Prompt Context**
+
+**User prompt (verbatim):** "go ahead"
+
+**Assistant interpretation:** Proceed with the previously suggested follow-up: move production GitHub OAuth credential handling away from ad hoc shell variables and into a durable secret flow.
+
+**Inferred user intent:** Make the production Keycloak IdP deployment less error-prone and avoid repeating the local/live credential mix-up.
+
+### What I did
+- Seeded Vault KV v2 secret `kv/apps/go-go-host/prod/github-oauth` using the live GitHub OAuth variables from `.envrc`:
+  - `client_id="$GITHUB_LIVE_CLIENT_ID"`
+  - `client_secret="$GITHUB_LIVE_CLIENT_SECRET"`
+- Added the HashiCorp Vault provider to the production go-go-host Keycloak Terraform environment.
+- Added a Vault data source for `apps/go-go-host/prod/github-oauth`.
+- Changed the GitHub IdP resource to use local values derived from Vault by default.
+- Kept `github_client_id` / `github_client_secret` as nullable fallback inputs when `github_oauth_use_vault = false`.
+- Updated `terraform.tfvars.example` to document the Vault-backed default and emergency fallback mode.
+- Updated `docs/deployment.md` to document normal Vault-backed Terraform operation and secret rotation.
+- Ran `terraform fmt`, `terraform init`, and a production `terraform plan -detailed-exitcode` with Vault enabled and no GitHub `TF_VAR_*` credentials set.
+
+### Why
+- The previous shell-variable flow required operators to remember that `GITHUB_CLIENT_ID` was local and `GITHUB_LIVE_CLIENT_ID` was production.
+- Storing the production OAuth app credentials in Vault gives the production stack a single durable source for the live IdP credentials.
+- This reduces the chance of applying localhost OAuth credentials to production Keycloak.
+
+### What worked
+- The existing OIDC Vault token in `~/.vault-token` had enough permission to write and read the new secret path.
+- Terraform read `data.vault_kv_secret_v2.github_oauth[0]` successfully.
+- The final production Terraform plan reported `No changes. Your infrastructure matches the configuration.`
+
+### What didn't work
+- N/A. The implementation and validation worked on the first pass after adding the Vault provider and data source.
+
+### What I learned
+- Using Vault as the Terraform input source fixes the operator input problem, but it does not make Terraform state non-sensitive. The Keycloak provider still stores sensitive resource state in the encrypted remote backend.
+- The deployment docs need to state both facts: use Vault for the input source, and treat the S3 Terraform state backend as secret-bearing infrastructure.
+
+### What was tricky to build
+- The fallback mode needed to remain available without requiring Vault for every possible one-off apply. The Terraform variables now default to Vault-backed credentials, while `github_client_id` and `github_client_secret` are nullable and only used when `github_oauth_use_vault = false`.
+- Terraform conditionals must keep references to the counted Vault data source guarded so fallback mode can still work.
+
+### What warrants a second pair of eyes
+- Confirm the chosen Vault path, `kv/apps/go-go-host/prod/github-oauth`, matches the broader naming convention for production app secrets.
+- Confirm the operator policy for this path is appropriate; current validation used an existing OIDC token.
+- Confirm the Terraform state backend controls are acceptable for sensitive Keycloak provider state.
+
+### What should be done in the future
+- Consider moving Keycloak admin credentials into a similarly durable flow, while preserving a safe break-glass path.
+- Consider a small wrapper script for production applies that exports `AWS_PROFILE`, `VAULT_ADDR`, and Keycloak admin credentials consistently.
+
+### Code review instructions
+- Start in `/home/manuel/code/wesen/terraform/keycloak/apps/go-go-host/envs/k3s-beta/main.tf` and review the Vault data source plus the `local.github_client_*` values.
+- Review `/home/manuel/code/wesen/terraform/keycloak/apps/go-go-host/envs/k3s-beta/variables.tf` for defaults and fallback behavior.
+- Review `docs/deployment.md` for the operator-facing flow.
+- Validate with:
+  - `terraform fmt`
+  - `terraform init`
+  - `terraform plan -detailed-exitcode` with `VAULT_TOKEN` set and without `TF_VAR_github_client_id` / `TF_VAR_github_client_secret`.
+
+### Technical details
+- Vault address: `https://vault.yolo.scapegoat.dev`
+- Vault KV mount: `kv`
+- Vault secret path: `apps/go-go-host/prod/github-oauth`
+- Secret keys:
+  - `client_id`
+  - `client_secret`
+- Terraform validation result:
+  - `data.vault_kv_secret_v2.github_oauth[0]: Read complete`
   - `No changes. Your infrastructure matches the configuration.`

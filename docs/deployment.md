@@ -241,24 +241,40 @@ This environment owns:
 - optional bootstrap/admin user
 - GitHub identity provider
 
-Apply from that directory with Keycloak admin credentials and GitHub OAuth credentials provided through environment variables or another non-committed secret source.
+Apply from that directory with Keycloak admin credentials supplied by the operator environment and production GitHub OAuth credentials read from Vault.
 
 Typical operator flow:
 
 ```bash
 cd /home/manuel/code/wesen/terraform/keycloak/apps/go-go-host/envs/k3s-beta
 export AWS_PROFILE=manuel
+export VAULT_ADDR=https://vault.yolo.scapegoat.dev
+vault login -method=oidc role=operators   # or export an existing VAULT_TOKEN
 export TF_VAR_keycloak_url=https://auth.yolo.scapegoat.dev
 export TF_VAR_keycloak_username=...
 export TF_VAR_keycloak_password=...
-# Use the LIVE GitHub OAuth App credentials for production.
-# The local variables GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET are for localhost.
-export TF_VAR_github_client_id="$GITHUB_LIVE_CLIENT_ID"
-export TF_VAR_github_client_secret="$GITHUB_LIVE_CLIENT_SECRET"
 export TF_VAR_wesen_password=...
 terraform init
 terraform plan
 terraform apply
+```
+
+By default, this Terraform environment reads the production GitHub OAuth App credentials from Vault KV v2:
+
+```text
+mount: kv
+path:  apps/go-go-host/prod/github-oauth
+keys:  client_id, client_secret
+```
+
+Seed or rotate that secret with:
+
+```bash
+export VAULT_ADDR=https://vault.yolo.scapegoat.dev
+vault login -method=oidc role=operators
+vault kv put kv/apps/go-go-host/prod/github-oauth \
+  client_id="$GITHUB_LIVE_CLIENT_ID" \
+  client_secret="$GITHUB_LIVE_CLIENT_SECRET"
 ```
 
 The Terraform backend uses shared S3 remote state:
@@ -292,14 +308,16 @@ GITHUB_LIVE_CLIENT_ID=...
 GITHUB_LIVE_CLIENT_SECRET=...
 ```
 
-When running production Terraform for `keycloak/apps/go-go-host/envs/k3s-beta`, map the live variables into Terraform:
+Production Terraform no longer requires those live variables to be mapped into `TF_VAR_github_client_id` / `TF_VAR_github_client_secret` during normal applies. Instead, it reads the live credentials from Vault at `kv/apps/go-go-host/prod/github-oauth`.
+
+For emergency fallback only, set `github_oauth_use_vault = false` and then provide:
 
 ```bash
 export TF_VAR_github_client_id="$GITHUB_LIVE_CLIENT_ID"
 export TF_VAR_github_client_secret="$GITHUB_LIVE_CLIENT_SECRET"
 ```
 
-Secrets must not be committed. The GitHub client secret should be sourced from Vault or the operator environment. If Terraform manages the IdP secret, treat the Terraform state backend as secret-bearing infrastructure.
+Secrets must not be committed. Terraform reads the GitHub client secret from Vault, but the Keycloak provider still stores sensitive resource state in the encrypted remote S3 backend. Treat the Terraform state backend as secret-bearing infrastructure.
 
 ## DNS and TLS
 
