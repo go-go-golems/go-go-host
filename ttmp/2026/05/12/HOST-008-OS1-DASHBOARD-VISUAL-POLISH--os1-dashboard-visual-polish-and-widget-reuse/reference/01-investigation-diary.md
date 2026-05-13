@@ -451,3 +451,11 @@ Kept the ticket-local playbook as the docmgr source/history copy and added the r
 
 - page/workspace background should be white, not light blue;
 - color accents belong on badges/buttons/panels rather than inline body text.
+
+## 2026-05-12 — Playbook update after white-background guidance
+
+User asked to update the playbook if necessary. I updated both the ticket-local playbook and the promoted contributing-docs copy with the latest guidance:
+
+- the dashboard page/workspace background should be white, not light blue;
+- color accents should be reserved for badges, buttons, and panels rather than inline body text;
+- review/exit checklists now explicitly check white background and non-inline color usage.

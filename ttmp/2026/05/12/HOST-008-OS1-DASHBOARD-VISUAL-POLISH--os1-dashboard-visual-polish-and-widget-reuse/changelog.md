@@ -92,3 +92,13 @@ Promoted the OS1 admin UI guidelines playbook into docs/contributing/playbooks f
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/docs/contributing/playbooks/os1-admin-dashboard-ui-work-guidelines.md — Repository-facing contributor playbook for OS1 admin/dashboard UI work
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/12/HOST-008-OS1-DASHBOARD-VISUAL-POLISH--os1-dashboard-visual-polish-and-widget-reuse/playbook/01-os1-admin-dashboard-ui-work-guidelines.md — Ticket-local source/history copy updated with latest background and color-accent guidance
 
+
+## 2026-05-12
+
+Updated the OS1 admin UI playbook with white-background guidance and clarified that color accents belong on badges/buttons/panels rather than inline prose.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/docs/contributing/playbooks/os1-admin-dashboard-ui-work-guidelines.md — Promoted contributor playbook updated with latest white-background and color-accent guidance
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/12/HOST-008-OS1-DASHBOARD-VISUAL-POLISH--os1-dashboard-visual-polish-and-widget-reuse/playbook/01-os1-admin-dashboard-ui-work-guidelines.md — Ticket-local playbook copy updated with the same guidance
+

@@ -13,6 +13,8 @@ Owners: []
 RelatedFiles:
     - Path: ../../../../../../../../../../code/wesen/go-go-golems/go-go-os-frontend/packages/os-core/src/theme/desktop/primitives.css
       Note: Reference OS-core primitive styling for buttons
+    - Path: docs/contributing/playbooks/os1-admin-dashboard-ui-work-guidelines.md
+      Note: Promoted repository-facing copy of the OS1 admin UI guidelines
     - Path: web/admin/src/app/macos1-bridge.css
       Note: Defines dashboard-wide OS1 bridge tokens
     - Path: web/admin/src/components/atoms/JsonEditor/JsonEditor.tsx
@@ -25,6 +27,7 @@ LastUpdated: 0001-01-01T00:00:00Z
 WhatFor: ""
 WhenToUse: ""
 ---
+
 
 
 # OS1 Admin Dashboard UI Work Guidelines
