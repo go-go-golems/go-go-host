@@ -22,16 +22,16 @@ type DocEntry struct {
 }
 
 var catalogue []DocEntry
+var seenSlugs = map[string]struct{}{}
 
 func init() {
 	type source struct {
 		fs     http.FileSystem
-		prefix string
 		name   string
 	}
 	sources := []source{
-		{http.FS(hostdoc.DocFS()), "host-", "host"},
-		{http.FS(agentdoc.DocFS()), "agent-", "agent"},
+		{http.FS(hostdoc.DocFS()), "host"},
+		{http.FS(agentdoc.DocFS()), "agent"},
 	}
 
 	for _, src := range sources {
@@ -59,8 +59,16 @@ func init() {
 			if slug == "" {
 				slug = strings.TrimSuffix(e.Name(), ".md")
 			}
+			// Track slug per source to detect collisions.
+			// If two sources produce the same slug, the second one
+			// gets a source suffix (e.g. "agent-guide" -> "agent-guide-agent").
+			slugKey := slug
+			if _, exists := seenSlugs[slugKey]; exists {
+				slug = slug + "-" + src.name
+			}
+			seenSlugs[slugKey] = struct{}{}
 			catalogue = append(catalogue, DocEntry{
-				Slug:    src.prefix + slug,
+				Slug:    slug,
 				Title:   fm["Title"],
 				Short:   fm["Short"],
 				Section: fm["SectionType"],

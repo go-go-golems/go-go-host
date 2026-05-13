@@ -20,19 +20,19 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const DeveloperGuide: Story = {
-  parameters: { slug: 'host-developer-guide' },
+  parameters: { slug: 'developer-guide' },
 };
 
 export const JsApiReference: Story = {
-  parameters: { slug: 'host-js-api-reference' },
+  parameters: { slug: 'js-api-reference' },
 };
 
 export const DeployWorkflow: Story = {
-  parameters: { slug: 'host-deploy-workflow' },
+  parameters: { slug: 'deploy-workflow' },
 };
 
 export const AgentGuide: Story = {
-  parameters: { slug: 'host-agent-guide' },
+  parameters: { slug: 'agent-guide' },
 };
 
 export const AgentGettingStarted: Story = {
