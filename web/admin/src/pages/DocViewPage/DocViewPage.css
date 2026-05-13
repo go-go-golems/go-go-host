@@ -40,6 +40,16 @@
 
 .doc-view-page__body {
   overflow-x: auto;
+  min-width: 0;
+}
+
+.doc-view-page__body .markdown-renderer {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.doc-view-page__body .markdown-renderer pre {
+  max-width: 100%;
 }
 
 .doc-view-page__nav {

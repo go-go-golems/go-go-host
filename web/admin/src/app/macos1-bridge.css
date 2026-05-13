@@ -26,11 +26,20 @@
   height: auto !important;
 }
 
-/* Windows inside the dashboard should scroll their own content. */
+/* The window-layer must also flow naturally. */
+[data-widget="hypercard"].theme-macos1 [data-part="windowing-window-layer"] {
+  position: relative !important;
+  inset: auto !important;
+  pointer-events: auto !important;
+}
+
+/* Windows inside the dashboard should flow in document order, not be absolutely positioned. */
 [data-widget="hypercard"].theme-macos1 [data-part="windowing-window"] {
+  position: relative !important;
   overflow: visible !important;
   height: auto !important;
   min-height: 0 !important;
+  min-width: 0 !important;
 }
 
 [data-widget="hypercard"].theme-macos1 .dashboard-shell {
@@ -237,4 +246,9 @@
 
 [data-widget="hypercard"].theme-macos1 .copy-button {
   font-family: var(--hc-font-family);
+}
+
+/* Doc view body panel: contain markdown content, don't let it overflow */
+[data-widget="hypercard"].theme-macos1 .doc-view-page__body.dashboard-panel {
+  overflow: hidden;
 }

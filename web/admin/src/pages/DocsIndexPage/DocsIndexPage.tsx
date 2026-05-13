@@ -1,8 +1,10 @@
 import { Link, useParams } from 'react-router-dom';
+import { useEffect } from 'react';
 import { useListDocsQuery } from '../../services/goGoHostApi';
 import type { DocSection } from '../../services/types';
 import { LoadingBlock } from '../../components/atoms/LoadingBlock';
 import { ErrorCallout } from '../../components/atoms/ErrorCallout';
+import { useSidebarExtra } from '../../app/providers/SidebarExtraProvider';
 import './DocsIndexPage.css';
 
 /** Serialize RTK Query error objects into readable strings. */
@@ -30,6 +32,13 @@ const sectionLabels: Record<string, string> = {
 export function DocsIndexPage() {
   const { orgId } = useParams<{ orgId: string }>();
   const { data: docs, isLoading, error } = useListDocsQuery();
+  const { setExtra } = useSidebarExtra();
+
+  // Clear sidebar TOC when on the index page
+  useEffect(() => {
+    setExtra(null);
+    return () => setExtra(null);
+  }, [setExtra]);
 
   if (isLoading) return <div className="docs-index-page"><LoadingBlock lines={6} /></div>;
   if (error) return <div className="docs-index-page"><ErrorCallout title="Failed to load docs" error={serializeError(error)} /></div>;

@@ -35,7 +35,7 @@
 .app-shell__body {
   position: relative;
   display: grid;
-  grid-template-columns: 15rem minmax(0, 1fr);
+  grid-template-columns: 10.5rem minmax(0, 1fr);
   gap: 1.25rem;
   max-width: 1180px;
   width: calc(100% - 3rem);
@@ -53,6 +53,12 @@
   height: max-content !important;
   min-height: 0 !important;
   align-self: start;
+  display: grid;
+  gap: 1rem;
+}
+
+.app-shell__sidebar-window {
+  /* OS theme [data-part=windowing-window] provides border/shadow/border-radius */
 }
 
 .app-shell__sidebar-title {
@@ -65,7 +71,8 @@
 
 .app-shell__sidebar-body {
   padding: 0.75rem !important;
-  overflow: visible !important;
+  overflow: hidden !important;
+  min-width: 0;
 }
 
 .app-shell__content {

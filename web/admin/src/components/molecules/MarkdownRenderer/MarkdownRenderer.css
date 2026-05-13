@@ -12,6 +12,8 @@
   font-size: var(--ggh-font-sm, 13px);
   line-height: 1.55;
   color: var(--hc-color-fg, #111);
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 /* ── Headings ─────────────────────────────────────────────── */
@@ -88,6 +90,8 @@
 .markdown-renderer__code-wrap {
   position: relative;
   margin: 0.75rem 0;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .markdown-renderer pre {
@@ -99,6 +103,7 @@
   color: var(--hc-color-fg, #111);
   box-shadow: 2px 2px 0 var(--hc-color-border, #111);
   margin: 0;
+  max-width: 100%;
 }
 
 .markdown-renderer__copy-btn {
@@ -146,6 +151,8 @@
   border-collapse: collapse;
   font-size: var(--ggh-font-xs, 12px);
   margin: 0.75rem 0;
+  display: block;
+  overflow-x: auto;
 }
 
 .markdown-renderer th,

@@ -1,9 +1,12 @@
 import { Link, useParams } from 'react-router-dom';
+import { useRef, useEffect, useState } from 'react';
 import { useGetDocQuery, useListDocsQuery } from '../../services/goGoHostApi';
-import { MarkdownRenderer } from '../../components/molecules/MarkdownRenderer';
+import { MarkdownRenderer, type Heading } from '../../components/molecules/MarkdownRenderer';
 import { LoadingBlock } from '../../components/atoms/LoadingBlock';
 import { ErrorCallout } from '../../components/atoms/ErrorCallout';
 import { EmptyState } from '../../components/atoms/EmptyState';
+import { useSidebarExtra } from '../../app/providers/SidebarExtraProvider';
+import { DocToc } from '../../components/organisms/DocToc';
 import './DocViewPage.css';
 
 /** Serialize RTK Query error objects into readable strings. */
@@ -23,6 +26,42 @@ function serializeError(err: unknown): string {
 export function DocViewPage() {
   const { orgId, slug } = useParams<{ orgId: string; slug: string }>();
   const { data: doc, isLoading, error } = useGetDocQuery(slug!, { skip: !slug });
+  const articleRef = useRef<HTMLElement>(null);
+  const [headings, setHeadings] = useState<Heading[]>([]);
+  const { setExtra } = useSidebarExtra();
+
+  // Extract headings after the markdown renders
+  useEffect(() => {
+    if (!doc?.body) {
+      setHeadings([]);
+      return;
+    }
+    // Small delay to let react-markdown finish rendering
+    const timer = setTimeout(() => {
+      const el = articleRef.current;
+      if (!el) return;
+      const found: Heading[] = [];
+      for (const h of el.querySelectorAll('h1, h2, h3, h4, h5, h6')) {
+        const level = parseInt(h.tagName[1], 10);
+        const text = h.textContent?.trim() ?? '';
+        const id = h.id || text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        if (!h.id) h.id = id;
+        found.push({ id, level, text });
+      }
+      setHeadings(found);
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [doc?.body]);
+
+  // Push TOC into the sidebar via context
+  useEffect(() => {
+    if (headings.length > 0) {
+      setExtra(<DocToc headings={headings} />, 'Contents');
+    } else {
+      setExtra(null);
+    }
+    return () => setExtra(null);
+  }, [headings, setExtra]);
 
   if (!slug) {
     return (
@@ -61,7 +100,7 @@ export function DocViewPage() {
       </section>
 
       <section className="dashboard-panel doc-view-page__body">
-        <MarkdownRenderer content={doc.body ?? ''} />
+        <MarkdownRenderer ref={articleRef} content={doc.body ?? ''} />
       </section>
 
       <DocNavLinks currentSlug={doc.slug} orgId={orgId!} />

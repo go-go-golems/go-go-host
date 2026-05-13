@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, type ReactNode } from 'react';
+import { useState, useCallback, useRef, useEffect, forwardRef, type ReactNode } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
@@ -55,17 +55,38 @@ function CodeBlockWithCopy({ children, ...rest }: React.HTMLAttributes<HTMLPreEl
  * It uses react-markdown with remark-gfm for tables, strikethrough, etc.
  * and rehype-highlight for syntax-highlighted code blocks.
  * Code blocks include a clipboard copy button.
+ *
+ * Exposes a forwarded ref to the <article> element so parents can
+ * query headings (e.g. for a TOC sidebar).
  */
-export function MarkdownRenderer({ content, className }: MarkdownRendererProps) {
-  return (
-    <article className={`markdown-renderer ${className ?? ''}`}>
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeHighlight]}
-        components={{ pre: CodeBlockWithCopy }}
-      >
-        {content}
-      </ReactMarkdown>
-    </article>
-  );
-}
+export const MarkdownRenderer = forwardRef<HTMLElement, MarkdownRendererProps>(
+  function MarkdownRenderer({ content, className }, ref) {
+    const internalRef = useRef<HTMLElement>(null);
+    // Merge forwarded ref with internal ref
+    const articleRef = (ref as React.RefObject<HTMLElement | null>) ?? internalRef;
+
+    // Assign ids to headings after render so they can be linked from a TOC.
+    useEffect(() => {
+      const el = (ref as React.RefObject<HTMLElement | null>)?.current ?? internalRef.current;
+      if (!el) return;
+      for (const h of el.querySelectorAll('h1, h2, h3, h4, h5, h6')) {
+        if (!h.id) {
+          const text = h.textContent?.trim() ?? '';
+          h.id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        }
+      }
+    }, [content, ref]);
+
+    return (
+      <article ref={articleRef} className={`markdown-renderer ${className ?? ''}`}>
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          rehypePlugins={[rehypeHighlight]}
+          components={{ pre: CodeBlockWithCopy }}
+        >
+          {content}
+        </ReactMarkdown>
+      </article>
+    );
+  },
+);
