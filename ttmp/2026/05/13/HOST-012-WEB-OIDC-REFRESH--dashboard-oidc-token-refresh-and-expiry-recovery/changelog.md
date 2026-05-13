@@ -15,3 +15,15 @@ Step 1: created ticket, implementation guide, task list, and diary for dashboard
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/auth/oidc.ts — Current browser token storage and target refresh helper location
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/services/goGoHostApi.ts — Current API bearer attachment and target retry wrapper
 
+
+## 2026-05-13
+
+Step 2: implemented dashboard OIDC refresh, RTK Query 401 retry, upload retry, and focused Vitest coverage
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/auth/oidc.test.ts — Refresh helper tests
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/auth/oidc.ts — Token metadata
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/services/goGoHostApi.test.ts — RTK Query refresh and retry tests
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/services/goGoHostApi.ts — Async auth base query
+

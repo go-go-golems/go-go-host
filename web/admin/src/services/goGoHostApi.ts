@@ -1,17 +1,62 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { bearerToken } from '../auth/oidc';
+import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query/react';
+import { getValidBearerToken } from '../auth/oidc';
 import type { AddSiteDomainRequest, AdminAgent, AdminCapability, AdminDeployment, AdminDomain, AdminOrg, AdminQuota, AdminRuntimeSummary, AdminSite, AdminUser, Agent, AgentKey, AuditEvent, ConfigResponse, CreateAgentEnrollmentTokenRequest, CreateAgentEnrollmentTokenResponse, CreateAgentRequest, CreateAgentResponse, CreateOrgRequest, CreateSiteRequest, DeleteSiteConfigRequest, DeleteSiteDomainRequest, Deployment, DocEntry, MeResponse, Org, RevokeAgentKeyRequest, RevokeAgentRequest, RuntimeStatus, Site, SiteCapability, SiteConfigItem, SiteDomain, SiteEnvironmentPlaceholder, UploadDeploymentResponse, UpsertSiteCapabilityRequest, UpsertSiteConfigRequest, VerifySiteDomainRequest } from './types';
 
 export interface UploadDeploymentRequest { siteId: string; file: File; message?: string; channel?: string; }
 
-const baseQuery = fetchBaseQuery({
-  baseUrl: '/api/v1',
-  prepareHeaders: (headers) => {
-    const token = bearerToken();
-    if (token) headers.set('Authorization', `Bearer ${token}`);
-    return headers;
-  },
-});
+function apiOrigin(): string {
+  return typeof window !== 'undefined' && window.location?.origin ? window.location.origin : 'http://localhost';
+}
+
+const rawBaseQuery = fetchBaseQuery({ baseUrl: `${apiOrigin()}/api/v1` });
+let cachedConfig: ConfigResponse | null = null;
+let configFetchInFlight: Promise<ConfigResponse | null> | null = null;
+
+function requestURL(args: string | FetchArgs): string {
+  return typeof args === 'string' ? args : args.url;
+}
+
+function withAuthorization(args: string | FetchArgs, token?: string): string | FetchArgs {
+  if (!token) return args;
+  const fetchArgs: FetchArgs = typeof args === 'string' ? { url: args } : { ...args };
+  const headers = new Headers(fetchArgs.headers as HeadersInit | undefined);
+  headers.set('Authorization', `Bearer ${token}`);
+  return { ...fetchArgs, headers };
+}
+
+async function fetchPublicConfig(): Promise<ConfigResponse | null> {
+  if (cachedConfig) return cachedConfig;
+  if (!configFetchInFlight) {
+    configFetchInFlight = fetch(`${apiOrigin()}/api/v1/config`)
+      .then(async (response) => {
+        if (!response.ok) return null;
+        cachedConfig = await response.json() as ConfigResponse;
+        return cachedConfig;
+      })
+      .catch(() => null)
+      .finally(() => { configFetchInFlight = null; });
+  }
+  return configFetchInFlight;
+}
+
+async function tokenForRequest(forceRefresh = false): Promise<string | undefined> {
+  const config = await fetchPublicConfig();
+  return getValidBearerToken(config ?? undefined, { forceRefresh });
+}
+
+const baseQuery: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (args, api, extraOptions) => {
+  if (requestURL(args) === '/config') return rawBaseQuery(args, api, extraOptions);
+  const token = await tokenForRequest(false);
+  let result = await rawBaseQuery(withAuthorization(args, token), api, extraOptions);
+  if (result.error?.status === 401) {
+    const refreshedToken = await tokenForRequest(true).catch(() => undefined);
+    if (refreshedToken && refreshedToken !== token) {
+      result = await rawBaseQuery(withAuthorization(args, refreshedToken), api, extraOptions);
+    }
+  }
+  return result;
+};
 
 export const goGoHostApi = createApi({
   reducerPath: 'goGoHostApi',
@@ -96,9 +141,16 @@ export const goGoHostApi = createApi({
         if (channel) form.append('channel', channel);
         try {
           const headers: Record<string, string> = {};
-          const token = bearerToken();
+          const token = await tokenForRequest(false);
           if (token) headers.Authorization = `Bearer ${token}`;
-          const response = await fetch(`/api/v1/sites/${siteId}/deployments`, { method: 'POST', headers, body: form });
+          let response = await fetch(`${apiOrigin()}/api/v1/sites/${siteId}/deployments`, { method: 'POST', headers, body: form });
+          if (response.status === 401) {
+            const refreshedToken = await tokenForRequest(true).catch(() => undefined);
+            if (refreshedToken && refreshedToken !== token) {
+              const retryHeaders: Record<string, string> = { ...headers, Authorization: `Bearer ${refreshedToken}` };
+              response = await fetch(`${apiOrigin()}/api/v1/sites/${siteId}/deployments`, { method: 'POST', headers: retryHeaders, body: form });
+            }
+          }
           const data = await response.json();
           if (!response.ok && !(data && data.deployment && data.report)) return { error: { status: response.status, data } };
           return { data: data as UploadDeploymentResponse };

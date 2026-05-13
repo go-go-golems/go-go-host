@@ -2,8 +2,12 @@ import type { ConfigResponse, OIDCConfig } from '../services/types';
 
 const tokenStorageKey = 'go-go-host.oidc.tokens';
 const pkceStorageKey = 'go-go-host.oidc.pkce';
+const refreshSkewMs = 60_000;
 
 export interface StoredOIDCTokens {
+  issuer?: string;
+  clientId?: string;
+  scopes?: string[];
   idToken: string;
   accessToken?: string;
   refreshToken?: string;
@@ -15,6 +19,21 @@ interface DiscoveryDocument {
   token_endpoint: string;
   end_session_endpoint?: string;
 }
+
+interface TokenEndpointResponse {
+  id_token?: string;
+  access_token?: string;
+  refresh_token?: string;
+  token_type?: string;
+  expires_in?: number;
+  scope?: string;
+}
+
+export interface BearerTokenOptions {
+  forceRefresh?: boolean;
+}
+
+let refreshInFlight: Promise<StoredOIDCTokens | null> | null = null;
 
 function base64Url(bytes: Uint8Array): string {
   let binary = '';
@@ -48,6 +67,34 @@ async function discover(config: OIDCConfig): Promise<DiscoveryDocument> {
   return response.json();
 }
 
+function tokenFrom(tokens: StoredOIDCTokens | null): string | undefined {
+  return tokens?.accessToken || tokens?.idToken;
+}
+
+function tokenExpiresSoon(tokens: StoredOIDCTokens, now = Date.now()): boolean {
+  if (!tokens.expiresAt) return false;
+  return tokens.expiresAt - now <= refreshSkewMs;
+}
+
+function storeTokens(config: OIDCConfig, tokens: TokenEndpointResponse, previous?: StoredOIDCTokens | null): StoredOIDCTokens {
+  const refreshToken = tokens.refresh_token || previous?.refreshToken;
+  const idToken = tokens.id_token || previous?.idToken;
+  const accessToken = tokens.access_token || previous?.accessToken;
+  if (!idToken && !accessToken) throw new Error('OIDC token response did not include an id_token or access_token');
+  const scopes = tokens.scope ? tokens.scope.split(/\s+/).filter(Boolean) : config.scopes;
+  const stored: StoredOIDCTokens = {
+    issuer: config.issuer,
+    clientId: config.clientId,
+    scopes,
+    idToken: idToken || '',
+    accessToken,
+    refreshToken,
+    expiresAt: tokens.expires_in ? Date.now() + tokens.expires_in * 1000 : previous?.expiresAt,
+  };
+  localStorage.setItem(tokenStorageKey, JSON.stringify(stored));
+  return stored;
+}
+
 export function getStoredTokens(): StoredOIDCTokens | null {
   const raw = localStorage.getItem(tokenStorageKey);
   if (!raw) return null;
@@ -55,8 +102,52 @@ export function getStoredTokens(): StoredOIDCTokens | null {
 }
 
 export function bearerToken(): string | undefined {
+  return tokenFrom(getStoredTokens());
+}
+
+export async function getValidBearerToken(config?: ConfigResponse, options: BearerTokenOptions = {}): Promise<string | undefined> {
   const tokens = getStoredTokens();
-  return tokens?.accessToken || tokens?.idToken;
+  if (!tokens) return undefined;
+  if (!options.forceRefresh && !tokenExpiresSoon(tokens)) return tokenFrom(tokens);
+  if (!isOIDCEnabled(config) || !tokens.refreshToken) {
+    clearTokens();
+    return undefined;
+  }
+  const refreshed = await refreshStoredTokens(config.oidc, tokens);
+  return tokenFrom(refreshed);
+}
+
+export async function refreshStoredTokens(config: OIDCConfig, previous = getStoredTokens()): Promise<StoredOIDCTokens | null> {
+  if (!previous?.refreshToken) {
+    clearTokens();
+    return null;
+  }
+  if (!refreshInFlight) {
+    refreshInFlight = refreshTokens(config, previous)
+      .catch((error) => {
+        clearTokens();
+        throw error;
+      })
+      .finally(() => { refreshInFlight = null; });
+  }
+  return refreshInFlight;
+}
+
+async function refreshTokens(config: OIDCConfig, previous: StoredOIDCTokens): Promise<StoredOIDCTokens> {
+  const discovery = await discover(config);
+  const body = new URLSearchParams({
+    grant_type: 'refresh_token',
+    client_id: config.clientId,
+    refresh_token: previous.refreshToken || '',
+  });
+  const response = await fetch(discovery.token_endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body,
+  });
+  if (!response.ok) throw new Error(`OIDC token refresh failed with HTTP ${response.status}`);
+  const tokens = await response.json() as TokenEndpointResponse;
+  return storeTokens(config, tokens, previous);
 }
 
 export function clearTokens() {
@@ -110,14 +201,9 @@ export async function completeLogin(config: ConfigResponse & { oidc: OIDCConfig 
     body,
   });
   if (!response.ok) throw new Error(`OIDC token exchange failed with HTTP ${response.status}`);
-  const tokens = await response.json() as { id_token?: string; access_token?: string; refresh_token?: string; expires_in?: number };
+  const tokens = await response.json() as TokenEndpointResponse;
   if (!tokens.id_token) throw new Error('OIDC token response did not include an id_token');
-  localStorage.setItem(tokenStorageKey, JSON.stringify({
-    idToken: tokens.id_token,
-    accessToken: tokens.access_token,
-    refreshToken: tokens.refresh_token,
-    expiresAt: tokens.expires_in ? Date.now() + tokens.expires_in * 1000 : undefined,
-  } satisfies StoredOIDCTokens));
+  storeTokens(config.oidc, tokens);
   sessionStorage.removeItem(pkceStorageKey);
   return saved.returnTo || '/app';
 }
