@@ -4,12 +4,13 @@
 
 ## Current phase
 
-This repository is in Phase 0 scaffold work:
+This repository now contains the main v1 control-plane and runtime skeleton:
 
-- `go-go-hostd` starts the daemon and serves health/version endpoints.
+- `go-go-hostd` starts the daemon, applies Postgres migrations, serves the control API, serves embedded dashboard assets, and routes hosted-site traffic.
 - `go-go-host` is the human CLI and uses Glazed command structure.
-- `go-go-host-agent` is the headless agent CLI and uses Glazed command structure.
-- Control-plane services, runtime supervision, deployments, dashboards, and agent enrollment will be added in later phases.
+- `go-go-host-agent` is the headless deployment-agent CLI and uses signed requests for machine workflows.
+- The backend includes organizations, sites, deployments, agents, audit, site settings, runtime supervision, and platform-admin APIs.
+- The dashboard is a React/Vite/RTK Query/Storybook application served under `/app/*` and `/admin/*`.
 
 ## Run locally
 
@@ -30,6 +31,10 @@ go run ./cmd/go-go-host-agent status --api-url http://127.0.0.1:8080 --output js
 make test
 make build
 ```
+
+## Contributing
+
+Start with [`CONTRIBUTING.md`](CONTRIBUTING.md) and [`docs/contributing/README.md`](docs/contributing/README.md). The contribution guides explain the architecture, local development loops, backend/runtime/dashboard rules, validation matrix, and docmgr ticket workflow.
 
 ## Optional local Postgres and Keycloak
 
