@@ -1,4 +1,5 @@
 {
+  "loginTheme": "go-go-host",
   "realm": "go-go-host",
   "enabled": true,
   "displayName": "go-go-host local dev",

@@ -1,0 +1,391 @@
+/*
+ * go-go-host OS1 Login Theme Overrides
+ *
+ * Restyles the Keycloak 26 login page to match the classic Mac OS1 /
+ * go-go-host admin dashboard aesthetic:
+ *   - White background, no gradients
+ *   - Centered login card as an OS1-style window (2px border, 4px box-shadow, no border-radius)
+ *   - Title bar with horizontal stripes
+ *   - Compact font scale matching the dashboard
+ *   - Pure monochrome palette (no color accents on button/focus/links)
+ *   - Uppercase labels, border-box inputs
+ *
+ * Parent theme `keycloak` loads first (via theme.properties `styles`),
+ * then `css/login.css` (from parent), then these overrides apply last.
+ */
+
+/* ── Root / Body ─────────────────────────────────────────── */
+
+.login-pf body,
+body#kc-login {
+  background: #fff !important;
+  background-image: none !important;
+  font-family: "Chicago", "Geneva", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+  font-size: 12px !important;
+  color: #111 !important;
+}
+
+/* ── Page wrapper ─────────────────────────────────────────── */
+
+.login-pf-page {
+  background: #fff !important;
+  background-image: none !important;
+}
+
+/* ── Header (realm name area → OS1 title bar) ─────────────── */
+
+#kc-header {
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+#kc-header-wrapper {
+  /* OS1 window title bar with horizontal stripes */
+  background: #fff !important;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    #111 0px, #111 1px,
+    #fff 1px, #fff 2px
+  ) !important;
+  border-bottom: 2px solid #111 !important;
+  border-top: 2px solid #111 !important;
+  padding: 0.35rem 0.5rem !important;
+  text-align: center !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #111 !important;
+  letter-spacing: 0.02em !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+/* Hide the raw realm display name text node */
+#kc-header-wrapper {
+  font-size: 0 !important;
+}
+
+/* Center 'go-go-host' label on the striped background */
+#kc-header-wrapper::after {
+  content: 'go-go-host' !important;
+  display: inline-block !important;
+  padding: 0 0.5rem !important;
+  background: #fff !important;
+  position: relative !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+  color: #111 !important;
+}
+
+/* ── Login card (OS1 window body) ──────────────────────────── */
+
+.card-pf {
+  border: 2px solid #111 !important;
+  border-radius: 0 !important;
+  box-shadow: 4px 4px 0 #111 !important;
+  background: #fff !important;
+  padding: 0 !important;
+}
+
+.login-pf-header {
+  border-bottom: 2px solid #111 !important;
+  padding: 0.65rem 1rem 0.35rem !important;
+}
+
+#kc-page-title {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: #111 !important;
+  margin: 0 !important;
+}
+
+/* ── Form inputs ─────────────────────────────────────────── */
+
+.pf-c-form-control,
+input#username,
+input#password,
+input[type="text"],
+input[type="password"],
+input[type="email"] {
+  border: 2px solid #111 !important;
+  border-radius: 0 !important;
+  box-shadow: 1px 1px 0 #999 !important;
+  background: #fff !important;
+  color: #111 !important;
+  font-family: inherit !important;
+  font-size: 11px !important;
+  padding: 0.35rem 0.5rem !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  height: auto !important;
+}
+
+.pf-c-form-control:focus,
+input#username:focus,
+input#password:focus {
+  outline: 2px solid #111 !important;
+  outline-offset: -2px !important;
+  box-shadow: 2px 2px 0 #111 !important;
+}
+
+/* ── Labels ───────────────────────────────────────────────── */
+
+.pf-c-form__label,
+.pf-c-form__label-text,
+label {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.03em !important;
+  color: #111 !important;
+  margin-bottom: 0.15rem !important;
+}
+
+/* ── Primary button (Sign In) ─────────────────────────────── */
+
+.pf-c-button.pf-m-primary,
+input#kc-login,
+input[type="submit"] {
+  background: #111 !important;
+  color: #fff !important;
+  border: 2px solid #111 !important;
+  border-radius: 0 !important;
+  box-shadow: 2px 2px 0 #111 !important;
+  font-family: inherit !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.03em !important;
+  text-transform: uppercase !important;
+  padding: 0.4rem 1rem !important;
+  cursor: pointer !important;
+  width: 100% !important;
+  height: auto !important;
+  line-height: 1.4 !important;
+}
+
+.pf-c-button.pf-m-primary:hover,
+input#kc-login:hover {
+  background: #333 !important;
+  box-shadow: 1px 1px 0 #111 !important;
+  transform: translate(1px, 1px) !important;
+}
+
+.pf-c-button.pf-m-primary:active,
+input#kc-login:active {
+  box-shadow: none !important;
+  transform: translate(2px, 2px) !important;
+}
+
+/* ── Password toggle button ──────────────────────────────── */
+
+.pf-c-button.pf-m-control {
+  border: 2px solid #111 !important;
+  border-radius: 0 !important;
+  background: #fff !important;
+  color: #111 !important;
+  box-shadow: 1px 1px 0 #999 !important;
+}
+
+/* ── Links ────────────────────────────────────────────────── */
+
+a,
+a:visited,
+a:link,
+#kc-form a,
+#kc-info a,
+#kc-login-footer-links a {
+  color: #111 !important;
+  text-decoration: underline !important;
+  text-underline-offset: 2px !important;
+  font-size: 11px !important;
+}
+
+a:hover,
+a:focus {
+  background: #111 !important;
+  color: #fff !important;
+}
+
+/* ── Alert / message boxes ────────────────────────────────── */
+
+.alert-error,
+#kc-error-message {
+  border: 2px solid #cc0000 !important;
+  background: #fff0f0 !important;
+  color: #cc0000 !important;
+  border-radius: 0 !important;
+  box-shadow: 2px 2px 0 #cc0000 !important;
+  font-size: 11px !important;
+  padding: 0.5rem !important;
+}
+
+.alert-success {
+  border: 2px solid #111 !important;
+  background: #f5f5f5 !important;
+  color: #111 !important;
+  border-radius: 0 !important;
+  box-shadow: 2px 2px 0 #111 !important;
+  font-size: 11px !important;
+  padding: 0.5rem !important;
+}
+
+.alert-warning {
+  border: 2px solid #b8860b !important;
+  background: #fff8e1 !important;
+  color: #5c4400 !important;
+  border-radius: 0 !important;
+  box-shadow: 2px 2px 0 #b8860b !important;
+  font-size: 11px !important;
+  padding: 0.5rem !important;
+}
+
+/* ── Footer ───────────────────────────────────────────────── */
+
+#kc-login-footer-links {
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: flex !important;
+  gap: 0.75rem !important;
+  justify-content: center !important;
+  border-top: 2px solid #111 !important;
+  padding-top: 0.35rem !important;
+  font-size: 10px !important;
+}
+
+#kc-login-footer-links a {
+  color: #111 !important;
+  text-decoration: underline !important;
+  text-underline-offset: 2px !important;
+}
+
+/* ── Content area padding ─────────────────────────────────── */
+
+#kc-content {
+  padding: 0.75rem 1rem !important;
+}
+
+#kc-content-wrapper {
+  padding: 0 !important;
+}
+
+/* ── Form groups spacing ──────────────────────────────────── */
+
+.form-group {
+  margin-bottom: 0.65rem !important;
+}
+
+/* ── Social providers (prominent, at the top) ────────────── */
+
+#kc-social-providers {
+  margin: 0 !important;
+  padding: 0.75rem 0 0 !important;
+  border: none !important;
+}
+
+#kc-social-providers ul,
+.kc-social-providers-list {
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: grid !important;
+  gap: 0.5rem !important;
+}
+
+#kc-social-providers li a,
+.kc-social-provider-btn {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  border: 2px solid #111 !important;
+  border-radius: 0 !important;
+  box-shadow: 2px 2px 0 #111 !important;
+  padding: 0.65rem 1rem !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  text-align: center !important;
+  text-decoration: none !important;
+  color: #111 !important;
+  background: #fff !important;
+  cursor: pointer !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.02em !important;
+}
+
+#kc-social-providers li a:hover,
+.kc-social-provider-btn:hover {
+  background: #111 !important;
+  color: #fff !important;
+  box-shadow: 1px 1px 0 #111 !important;
+  transform: translate(1px, 1px) !important;
+}
+
+#kc-social-providers li a:active,
+.kc-social-provider-btn:active {
+  box-shadow: none !important;
+  transform: translate(2px, 2px) !important;
+}
+
+.kc-social-provider-btn i {
+  font-size: 16px !important;
+}
+
+.kc-social-provider-name {
+  display: none !important;
+}
+
+.kc-social-provider-displayname {
+  font-size: 12px !important;
+}
+
+/* ── Divider between social and local login ─────────────── */
+
+.kc-login-divider {
+  display: flex !important;
+  align-items: center !important;
+  margin: 0.75rem 0 !important;
+  gap: 0.5rem !important;
+}
+
+.kc-login-divider::before,
+.kc-login-divider::after {
+  content: '' !important;
+  flex: 1 !important;
+  border-top: 1px solid #111 !important;
+}
+
+.kc-login-divider-text {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  color: #666 !important;
+  padding: 0 0.35rem !important;
+}
+
+/* ── Remove PF blue accent line at top ────────────────────── */
+
+.login-pf-page::before {
+  display: none !important;
+}
+
+/* ── Hide default social provider section (we render it in login.ftl) ── */
+
+#kc-social-providers hr,
+#kc-social-providers h2 {
+  display: none !important;
+}
+
+/* ── Info area ────────────────────────────────────────────── */
+
+#kc-info {
+  margin-top: 0.5rem !important;
+  padding-top: 0.5rem !important;
+  border-top: 1px solid #ccc !important;
+}
+
+#kc-info-wrapper {
+  font-size: 11px !important;
+}
