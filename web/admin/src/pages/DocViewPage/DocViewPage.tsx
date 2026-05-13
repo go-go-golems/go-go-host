@@ -6,6 +6,20 @@ import { ErrorCallout } from '../../components/atoms/ErrorCallout';
 import { EmptyState } from '../../components/atoms/EmptyState';
 import './DocViewPage.css';
 
+/** Serialize RTK Query error objects into readable strings. */
+function serializeError(err: unknown): string {
+  if (!err) return 'Unknown error';
+  if (typeof err === 'string') return err;
+  if (err instanceof Error) return err.message;
+  if (typeof err === 'object') {
+    const e = err as Record<string, unknown>;
+    if (typeof e.error === 'string') return e.error;
+    if (typeof e.data === 'object') return JSON.stringify(e.data);
+    if (e.status !== undefined) return `Request failed (status ${e.status})`;
+  }
+  return JSON.stringify(err);
+}
+
 export function DocViewPage() {
   const { orgId, slug } = useParams<{ orgId: string; slug: string }>();
   const { data: doc, isLoading, error } = useGetDocQuery(slug!, { skip: !slug });
@@ -22,7 +36,7 @@ export function DocViewPage() {
   }
 
   if (isLoading) return <div className="doc-view-page"><LoadingBlock lines={8} /></div>;
-  if (error) return <div className="doc-view-page"><ErrorCallout title="Failed to load doc" error={String(error)} /></div>;
+  if (error) return <div className="doc-view-page"><ErrorCallout title="Failed to load doc" error={serializeError(error)} /></div>;
   if (!doc) return (
     <div className="doc-view-page">
       <section className="dashboard-panel">

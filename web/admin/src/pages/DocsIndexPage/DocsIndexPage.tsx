@@ -5,6 +5,20 @@ import { LoadingBlock } from '../../components/atoms/LoadingBlock';
 import { ErrorCallout } from '../../components/atoms/ErrorCallout';
 import './DocsIndexPage.css';
 
+/** Serialize RTK Query error objects into readable strings. */
+function serializeError(err: unknown): string {
+  if (!err) return 'Unknown error';
+  if (typeof err === 'string') return err;
+  if (err instanceof Error) return err.message;
+  if (typeof err === 'object') {
+    const e = err as Record<string, unknown>;
+    if (typeof e.error === 'string') return e.error;
+    if (typeof e.data === 'object') return JSON.stringify(e.data);
+    if (e.status !== undefined) return `Request failed (status ${e.status})`;
+  }
+  return JSON.stringify(err);
+}
+
 const sectionLabels: Record<string, string> = {
   Tutorial: 'Tutorials',
   GeneralTopic: 'Reference',
@@ -18,7 +32,7 @@ export function DocsIndexPage() {
   const { data: docs, isLoading, error } = useListDocsQuery();
 
   if (isLoading) return <div className="docs-index-page"><LoadingBlock lines={6} /></div>;
-  if (error) return <div className="docs-index-page"><ErrorCallout title="Failed to load docs" error={String(error)} /></div>;
+  if (error) return <div className="docs-index-page"><ErrorCallout title="Failed to load docs" error={serializeError(error)} /></div>;
   if (!docs || docs.length === 0) return <div className="docs-index-page"><ErrorCallout title="No docs available" error="No documentation entries were found." /></div>;
 
   // Group by section
