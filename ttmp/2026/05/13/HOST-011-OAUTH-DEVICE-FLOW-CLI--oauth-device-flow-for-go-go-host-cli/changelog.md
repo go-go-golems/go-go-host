@@ -46,3 +46,14 @@ Step 4: implemented backend OIDC accepted-client support and device client confi
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/oidc.go — Accepts tokens for any configured OIDC client by aud/azp
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/services/types.ts — Frontend type updated for deviceClientId
 
+
+## 2026-05-13
+
+Step 5: enabled local and production Keycloak go-go-host-cli device-flow client and verified live device authorization response
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/go-go-host/configmap.yaml — Production app config accepts CLI OIDC client tokens
+- /home/manuel/code/wesen/terraform/keycloak/apps/go-go-host/envs/k3s-beta/main.tf — Production Terraform go-go-host-cli client
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/deployments/dev/keycloak/realm-go-go-host.json — Local go-go-host-cli device-flow client import
+

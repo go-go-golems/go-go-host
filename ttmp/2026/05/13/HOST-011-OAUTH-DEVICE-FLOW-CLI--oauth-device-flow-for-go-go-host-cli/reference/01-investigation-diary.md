@@ -368,3 +368,84 @@ This is the prerequisite for a clean `go-go-host-cli` Keycloak client. Without i
   - `Config.OIDCDeviceClientID`
   - `Config.OIDCAcceptedClientIDs`
   - `tokenMatchesAnyClient`
+
+---
+
+## Step 5: Enable Keycloak CLI device-flow client
+
+This step enabled the Keycloak side of OAuth Device Authorization Grant for the CLI. Local development now imports a `go-go-host-cli` public client with device flow enabled, and production Terraform now manages the same public client in the hosted `go-go-host` realm.
+
+After applying Terraform, the live production device authorization endpoint changed from returning `unauthorized_client` for the relevant CLI client to returning a real `device_code`, `user_code`, verification URI, expiry, and polling interval. That proves the Keycloak-side prerequisite for CLI login is now in place.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 4)
+
+**Assistant interpretation:** Continue implementing HOST-011 task by task and commit at the Keycloak/config milestone.
+
+**Inferred user intent:** Make device flow actually available in local and production auth infrastructure before writing the CLI polling code.
+
+### What I did
+- Added a local `go-go-host-cli` public client to `deployments/dev/keycloak/realm-go-go-host.json` with:
+  - `oauth2.device.authorization.grant.enabled = true`
+  - `oauth2.device.code.lifespan = 600`
+  - `oauth2.device.polling.interval = 5`
+- Added production Terraform resource `keycloak_openid_client.cli` with device flow enabled.
+- Added Terraform variables for `cli_client_id`, `cli_device_code_lifespan`, and `cli_device_polling_interval`.
+- Added Terraform output `cli_client_id`.
+- Updated K3s GitOps app config to set:
+  - `oidcDeviceClientId: go-go-host-cli`
+  - `oidcAcceptedClientIds: [go-go-host-dashboard, go-go-host-cli]`
+- Ran `terraform validate`.
+- Ran Terraform plan/apply for production Keycloak.
+- Verified a final Terraform plan returned `No changes`.
+- Verified the live device authorization endpoint now returns a device authorization response for `client_id=go-go-host-cli`.
+
+### Why
+- The CLI cannot start device flow until the Keycloak client explicitly allows the grant.
+- Production app config must eventually tell the API that CLI-issued tokens are accepted.
+- Local realm import should match production behavior so implementation can be tested under `devctl`.
+
+### What worked
+- Terraform planned exactly one addition: `keycloak_openid_client.cli`.
+- Terraform apply completed with `1 added, 0 changed, 0 destroyed`.
+- Final `terraform plan -detailed-exitcode` reported no changes.
+- Live endpoint check returned:
+  - `has_device_code: true`
+  - `verification_uri: https://auth.yolo.scapegoat.dev/realms/go-go-host/device`
+  - `expires_in: 600`
+  - `interval: 5`
+
+### What didn't work
+- N/A for this step. The Terraform provider supported the device-flow fields directly.
+
+### What I learned
+- Keycloak realm metadata advertising device flow is not enough; the per-client setting is decisive.
+- Once `go-go-host-cli` was created with device flow enabled, the same endpoint immediately returned a valid device authorization response.
+
+### What was tricky to build
+- This step spans three repositories: app repo for local realm JSON and diary, Terraform repo for durable Keycloak realm/client state, and K3s GitOps for runtime API config. The commits are intentionally separate by ownership boundary.
+
+### What warrants a second pair of eyes
+- Confirm `standard_flow_enabled = false` is appropriate for the CLI client. It narrows the client to device flow instead of also allowing browser redirect code flow.
+- Confirm the K3s config is applied only after an app image containing `OIDCAcceptedClientIDs` support is deployed; older binaries should ignore unknown YAML fields, but rollout ordering should still be considered.
+
+### What should be done in the future
+- Implement the CLI login flow against `go-go-host-cli`.
+- After app image deployment, verify `/api/v1/config` returns `deviceClientId` in production.
+
+### Code review instructions
+- Review Terraform commit `7da4671` in `/home/manuel/code/wesen/terraform`.
+- Review GitOps commit `99bff08` in `/home/manuel/code/wesen/2026-03-27--hetzner-k3s`.
+- Review local realm JSON in this app repo.
+- Validate production with a POST to the device authorization endpoint using `client_id=go-go-host-cli`.
+
+### Technical details
+- Terraform apply result:
+  - `Apply complete! Resources: 1 added, 0 changed, 0 destroyed.`
+- Terraform commit:
+  - `7da4671 keycloak/go-go-host: add CLI device flow client`
+- GitOps commit:
+  - `99bff08 go-go-host: configure CLI OIDC accepted client`
+- Live verification command:
+  - `curl -sS -X POST -d 'client_id=go-go-host-cli' -d 'scope=openid profile email' https://auth.yolo.scapegoat.dev/realms/go-go-host/protocol/openid-connect/auth/device`

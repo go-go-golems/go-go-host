@@ -9,7 +9,7 @@
 - [x] Write intern-facing analysis/design/implementation guide
 - [ ] Validate ticket docs and upload bundle to reMarkable
 - [x] Implement backend config support for OIDC accepted client IDs and device client ID
-- [ ] Enable local and production Keycloak Device Authorization Grant client configuration
+- [x] Enable local and production Keycloak Device Authorization Grant client configuration
 - [ ] Implement CLI device authorization login flow and structured token config
 - [ ] Implement CLI refresh-aware auth resolution and logout token revocation
 - [ ] Update CLI docs and tests for device flow, refresh, and logout

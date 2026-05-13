@@ -39,6 +39,22 @@
         "pkce.code.challenge.method": "S256",
         "post.logout.redirect.uris": "http://127.0.0.1:5173/app##http://localhost:5173/app##http://127.0.0.1:8080/app##http://localhost:8080/app"
       }
+    },
+    {
+      "clientId": "go-go-host-cli",
+      "name": "go-go-host CLI",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "attributes": {
+        "oauth2.device.authorization.grant.enabled": "true",
+        "oauth2.device.code.lifespan": "600",
+        "oauth2.device.polling.interval": "5"
+      }
     }
   ],
   "users": [
