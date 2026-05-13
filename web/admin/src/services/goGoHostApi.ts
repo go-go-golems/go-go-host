@@ -1,6 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { bearerToken } from '../auth/oidc';
-import type { AddSiteDomainRequest, AdminAgent, AdminCapability, AdminDeployment, AdminDomain, AdminOrg, AdminQuota, AdminRuntimeSummary, AdminSite, AdminUser, Agent, AgentKey, AuditEvent, ConfigResponse, CreateAgentEnrollmentTokenRequest, CreateAgentEnrollmentTokenResponse, CreateAgentRequest, CreateAgentResponse, CreateOrgRequest, CreateSiteRequest, DeleteSiteConfigRequest, DeleteSiteDomainRequest, Deployment, MeResponse, Org, RevokeAgentKeyRequest, RevokeAgentRequest, RuntimeStatus, Site, SiteCapability, SiteConfigItem, SiteDomain, SiteEnvironmentPlaceholder, UploadDeploymentResponse, UpsertSiteCapabilityRequest, UpsertSiteConfigRequest, VerifySiteDomainRequest } from './types';
+import type { AddSiteDomainRequest, AdminAgent, AdminCapability, AdminDeployment, AdminDomain, AdminOrg, AdminQuota, AdminRuntimeSummary, AdminSite, AdminUser, Agent, AgentKey, AuditEvent, ConfigResponse, CreateAgentEnrollmentTokenRequest, CreateAgentEnrollmentTokenResponse, CreateAgentRequest, CreateAgentResponse, CreateOrgRequest, CreateSiteRequest, DeleteSiteConfigRequest, DeleteSiteDomainRequest, Deployment, DocEntry, MeResponse, Org, RevokeAgentKeyRequest, RevokeAgentRequest, RuntimeStatus, Site, SiteCapability, SiteConfigItem, SiteDomain, SiteEnvironmentPlaceholder, UploadDeploymentResponse, UpsertSiteCapabilityRequest, UpsertSiteConfigRequest, VerifySiteDomainRequest } from './types';
 
 export interface UploadDeploymentRequest { siteId: string; file: File; message?: string; channel?: string; }
 
@@ -16,7 +16,7 @@ const baseQuery = fetchBaseQuery({
 export const goGoHostApi = createApi({
   reducerPath: 'goGoHostApi',
   baseQuery,
-  tagTypes: ['Me', 'Org', 'Site', 'Deployment', 'Runtime', 'AdminRuntime', 'AdminInventory', 'Agent', 'Audit', 'Config'],
+  tagTypes: ['Me', 'Org', 'Site', 'Deployment', 'Runtime', 'AdminRuntime', 'AdminInventory', 'Agent', 'Audit', 'Config', 'Docs'],
   endpoints: (build) => ({
     getConfig: build.query<ConfigResponse, void>({ query: () => '/config', providesTags: ['Config'] }),
     getMe: build.query<MeResponse, void>({ query: () => '/me', providesTags: ['Me', 'Org'] }),
@@ -141,7 +141,15 @@ export const goGoHostApi = createApi({
       query: ({ orgId, ...params }) => ({ url: `/orgs/${orgId}/audit`, params }),
       providesTags: ['Audit'],
     }),
+    listDocs: build.query<DocEntry[], void>({
+      query: () => '/docs',
+      providesTags: ['Docs'],
+    }),
+    getDoc: build.query<DocEntry, string>({
+      query: (slug) => `/docs/${slug}`,
+      providesTags: (_r, _e, slug) => [{ type: 'Docs', id: slug }],
+    }),
   }),
 });
 
-export const { useGetConfigQuery, useGetMeQuery, useCreateOrgMutation, useListSitesQuery, useCreateSiteMutation, useGetRuntimeQuery, useListSiteConfigQuery, useUpsertSiteConfigMutation, useDeleteSiteConfigMutation, useListSiteCapabilitiesQuery, useUpsertSiteCapabilityMutation, useListSiteDomainsQuery, useAddSiteDomainMutation, useVerifySiteDomainMutation, useDeleteSiteDomainMutation, useGetSiteEnvironmentQuery, useGetAdminRuntimeSummaryQuery, useRestartAdminRuntimeMutation, useStopAdminRuntimeMutation, useListAdminOrgsQuery, useListAdminUsersQuery, useListAdminSitesQuery, useListAdminDeploymentsQuery, useGetAdminDeploymentQuery, useListAdminAgentsQuery, useListAdminAuditQuery, useListAdminQuotasQuery, useListAdminCapabilitiesQuery, useListAdminDomainsQuery, useListDeploymentsQuery, useGetDeploymentQuery, useUploadDeploymentMutation, useActivateDeploymentMutation, useRollbackDeploymentMutation, useListAgentsQuery, useCreateAgentMutation, useCreateAgentEnrollmentTokenMutation, useListAgentKeysQuery, useRevokeAgentKeyMutation, useRevokeAgentMutation, useListAuditQuery } = goGoHostApi;
+export const { useGetConfigQuery, useGetMeQuery, useCreateOrgMutation, useListSitesQuery, useCreateSiteMutation, useGetRuntimeQuery, useListSiteConfigQuery, useUpsertSiteConfigMutation, useDeleteSiteConfigMutation, useListSiteCapabilitiesQuery, useUpsertSiteCapabilityMutation, useListSiteDomainsQuery, useAddSiteDomainMutation, useVerifySiteDomainMutation, useDeleteSiteDomainMutation, useGetSiteEnvironmentQuery, useGetAdminRuntimeSummaryQuery, useRestartAdminRuntimeMutation, useStopAdminRuntimeMutation, useListAdminOrgsQuery, useListAdminUsersQuery, useListAdminSitesQuery, useListAdminDeploymentsQuery, useGetAdminDeploymentQuery, useListAdminAgentsQuery, useListAdminAuditQuery, useListAdminQuotasQuery, useListAdminCapabilitiesQuery, useListAdminDomainsQuery, useListDeploymentsQuery, useGetDeploymentQuery, useUploadDeploymentMutation, useActivateDeploymentMutation, useRollbackDeploymentMutation, useListAgentsQuery, useCreateAgentMutation, useCreateAgentEnrollmentTokenMutation, useListAgentKeysQuery, useRevokeAgentKeyMutation, useRevokeAgentMutation, useListAuditQuery, useListDocsQuery, useGetDocQuery } = goGoHostApi;

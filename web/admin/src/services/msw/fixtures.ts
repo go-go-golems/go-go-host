@@ -1,4 +1,4 @@
-import type { AdminAgent, AdminCapability, AdminDeployment, AdminDomain, AdminOrg, AdminQuota, AdminRuntimeSummary, AdminSite, AdminUser, Agent, AgentKey, AuditEvent, Deployment, MeResponse, RuntimeStatus, Site, SiteCapability, SiteConfigItem, SiteDomain, SiteEnvironmentPlaceholder } from '../types';
+import type { AdminAgent, AdminCapability, AdminDeployment, AdminDomain, AdminOrg, AdminQuota, AdminRuntimeSummary, AdminSite, AdminUser, Agent, AgentKey, AuditEvent, Deployment, DocEntry, MeResponse, RuntimeStatus, Site, SiteCapability, SiteConfigItem, SiteDomain, SiteEnvironmentPlaceholder } from '../types';
 
 export const fixtures = {
   me: {
@@ -79,4 +79,19 @@ export const fixtures = {
     { id: 'dep_4', siteId: 'site_123', siteSlug: 'hello', primaryHost: 'hello.localhost', orgId: 'org_123', orgSlug: 'demo', orgName: 'Demo Org', version: 4, status: 'active', bundleRef: 'bundles/site_123/dep_4.tar.gz', unpackedPath: 'sites/site_123/deployments/dep_4', manifestJson: '{}', validationJson: '{"valid":true}', createdByType: 'user', createdById: 'usr_123', createdAt: '2026-05-11T22:10:00Z', activatedAt: '2026-05-11T22:20:00Z' },
     { id: 'dep_bad', siteId: 'site_456', siteSlug: 'docs', primaryHost: 'docs.localhost', orgId: 'org_123', orgSlug: 'demo', orgName: 'Demo Org', version: 2, status: 'rejected', bundleRef: 'bundles/site_456/dep_bad.tar.gz', unpackedPath: '', manifestJson: '{}', validationJson: '{"valid":false,"errors":["smoke failed"]}', createdByType: 'user', createdById: 'usr_123', createdAt: '2026-05-11T22:15:00Z' },
   ] satisfies AdminDeployment[],
+  docs: [
+    { slug: 'host-getting-started', title: 'Getting Started with go-go-host', short: 'Start the daemon and check it from the Glazed CLI.', section: 'Tutorial', source: 'host' },
+    { slug: 'host-deploy-workflow', title: 'Deploy a Site Bundle', short: 'Create a site, upload a bundle, activate it, and inspect runtime status.', section: 'Tutorial', source: 'host' },
+    { slug: 'host-create-site-workflow', title: 'Create an Organization and Site', short: 'Use the CLI to create org and site records before deploying bundles.', section: 'Tutorial', source: 'host' },
+    { slug: 'host-rollback-workflow', title: 'Rollback a Site', short: 'Activate the previous validated deployment for a site.', section: 'Tutorial', source: 'host' },
+    { slug: 'host-login-and-config', title: 'Login and CLI Configuration', short: 'Store API URL and auth defaults for go-go-host CLI commands.', section: 'Tutorial', source: 'host' },
+    { slug: 'agent-getting-started', title: 'Getting Started with go-go-host-agent', short: 'Check agent CLI wiring, create a key, enroll, and deploy.', section: 'Tutorial', source: 'agent' },
+    { slug: 'agent-keygen-enroll-deploy', title: 'Agent keygen, enroll, and deploy', short: 'Create Ed25519 agent keys, enroll with a one-time token, and upload signed deployments.', section: 'Tutorial', source: 'agent' },
+    { slug: 'host-developer-guide', title: 'Developer Guide: Build and Deploy go-go-host Apps', short: 'Learn the complete app lifecycle: bundle layout, JavaScript runtime APIs, deployment, activation, settings, and operations.', section: 'GeneralTopic', source: 'host' },
+    { slug: 'host-js-api-reference', title: 'JavaScript API Reference for Hosted Sites', short: 'Detailed reference for go-go-host JavaScript modules, route handlers, UI DSL, database access, platform context, and capability policy.', section: 'GeneralTopic', source: 'host' },
+    { slug: 'host-agent-guide', title: 'Agent Guide for Operators', short: 'Create deployment agents, grant site access, hand off enrollment tokens, and operate key rotation/revoke workflows.', section: 'GeneralTopic', source: 'host' },
+    { slug: 'host-agent-setup', title: 'Agent Setup', short: 'Create deployment agents, grants, and enrollment tokens for machine deploys.', section: 'GeneralTopic', source: 'host' },
+    { slug: 'agent-guide', title: 'Agent Guide: Build, Enroll, and Deploy from CI', short: 'A complete guide for machine deploy agents: grants, keys, enrollment, signed deploys, activation, rotation, and troubleshooting.', section: 'GeneralTopic', source: 'agent' },
+    { slug: 'agent-signature-troubleshooting', title: 'Troubleshooting agent signatures', short: 'Common causes for signed agent request failures.', section: 'GeneralTopic', source: 'agent' },
+  ] satisfies DocEntry[],
 };

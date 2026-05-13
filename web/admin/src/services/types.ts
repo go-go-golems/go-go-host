@@ -44,3 +44,14 @@ export interface CreateAgentEnrollmentTokenResponse { enrollmentToken: string; }
 export interface AuditEvent { id: string; orgId: string; actorType: string; actorId: string; action: string; resourceType: string; resourceId: string; ipAddress: string; userAgent: string; metadataJson: string; createdAt: string; }
 export interface ValidationReport { valid: boolean; errors?: string[]; warnings?: string[]; files: number; bytes: number; requestedCapabilities?: string[]; effectiveCapabilities?: string[]; }
 export interface UploadDeploymentResponse { deployment: Deployment; report: ValidationReport; manifest: Record<string, unknown>; }
+
+/* ── Docs ─────────────────────────────────────────────────── */
+export type DocSection = 'Tutorial' | 'GeneralTopic' | 'Example' | 'Application' | '';
+export interface DocEntry {
+  slug: string;
+  title: string;
+  short: string;
+  section: DocSection;
+  source: 'host' | 'agent';
+  body?: string;
+}

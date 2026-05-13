@@ -75,4 +75,12 @@ export const handlers = [
     const events = action ? fixtures.audit.filter((event) => event.action.includes(action)) : fixtures.audit;
     return HttpResponse.json(events);
   }),
+  http.get('/api/v1/docs', () => HttpResponse.json(fixtures.docs)),
+  http.get('/api/v1/docs/:slug', ({ params }) => {
+    const doc = fixtures.docs.find((d) => d.slug === params.slug);
+    if (!doc) return HttpResponse.json({ error: 'doc not found' }, { status: 404 });
+    // Return with a mock body for the view page
+    const body = `# ${doc.title}\n\n${doc.short}\n\n---\n\nThis is a placeholder body for the **${doc.title}** document.\nIn production, this comes from the go-go-host API.\n\n${'```'}js\nconst express = require("express");\nconst app = express.app();\napp.get("/", (req, res) => {\n  return res.json({ hello: "world" });\n});\n${'```'}\n`;
+    return HttpResponse.json({ ...doc, body });
+  }),
 ];

@@ -1,19 +1,34 @@
 import { Link, useParams } from 'react-router-dom';
-import { docs, docsBySection } from '../../services/docs/docs-data';
-import type { DocSection } from '../../services/docs/docs-data';
+import { useListDocsQuery } from '../../services/goGoHostApi';
+import type { DocSection } from '../../services/types';
+import { LoadingBlock } from '../../components/atoms/LoadingBlock';
+import { ErrorCallout } from '../../components/atoms/ErrorCallout';
 import './DocsIndexPage.css';
 
-const sectionLabels: Record<DocSection, string> = {
+const sectionLabels: Record<string, string> = {
   Tutorial: 'Tutorials',
   GeneralTopic: 'Reference',
   Example: 'Examples',
   Application: 'Application',
-  Other: 'Other',
+  '': 'Other',
 };
 
 export function DocsIndexPage() {
   const { orgId } = useParams<{ orgId: string }>();
-  const groups = docsBySection();
+  const { data: docs, isLoading, error } = useListDocsQuery();
+
+  if (isLoading) return <div className="docs-index-page"><LoadingBlock lines={6} /></div>;
+  if (error) return <div className="docs-index-page"><ErrorCallout title="Failed to load docs" error={String(error)} /></div>;
+  if (!docs || docs.length === 0) return <div className="docs-index-page"><ErrorCallout title="No docs available" error="No documentation entries were found." /></div>;
+
+  // Group by section
+  const groups: Record<string, typeof docs> = {};
+  for (const doc of docs) {
+    const section = doc.section || 'Other';
+    (groups[section] ??= []).push(doc);
+  }
+
+  const sectionOrder: string[] = ['Tutorial', 'GeneralTopic', 'Example', 'Application', 'Other', ''];
 
   return (
     <div className="docs-index-page">
@@ -24,7 +39,9 @@ export function DocsIndexPage() {
         </header>
       </section>
 
-      {(Object.keys(groups) as DocSection[]).map((section) => (
+      {sectionOrder
+        .filter((s) => groups[s]?.length)
+        .map((section) => (
         <section className="dashboard-panel docs-index-page__section" key={section}>
           <header>
             <h2>{sectionLabels[section] ?? section}</h2>
