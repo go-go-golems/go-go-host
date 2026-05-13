@@ -21,6 +21,8 @@ type Config struct {
 	ControlDBDSN              string        `json:"controlDbDsn" yaml:"controlDbDsn"`
 	OIDCIssuer                string        `json:"oidcIssuer" yaml:"oidcIssuer"`
 	OIDCClientID              string        `json:"oidcClientId" yaml:"oidcClientId"`
+	OIDCDeviceClientID        string        `json:"oidcDeviceClientId" yaml:"oidcDeviceClientId"`
+	OIDCAcceptedClientIDs     []string      `json:"oidcAcceptedClientIds" yaml:"oidcAcceptedClientIds"`
 	OIDCScopes                []string      `json:"oidcScopes" yaml:"oidcScopes"`
 	OIDCRedirectPath          string        `json:"oidcRedirectPath" yaml:"oidcRedirectPath"`
 	OIDCLogoutRedirectPath    string        `json:"oidcLogoutRedirectPath" yaml:"oidcLogoutRedirectPath"`
@@ -43,6 +45,7 @@ func Default() Config {
 		BaseDomain:               "localhost",
 		DataDir:                  "./data",
 		ControlDBDSN:             "postgres://go_go_host:go_go_host_dev@127.0.0.1:55432/go_go_host?sslmode=disable",
+		OIDCDeviceClientID:       "go-go-host-cli",
 		OIDCScopes:               []string{"openid", "profile", "email"},
 		OIDCRedirectPath:         "/app/auth/callback",
 		OIDCLogoutRedirectPath:   "/app",
@@ -98,8 +101,17 @@ func (c *Config) ApplyDefaults() {
 	if c.ControlDBDSN == "" {
 		c.ControlDBDSN = defaults.ControlDBDSN
 	}
+	if c.OIDCDeviceClientID == "" {
+		c.OIDCDeviceClientID = defaults.OIDCDeviceClientID
+	}
 	if len(c.OIDCScopes) == 0 {
 		c.OIDCScopes = defaults.OIDCScopes
+	}
+	if len(c.OIDCAcceptedClientIDs) == 0 && c.OIDCClientID != "" {
+		c.OIDCAcceptedClientIDs = []string{c.OIDCClientID}
+		if c.OIDCDeviceClientID != "" && c.OIDCDeviceClientID != c.OIDCClientID {
+			c.OIDCAcceptedClientIDs = append(c.OIDCAcceptedClientIDs, c.OIDCDeviceClientID)
+		}
 	}
 	if c.OIDCRedirectPath == "" {
 		c.OIDCRedirectPath = defaults.OIDCRedirectPath

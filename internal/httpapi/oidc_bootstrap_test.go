@@ -20,6 +20,22 @@ func TestTokenMatchesClientFromAudienceOrAuthorizedParty(t *testing.T) {
 	if tokenMatchesClient(clientID, []string{"other"}, oidcClaims{AuthorizedParty: "other"}) {
 		t.Fatalf("did not expect unrelated token to match client")
 	}
+	if tokenMatchesClient("", []string{clientID}, oidcClaims{AuthorizedParty: clientID}) {
+		t.Fatalf("empty configured client id must not match")
+	}
+}
+
+func TestTokenMatchesAnyAcceptedClient(t *testing.T) {
+	accepted := []string{"go-go-host-dashboard", "go-go-host-cli"}
+	if !tokenMatchesAnyClient(accepted, nil, oidcClaims{AuthorizedParty: "go-go-host-cli"}) {
+		t.Fatalf("expected CLI authorized party to match accepted clients")
+	}
+	if !tokenMatchesAnyClient(accepted, []string{"go-go-host-cli"}, oidcClaims{}) {
+		t.Fatalf("expected CLI audience to match accepted clients")
+	}
+	if tokenMatchesAnyClient(accepted, []string{"unknown"}, oidcClaims{AuthorizedParty: "unknown"}) {
+		t.Fatalf("did not expect unknown client to match accepted clients")
+	}
 }
 
 func TestShouldBootstrapPlatformAdminFromSubjectEmailAndRoles(t *testing.T) {

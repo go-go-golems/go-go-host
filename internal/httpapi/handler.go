@@ -35,6 +35,7 @@ func NewHandler(core *control.Core) http.Handler {
 			response["oidc"] = map[string]any{
 				"issuer":             core.Config.OIDCIssuer,
 				"clientId":           core.Config.OIDCClientID,
+				"deviceClientId":     core.Config.OIDCDeviceClientID,
 				"scopes":             core.Config.OIDCScopes,
 				"redirectPath":       core.Config.OIDCRedirectPath,
 				"logoutRedirectPath": core.Config.OIDCLogoutRedirectPath,

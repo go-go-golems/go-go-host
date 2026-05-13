@@ -65,8 +65,12 @@ func (a *oidcAuthenticator) authenticate(r *http.Request) (*store.User, error) {
 	if err := verifiedToken.Claims(&claims); err != nil {
 		return nil, fmt.Errorf("decode oidc bearer token claims: %w", err)
 	}
-	if !tokenMatchesClient(clientID, verifiedToken.Audience, claims) {
-		return nil, fmt.Errorf("verify oidc bearer token: expected audience or authorized party %q", clientID)
+	acceptedClientIDs := a.cfg.OIDCAcceptedClientIDs
+	if len(acceptedClientIDs) == 0 {
+		acceptedClientIDs = []string{clientID}
+	}
+	if !tokenMatchesAnyClient(acceptedClientIDs, verifiedToken.Audience, claims) {
+		return nil, fmt.Errorf("verify oidc bearer token: expected audience or authorized party in %q", acceptedClientIDs)
 	}
 	displayName := claims.Name
 	if displayName == "" {
@@ -162,8 +166,20 @@ func (a *oidcAuthenticator) getVerifier(ctx context.Context, issuer, clientID st
 	return a.verifier, nil
 }
 
+func tokenMatchesAnyClient(clientIDs []string, tokenAudience []string, claims oidcClaims) bool {
+	for _, clientID := range clientIDs {
+		if tokenMatchesClient(clientID, tokenAudience, claims) {
+			return true
+		}
+	}
+	return false
+}
+
 func tokenMatchesClient(clientID string, tokenAudience []string, claims oidcClaims) bool {
 	clientID = strings.TrimSpace(clientID)
+	if clientID == "" {
+		return false
+	}
 	for _, audience := range tokenAudience {
 		if strings.EqualFold(strings.TrimSpace(audience), clientID) {
 			return true

@@ -299,3 +299,72 @@ I also fixed docmgr hygiene problems by adding missing vocabulary topics and mak
   - `remarquee upload bundle ... --name "HOST-011 OAuth Device Flow CLI Guide" --remote-dir "/ai/2026/05/13/HOST-011-OAUTH-DEVICE-FLOW-CLI" --toc-depth 2 --non-interactive`
 - Upload result:
   - `OK: uploaded HOST-011_OAuth_Device_Flow_CLI_Guide.pdf -> /ai/2026/05/13/HOST-011-OAUTH-DEVICE-FLOW-CLI`
+
+---
+
+## Step 4: Add backend OIDC accepted-client support
+
+This step implemented the backend half of the separate CLI-client design. The API can now publish a device-flow client ID in `/api/v1/config`, and its OIDC verifier can accept tokens whose `aud` or `azp` matches any configured accepted client ID rather than only the dashboard client.
+
+This is the prerequisite for a clean `go-go-host-cli` Keycloak client. Without it, a token issued to a separate CLI client would verify cryptographically but fail the local audience/authorized-party check.
+
+### Prompt Context
+
+**User prompt (verbatim):** "create detailed tasks in the ticket (if necessary) and implement task by task, keeping a detailed diary, and committing at appropriate intervals."
+
+**Assistant interpretation:** Add implementation-level tasks to HOST-011, then implement the design incrementally with tests, diary updates, and commits at logical checkpoints.
+
+**Inferred user intent:** Move from design into real implementation while preserving reviewable history and ticket documentation.
+
+### What I did
+- Added detailed implementation tasks to `tasks.md`.
+- Extended `internal/config.Config` with:
+  - `OIDCDeviceClientID`
+  - `OIDCAcceptedClientIDs`
+- Defaulted `OIDCDeviceClientID` to `go-go-host-cli`.
+- Defaulted accepted client IDs to `oidcClientId` plus `oidcDeviceClientId` when no explicit list is configured.
+- Updated `/api/v1/config` to include `deviceClientId` inside the `oidc` object.
+- Updated the frontend `OIDCConfig` TypeScript type to tolerate `deviceClientId`.
+- Added `tokenMatchesAnyClient` and changed OIDC authentication to accept any configured client while preserving issuer/signature/expiry verification.
+- Added/updated tests for config defaults, explicit accepted-client preservation, `/api/v1/config`, and multi-client token matching.
+
+### Why
+- The recommended architecture uses a separate public Keycloak client for CLI device flow.
+- The existing API verifier only accepted one configured client ID, which would reject CLI-issued tokens.
+- Publishing `deviceClientId` through `/api/v1/config` lets the CLI discover the correct client ID without hard-coding production values.
+
+### What worked
+- `go test ./internal/config ./internal/httpapi -count=1` passed.
+- The existing verifier structure already used `SkipClientIDCheck` plus local `aud`/`azp` checks, which made the multi-client change small and explicit.
+
+### What didn't work
+- My first attempted edit to `internal/config/config_test.go` failed because the exact replacement block did not match the file. I re-read the file and applied a smaller targeted replacement.
+
+### What I learned
+- The backend had already been designed to accept Keycloak access tokens by checking `azp`, so accepting a second public client is a natural extension rather than a large auth rewrite.
+- The config response is the right bootstrap point for CLI login because it is already public and already communicates OIDC settings to the browser dashboard.
+
+### What was tricky to build
+- The defaulting logic must not overwrite an explicit `oidcAcceptedClientIds` list. The implementation only constructs a default list when the list is empty.
+- Empty client IDs must not match accidentally, so `tokenMatchesClient` now rejects an empty configured client ID.
+
+### What warrants a second pair of eyes
+- Review whether defaulting accepted clients to include `go-go-host-cli` is acceptable before the Keycloak client exists in every environment.
+- Review the error message for rejected tokens; it now includes the accepted client list.
+
+### What should be done in the future
+- Wire production config values so `oidcDeviceClientId` and `oidcAcceptedClientIds` are explicit in beta deployment configuration.
+- Add the actual `go-go-host-cli` Keycloak client in local realm JSON and Terraform.
+
+### Code review instructions
+- Start in `internal/config/config.go` for config shape/defaults.
+- Then review `internal/httpapi/oidc.go` for multi-client matching.
+- Validate with `go test ./internal/config ./internal/httpapi -count=1`.
+
+### Technical details
+- Test command:
+  - `go test ./internal/config ./internal/httpapi -count=1`
+- Important symbols:
+  - `Config.OIDCDeviceClientID`
+  - `Config.OIDCAcceptedClientIDs`
+  - `tokenMatchesAnyClient`

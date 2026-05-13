@@ -34,3 +34,15 @@ Step 3: validated HOST-011 docs and uploaded the OAuth Device Flow CLI guide bun
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/13/HOST-011-OAUTH-DEVICE-FLOW-CLI--oauth-device-flow-for-go-go-host-cli/reference/01-investigation-diary.md — Diary records validation
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/ttmp/2026/05/13/HOST-011-OAUTH-DEVICE-FLOW-CLI--oauth-device-flow-for-go-go-host-cli/sources/00-sources-readme.md — Validated source index included in uploaded bundle
 
+
+## 2026-05-13
+
+Step 4: implemented backend OIDC accepted-client support and device client config discovery
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/config/config.go — Added OIDC device client and accepted client IDs
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/handler.go — Publishes deviceClientId in /api/v1/config
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/oidc.go — Accepts tokens for any configured OIDC client by aud/azp
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/services/types.ts — Frontend type updated for deviceClientId
+

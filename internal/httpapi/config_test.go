@@ -15,6 +15,7 @@ func TestConfigResponseIncludesOIDCWhenDevAuthDisabled(t *testing.T) {
 	cfg.DevAuth = false
 	cfg.OIDCIssuer = "http://issuer.example/realms/go-go-host"
 	cfg.OIDCClientID = "dashboard"
+	cfg.OIDCDeviceClientID = "cli"
 	h := NewHandler(control.NewCoreWithStore(cfg, nil))
 
 	rec := httptest.NewRecorder()
@@ -30,7 +31,7 @@ func TestConfigResponseIncludesOIDCWhenDevAuthDisabled(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected oidc config in response: %#v", body)
 	}
-	if oidc["issuer"] != cfg.OIDCIssuer || oidc["clientId"] != cfg.OIDCClientID {
+	if oidc["issuer"] != cfg.OIDCIssuer || oidc["clientId"] != cfg.OIDCClientID || oidc["deviceClientId"] != cfg.OIDCDeviceClientID {
 		t.Fatalf("unexpected oidc config: %#v", oidc)
 	}
 }
