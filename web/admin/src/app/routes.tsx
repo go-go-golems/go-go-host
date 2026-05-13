@@ -28,6 +28,8 @@ import { AdminQuotasPage } from '../pages/AdminQuotasPage';
 import { AdminCapabilitiesPage } from '../pages/AdminCapabilitiesPage';
 import { AdminDomainsPage } from '../pages/AdminDomainsPage';
 import { AuthCallbackPage } from '../pages/AuthCallbackPage';
+import { DocsIndexPage } from '../pages/DocsIndexPage/DocsIndexPage';
+import { DocViewPage } from '../pages/DocViewPage/DocViewPage';
 
 export const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/app" replace /> },
@@ -60,6 +62,8 @@ export const router = createBrowserRouter([
       { path: 'deployments', element: <DeploymentsPage /> },
       { path: 'deployments/:deploymentId', element: <DeploymentDetailPage /> },
     ] },
+    { path: 'docs', element: <DocsIndexPage /> },
+    { path: 'docs/:slug', element: <DocViewPage /> },
     { path: 'agents', element: <AgentsPage /> },
     { path: 'audit', element: <AuditPage /> },
     { path: 'usage', element: <UsagePage /> },
