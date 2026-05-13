@@ -235,3 +235,23 @@ Steps taken:
 Commits:
 - `ddcaf29` — Add Go docs API endpoints
 - `5b7361d` — Integrate docs via API: RTK Query, MSW, page rewrites
+
+## 2026-05-12 — Real app integration via devctl
+
+Used `devctl up` to start the full dev stack (Postgres, Keycloak, go-go-hostd, web-admin Vite dev, Storybook).
+
+Steps:
+1. Started devctl: `devctl up --force --skip-build --skip-prepare`
+2. Logged in as alice/alice via Keycloak
+3. Created org "Demo Org" via API
+4. Navigated to `/app/orgs/<orgId>/docs` — docs index renders with all 13 docs, grouped by Tutorials and Reference, "agent" badges on agent-sourced docs
+5. Clicked into JS API Reference — full markdown body renders with syntax highlighting and copy buttons
+6. Zero console errors
+
+Fixed slug collision handling in `internal/httpapi/docfs/docfs.go`:
+- Old approach: prefix every slug with `host-` or `agent-` → double-prefixes like `host-host-agent-guide`
+- New approach: use slug from frontmatter as-is, only append `-agent` suffix when a slug collision is detected between host and agent docs
+- Updated MSW fixtures and Storybook story slugs to match
+
+Commits:
+- `67a49c8` — Fix doc slug collision handling and verify real app integration

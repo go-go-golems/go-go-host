@@ -51,3 +51,13 @@ Integrated docs via Go API endpoints, RTK Query hooks, MSW handlers, and rewrote
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/DocsIndexPage/DocsIndexPage.tsx — Rewritten to use useListDocsQuery
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/services/goGoHostApi.ts — Added listDocs and getDoc RTK Query endpoints
 
+
+## 2026-05-12
+
+Verified docs integration in the real app via devctl. Fixed slug collision handling to avoid double-prefixes.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/docfs/docfs.go — Fixed slug collision — use frontmatter slug directly
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/services/msw/fixtures.ts — Updated fixture slugs to match real API output
+
