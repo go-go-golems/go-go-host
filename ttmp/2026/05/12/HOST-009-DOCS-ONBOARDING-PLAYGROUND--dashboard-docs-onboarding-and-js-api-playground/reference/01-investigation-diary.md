@@ -215,3 +215,23 @@ Captured Storybook screenshots for:
 - `host-009-doc-view-js-api.png`
 
 All committed in `284e862`.
+
+## 2026-05-12 — Integrated docs via API
+
+User requested integrating the docs into the main page with API route and MSW, instead of static Vite `?raw` imports.
+
+Steps taken:
+
+1. **Go backend**: Added `GET /api/v1/docs` and `GET /api/v1/docs/{slug}` endpoints in `internal/httpapi/docfs/docfs.go`. The package reads the existing `embed.FS` from `cmd/go-go-host/doc` and `cmd/go-go-host-agent/doc`, parses YAML frontmatter, and serves a sorted catalogue (list without body) and individual docs (with body). Exported `DocFS()` accessor functions on the existing `doc.go` packages.
+
+2. **RTK Query**: Added `DocEntry` and `DocSection` types, `listDocs` and `getDoc` endpoints with `Docs` tag type, and exported `useListDocsQuery` / `useGetDocQuery` hooks.
+
+3. **MSW**: Added `docs` fixture array with all 13 doc entries, plus `GET /api/v1/docs` and `GET /api/v1/docs/:slug` handlers. The slug handler returns a mock body with markdown for the view page.
+
+4. **Pages rewrite**: `DocsIndexPage` and `DocViewPage` now use `useListDocsQuery()` and `useGetDocQuery()` respectively, with loading/error states.
+
+5. **Removed static imports**: Deleted `web/admin/src/services/docs/docs-data.ts` and the `vite-env.d.ts` `?raw` type declarations. Bundle size dropped from 1148 KB to 1094 KB.
+
+Commits:
+- `ddcaf29` — Add Go docs API endpoints
+- `5b7361d` — Integrate docs via API: RTK Query, MSW, page rewrites

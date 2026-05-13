@@ -37,3 +37,17 @@ Added MarkdownRenderer molecule with syntax highlighting (rehype-highlight), cli
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/DocsIndexPage/DocsIndexPage.tsx — Docs index page showing grouped doc catalogue
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/services/docs/docs-data.ts — Docs data module importing CLI docs via Vite ?raw
 
+
+## 2026-05-12
+
+Integrated docs via Go API endpoints, RTK Query hooks, MSW handlers, and rewrote DocsIndexPage/DocViewPage to use API data. Removed static ?raw imports.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/cmd/go-go-host-agent/doc/doc.go — Exported DocFS() accessor
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/cmd/go-go-host/doc/doc.go — Exported DocFS() accessor
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/internal/httpapi/docfs/docfs.go — Go docs API handler reading embedded CLI docs
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/DocViewPage/DocViewPage.tsx — Rewritten to use useGetDocQuery
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/pages/DocsIndexPage/DocsIndexPage.tsx — Rewritten to use useListDocsQuery
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/web/admin/src/services/goGoHostApi.ts — Added listDocs and getDoc RTK Query endpoints
+
