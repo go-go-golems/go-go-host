@@ -2,6 +2,7 @@ export * from './AgentStatusBadge';
 export * from './ConfirmActionDialog';
 export * from './DeploymentStatusPill';
 export * from './ManifestSummary';
+export * from './MarkdownRenderer';
 export * from './MetricCard';
 export * from './OrgSwitcher';
 export * from './RuntimeBadge';
