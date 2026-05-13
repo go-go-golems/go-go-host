@@ -31,6 +31,14 @@ topics:
       description: Project documentation, doc organization, and durable knowledge management.
     - slug: onboarding
       description: New contributor and intern onboarding material.
+    - slug: cli
+      description: 'HOST-011 OAuth Device Flow CLI topic: cli'
+    - slug: oauth
+      description: 'HOST-011 OAuth Device Flow CLI topic: oauth'
+    - slug: oidc
+      description: 'HOST-011 OAuth Device Flow CLI topic: oidc'
+    - slug: keycloak
+      description: 'HOST-011 OAuth Device Flow CLI topic: keycloak'
 docTypes:
     - slug: index
       description: Ticket index document.
