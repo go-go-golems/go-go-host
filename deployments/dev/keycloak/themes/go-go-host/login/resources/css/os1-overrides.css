@@ -40,6 +40,14 @@ body#kc-login {
   padding: 0 !important;
 }
 
+/* Constrain the page header to match the card width */
+#kc-header,
+.login-pf-page-header {
+  max-width: 500px !important;
+  margin: 0 auto !important;
+  width: 500px !important;
+}
+
 #kc-header-wrapper {
   /* OS1 window title bar with horizontal stripes */
   background: #fff !important;
@@ -48,21 +56,18 @@ body#kc-login {
     #111 0px, #111 1px,
     #fff 1px, #fff 2px
   ) !important;
-  border-bottom: 2px solid #111 !important;
-  border-top: 2px solid #111 !important;
+  border: 2px solid #111 !important;
+  border-bottom: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
   padding: 0.35rem 0.5rem !important;
   text-align: center !important;
-  font-size: 11px !important;
+  font-size: 0 !important;
   font-weight: 700 !important;
   color: #111 !important;
   letter-spacing: 0.02em !important;
   position: relative !important;
   overflow: hidden !important;
-}
-
-/* Hide the raw realm display name text node */
-#kc-header-wrapper {
-  font-size: 0 !important;
 }
 
 /* Center 'go-go-host' label on the striped background */
@@ -82,10 +87,21 @@ body#kc-login {
 
 .card-pf {
   border: 2px solid #111 !important;
+  border-top: none !important;
   border-radius: 0 !important;
   box-shadow: 4px 4px 0 #111 !important;
   background: #fff !important;
   padding: 0 !important;
+  margin-top: 0 !important;
+}
+
+/* Remove any gap between title bar and card */
+.login-pf-page-header + .card-pf {
+  margin-top: 0 !important;
+}
+
+#kc-header + .card-pf {
+  margin-top: -2px !important;
 }
 
 .login-pf-header {
@@ -203,8 +219,8 @@ a:link,
 
 a:hover,
 a:focus {
-  background: #111 !important;
-  color: #fff !important;
+  text-decoration: none !important;
+  outline: 1px solid #111 !important;
 }
 
 /* ── Alert / message boxes ────────────────────────────────── */
