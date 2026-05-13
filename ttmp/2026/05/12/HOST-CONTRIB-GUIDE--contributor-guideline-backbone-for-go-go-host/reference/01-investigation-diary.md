@@ -315,3 +315,52 @@ I implemented the repository-facing documentation set proposed by the design tic
   - `84b0a9f docs: add contributor guideline design ticket`
   - `8841717 docs: add contributor entrypoint and validation guides`
   - `aad3745 docs: add contributor architecture and subsystem guides`
+
+## Step 6: Refresh the project README
+
+I rewrote the top-level README so it matches the current v1 implementation instead of describing the repository as an early scaffold. The updated README now summarizes the daemon, CLIs, backend services, runtime, dashboard, docs API, local development commands, Postgres/Keycloak setup, deployment bundle model, hosted JavaScript capability model, and contribution docs.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Ok update the @go-go-host/README.md which is out of date by now"
+
+**Assistant interpretation:** Bring the repository README up to date with the current system state and the documentation set created in this ticket.
+
+**Inferred user intent:** New contributors should get an accurate first impression from the README without having to reconstruct the current platform state from tickets or source code.
+
+### What I did
+- Replaced the old phase-oriented README with a current project overview.
+- Added repository layout and architecture overview sections.
+- Added dashboard, local Postgres/Keycloak, build/test, deployment bundle, hosted capabilities, API/docs, CLI, and contributing sections.
+- Linked the new contributor docs and local development runbook.
+
+### Why
+- The old README still contained outdated language about scaffold phases and future work that is now implemented.
+- The README is the first stable entrypoint for humans and agents, so it should point to the contributor documentation backbone.
+
+### What worked
+- The new README aligns with the stable contributor docs added under `docs/`.
+- The local commands now match the current Makefile and development workflow.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The README should remain an overview and route readers to detailed docs instead of duplicating every contributor guide.
+
+### What was tricky to build
+- The README needed to be detailed enough to be accurate but not become another long architecture guide. I kept subsystem details in tables and linked to deeper docs.
+
+### What warrants a second pair of eyes
+- Verify the config-file descriptions and production-hardening status language match maintainer expectations.
+
+### What should be done in the future
+- Add a README update checklist to future milestone work so the README does not drift again.
+
+### Code review instructions
+- Review `README.md` top to bottom for accuracy.
+- Cross-check the API/docs and dashboard sections against current routes.
+- Cross-check local commands against `Makefile` and `docs/runbooks/local-development.md`.
+
+### Technical details
+- Modified file: `README.md`.

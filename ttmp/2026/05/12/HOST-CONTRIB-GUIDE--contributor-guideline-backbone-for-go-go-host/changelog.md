@@ -35,3 +35,12 @@ Implemented stable repository-facing contributor, architecture, validation, loca
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/docs/contributing/backend-service-guidelines.md — Backend guide
 - /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/docs/contributing/runtime-and-deployment-guidelines.md — Runtime/deployment guide
 
+
+## 2026-05-12
+
+Refreshed the top-level README to describe the current go-go-host v1 implementation, local workflows, dashboard/docs surfaces, deployment model, and contributor documentation.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-05-11/go-go-host-v1/go-go-host/README.md — Updated project entrypoint
+
