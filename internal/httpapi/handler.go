@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-go-golems/go-go-host/internal/control"
+	"github.com/go-go-golems/go-go-host/internal/httpapi/docfs"
 	"github.com/go-go-golems/go-go-host/internal/webadmin"
 )
 
@@ -94,6 +95,9 @@ func NewHandler(core *control.Core) http.Handler {
 	api.HandleFunc("GET /api/v1/admin/capabilities", handleAdminListCapabilities(core))
 	api.HandleFunc("GET /api/v1/admin/domains", handleAdminListDomains(core))
 	api.HandleFunc("POST /api/v1/admin/audit/retention", handleAuditRetention(core))
+	api.HandleFunc("GET /api/v1/docs", docfs.HandleListDocs)
+	api.HandleFunc("GET /api/v1/docs/{slug}", docfs.HandleGetDoc)
+
 	authn := &oidcAuthenticator{cfg: core.Config, st: core.Store}
 	authedAPI := authMiddleware(api, authn, core.Config.DevAuth)
 	mux.Handle("/api/v1/me", authedAPI)
@@ -102,6 +106,8 @@ func NewHandler(core *control.Core) http.Handler {
 	mux.Handle("/api/v1/sites/", authedAPI)
 	mux.Handle("/api/v1/deployments/", authedAPI)
 	mux.Handle("/api/v1/admin/", authedAPI)
+	mux.Handle("/api/v1/docs", authedAPI)
+	mux.Handle("/api/v1/docs/", authedAPI)
 	mux.Handle("/api/v1/agent/", api)
 
 	return withRequestID(rootRedirectHandler{next: withFallback(mux, core.Supervisor), dashboardHost: hostFromPublicBaseURL(core.Config.PublicBaseURL)})
