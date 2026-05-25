@@ -46,16 +46,8 @@ func getJSON(apiURL, path string, out any) error {
 	return requestJSON(http.MethodGet, apiURL, path, "", "", nil, out)
 }
 
-func getJSONAsDevUser(apiURL, path, devUser string, out any) error {
-	return requestJSON(http.MethodGet, apiURL, path, devUser, "", nil, out)
-}
-
 func getJSONWithAuth(apiURL, path, devUser, bearerToken string, out any) error {
 	return requestJSON(http.MethodGet, apiURL, path, devUser, bearerToken, nil, out)
-}
-
-func postJSONAsDevUser(apiURL, path, devUser string, in, out any) error {
-	return requestJSON(http.MethodPost, apiURL, path, devUser, "", in, out)
 }
 
 func postJSONWithAuth(apiURL, path, devUser, bearerToken string, in, out any) error {

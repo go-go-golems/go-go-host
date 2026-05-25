@@ -57,7 +57,7 @@ func firstSQLToken(query string) string {
 		return ""
 	}
 	for i, r := range s {
-		if !(r == '_' || r == '-' || r >= '0' && r <= '9' || r >= 'A' && r <= 'Z' || r >= 'a' && r <= 'z') {
+		if r != '_' && r != '-' && (r < '0' || r > '9') && (r < 'A' || r > 'Z') && (r < 'a' || r > 'z') {
 			return strings.ToUpper(s[:i])
 		}
 	}

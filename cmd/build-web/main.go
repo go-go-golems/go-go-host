@@ -3,8 +3,9 @@
 // internal/webadmin/dist for go:embed.
 //
 // Usage:
-//   go run ./cmd/build-web
-//   BUILD_WEB_LOCAL=1 go run ./cmd/build-web
+//
+//	go run ./cmd/build-web
+//	BUILD_WEB_LOCAL=1 go run ./cmd/build-web
 package main
 
 import (
@@ -25,7 +26,7 @@ import (
 
 const (
 	defaultBuilderImage = "node:22"
-	defaultPNPMVersion = "10.13.1"
+	defaultPNPMVersion  = "10.13.1"
 )
 
 func main() {
@@ -88,7 +89,7 @@ func runDagger(ctx context.Context, repoRoot string) error {
 	if err != nil {
 		return fmt.Errorf("temp dir: %w", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 	if _, err := container.Directory("/src/dist").Export(ctx, tmpDir); err != nil {
 		return fmt.Errorf("export dist: %w", err)
 	}
@@ -101,10 +102,10 @@ func runDagger(ctx context.Context, repoRoot string) error {
 
 func runLocal(repoRoot string) error {
 	webDir := filepath.Join(repoRoot, "web", "admin")
-	if err := runCmd(webDir, "pnpm", "install", "--frozen-lockfile", "--prefer-offline"); err != nil {
+	if err := runPNPM(webDir, "install", "--frozen-lockfile", "--prefer-offline"); err != nil {
 		return fmt.Errorf("pnpm install (local): %w", err)
 	}
-	if err := runCmd(webDir, "pnpm", "run", "build"); err != nil {
+	if err := runPNPM(webDir, "run", "build"); err != nil {
 		return fmt.Errorf("pnpm run build (local): %w", err)
 	}
 	if err := copyDistToEmbed(repoRoot, filepath.Join(webDir, "dist")); err != nil {
@@ -130,7 +131,9 @@ func readPNPMVersion(webDir string) string {
 	if err != nil {
 		return ""
 	}
-	var pkg struct{ PackageManager string `json:"packageManager"` }
+	var pkg struct {
+		PackageManager string `json:"packageManager"`
+	}
 	if err := json.Unmarshal(data, &pkg); err != nil {
 		return ""
 	}
@@ -162,8 +165,9 @@ func getenv(key, def string) string {
 	return def
 }
 
-func runCmd(dir, name string, args ...string) error {
-	cmd := exec.Command(name, args...)
+func runPNPM(dir string, args ...string) error {
+	// #nosec G204 -- command is fixed to pnpm; only controlled subcommands/arguments are supplied.
+	cmd := exec.Command("pnpm", args...)
 	cmd.Dir = dir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -196,17 +200,21 @@ func copyTree(src, dst string) error {
 		if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
 			return err
 		}
+		// #nosec G122 -- filepath.WalkDir provides p from the trusted build output tree.
 		in, err := os.Open(p)
 		if err != nil {
 			return err
 		}
-		defer in.Close()
+		defer func() { _ = in.Close() }()
 		out, err := os.Create(target)
 		if err != nil {
 			return err
 		}
-		defer out.Close()
-		_, err = io.Copy(out, in)
-		return err
+		_, copyErr := io.Copy(out, in)
+		closeErr := out.Close()
+		if copyErr != nil {
+			return copyErr
+		}
+		return closeErr
 	})
 }

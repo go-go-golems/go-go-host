@@ -7,8 +7,8 @@ import (
 	"sort"
 	"strings"
 
-	hostdoc "github.com/go-go-golems/go-go-host/cmd/go-go-host/doc"
 	agentdoc "github.com/go-go-golems/go-go-host/cmd/go-go-host-agent/doc"
+	hostdoc "github.com/go-go-golems/go-go-host/cmd/go-go-host/doc"
 )
 
 // DocEntry is the JSON shape returned by the docs API.
@@ -26,8 +26,8 @@ var seenSlugs = map[string]struct{}{}
 
 func init() {
 	type source struct {
-		fs     http.FileSystem
-		name   string
+		fs   http.FileSystem
+		name string
 	}
 	sources := []source{
 		{http.FS(hostdoc.DocFS()), "host"},
@@ -40,7 +40,9 @@ func init() {
 			continue
 		}
 		entries, err := f.Readdir(-1)
-		f.Close()
+		if closeErr := f.Close(); closeErr != nil && err == nil {
+			err = closeErr
+		}
 		if err != nil {
 			continue
 		}

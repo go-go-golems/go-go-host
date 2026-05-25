@@ -52,7 +52,7 @@ func (s *Store) ApplyMigrations(ctx context.Context) error {
 	if _, err := s.pool.Exec(ctx, `SELECT pg_advisory_lock(hashtext('go_go_host_migrations'))`); err != nil {
 		return fmt.Errorf("acquire migration lock: %w", err)
 	}
-	defer s.pool.Exec(ctx, `SELECT pg_advisory_unlock(hashtext('go_go_host_migrations'))`)
+	defer func() { _, _ = s.pool.Exec(ctx, `SELECT pg_advisory_unlock(hashtext('go_go_host_migrations'))`) }()
 	if _, err := s.pool.Exec(ctx, `CREATE TABLE IF NOT EXISTS schema_migrations (name TEXT PRIMARY KEY, applied_at TIMESTAMPTZ NOT NULL DEFAULT now())`); err != nil {
 		return fmt.Errorf("ensure schema_migrations: %w", err)
 	}
@@ -80,7 +80,7 @@ func (s *Store) applyMigration(ctx context.Context, name string) error {
 	if err != nil {
 		return fmt.Errorf("begin migration %s: %w", name, err)
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 	var alreadyApplied bool
 	if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM schema_migrations WHERE name = $1)`, name).Scan(&alreadyApplied); err != nil {
 		return fmt.Errorf("check migration %s: %w", name, err)
@@ -118,7 +118,7 @@ func (s *Store) WithTx(ctx context.Context, fn func(*storedb.Queries) error) err
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 	if err := fn(s.q.WithTx(tx)); err != nil {
 		return err
 	}

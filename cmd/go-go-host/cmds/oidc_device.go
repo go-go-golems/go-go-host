@@ -3,7 +3,6 @@ package cmds
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -13,8 +12,6 @@ import (
 )
 
 const deviceCodeGrantType = "urn:ietf:params:oauth:grant-type:device_code"
-
-var errAuthorizationPending = errors.New("authorization pending")
 
 type publicConfigResponse struct {
 	DevAuth bool              `json:"devAuth"`

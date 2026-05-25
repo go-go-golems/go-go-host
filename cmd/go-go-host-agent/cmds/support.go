@@ -216,6 +216,7 @@ func saveConfig(path string, cfg AgentConfig) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 		return err
 	}
+	// #nosec G117 -- agent config intentionally persists the private key with 0600 permissions.
 	b, _ := json.MarshalIndent(cfg, "", "  ")
 	return os.WriteFile(path, b, 0o600)
 }

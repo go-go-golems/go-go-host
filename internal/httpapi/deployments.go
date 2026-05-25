@@ -27,8 +27,11 @@ type deploymentDTO struct {
 	BundleSHA256   string `json:"bundleSha256"`
 }
 
-type rollbackRequest struct {
-	SiteID string `json:"siteId"`
+const maxBundleUploadBytes = 64 << 20
+
+func removeTempBundle(path string) {
+	// #nosec G703 -- path comes from os.CreateTemp and is removed during request cleanup.
+	_ = os.Remove(path)
 }
 
 func handleUploadDeployment(core *control.Core) http.HandlerFunc {
@@ -38,7 +41,9 @@ func handleUploadDeployment(core *control.Core) http.HandlerFunc {
 			writeError(w, http.StatusUnauthorized, err.Error())
 			return
 		}
-		if err := r.ParseMultipartForm(64 << 20); err != nil {
+		r.Body = http.MaxBytesReader(w, r.Body, maxBundleUploadBytes)
+		// #nosec G120 -- request body is bounded by http.MaxBytesReader immediately above.
+		if err := r.ParseMultipartForm(maxBundleUploadBytes); err != nil {
 			writeError(w, http.StatusBadRequest, "expected multipart form with bundle file")
 			return
 		}
@@ -53,7 +58,7 @@ func handleUploadDeployment(core *control.Core) http.HandlerFunc {
 			writeError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		defer os.Remove(tmp.Name())
+		defer removeTempBundle(tmp.Name())
 		if _, err := io.Copy(tmp, file); err != nil {
 			_ = tmp.Close()
 			writeError(w, http.StatusInternalServerError, err.Error())
@@ -80,7 +85,9 @@ func handleAgentDeployRunUpload(core *control.Core) http.HandlerFunc {
 			writeDeploymentError(w, err)
 			return
 		}
-		if err := r.ParseMultipartForm(64 << 20); err != nil {
+		r.Body = http.MaxBytesReader(w, r.Body, maxBundleUploadBytes)
+		// #nosec G120 -- request body is bounded by http.MaxBytesReader immediately above.
+		if err := r.ParseMultipartForm(maxBundleUploadBytes); err != nil {
 			writeError(w, http.StatusBadRequest, "expected multipart form with bundle file")
 			return
 		}
@@ -95,7 +102,7 @@ func handleAgentDeployRunUpload(core *control.Core) http.HandlerFunc {
 			writeError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		defer os.Remove(tmp.Name())
+		defer removeTempBundle(tmp.Name())
 		if _, err := io.Copy(tmp, file); err != nil {
 			_ = tmp.Close()
 			writeError(w, http.StatusInternalServerError, err.Error())

@@ -71,6 +71,7 @@ func (m *SessionManager) Session(w http.ResponseWriter, r *http.Request) (*Sessi
 	if err != nil {
 		return nil, err
 	}
+	// #nosec G124 -- Secure is configurable so local HTTP development can use site sessions.
 	http.SetCookie(w, &http.Cookie{
 		Name:     m.opts.CookieName,
 		Value:    id,

@@ -13,7 +13,7 @@ import (
 func TestSiteRuntimeRendersFixture(t *testing.T) {
 	ctx := context.Background()
 	rt := newFixtureRuntime(t, ctx)
-	defer rt.Close(ctx)
+	defer func() { _ = rt.Close(ctx) }()
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "http://hello.localhost/", nil)
@@ -30,7 +30,7 @@ func TestSiteRuntimeRendersFixture(t *testing.T) {
 func TestDatabaseConfigureDisabled(t *testing.T) {
 	ctx := context.Background()
 	rt := newFixtureRuntime(t, ctx)
-	defer rt.Close(ctx)
+	defer func() { _ = rt.Close(ctx) }()
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "http://hello.localhost/config-test", nil)
@@ -47,7 +47,7 @@ func TestDatabaseConfigureDisabled(t *testing.T) {
 func TestRuntimeHealthCheck(t *testing.T) {
 	ctx := context.Background()
 	rt := newFixtureRuntime(t, ctx)
-	defer rt.Close(ctx)
+	defer func() { _ = rt.Close(ctx) }()
 
 	if err := rt.HealthCheck(ctx); err != nil {
 		t.Fatalf("health check failed: %v", err)
@@ -70,7 +70,7 @@ func TestDBHardLimitCanFailRuntimeWrites(t *testing.T) {
 func TestExecAndFSUnavailableByDefault(t *testing.T) {
 	ctx := context.Background()
 	rt := newFixtureRuntime(t, ctx)
-	defer rt.Close(ctx)
+	defer func() { _ = rt.Close(ctx) }()
 
 	for _, moduleName := range []string{"exec", "fs"} {
 		moduleName := moduleName

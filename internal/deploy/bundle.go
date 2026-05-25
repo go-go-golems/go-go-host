@@ -151,6 +151,7 @@ func ValidateAndStore(ctx context.Context, srcPath, archiveDest, unpackDest stri
 		return nil, ctx.Err()
 	default:
 	}
+	// #nosec G703 -- archiveDest is constructed by the deployment service inside the configured data directory.
 	if err := os.WriteFile(archiveDest, archiveBytes, 0o644); err != nil {
 		return nil, err
 	}
@@ -217,12 +218,12 @@ func readTarGz(path string) ([]archiveFile, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	gz, err := gzip.NewReader(f)
 	if err != nil {
 		return nil, err
 	}
-	defer gz.Close()
+	defer func() { _ = gz.Close() }()
 	tr := tar.NewReader(gz)
 	out := []archiveFile{}
 	for {
@@ -253,7 +254,7 @@ func readZip(path string) ([]archiveFile, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer zr.Close()
+	defer func() { _ = zr.Close() }()
 	out := []archiveFile{}
 	for _, f := range zr.File {
 		if f.FileInfo().IsDir() {

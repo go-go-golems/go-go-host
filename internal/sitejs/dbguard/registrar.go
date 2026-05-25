@@ -2,6 +2,7 @@ package dbguard
 
 import (
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/dop251/goja"
@@ -97,8 +98,14 @@ func int64From(v any) int64 {
 	case float32:
 		return int64(x)
 	case uint64:
+		if x > math.MaxInt64 {
+			return math.MaxInt64
+		}
 		return int64(x)
 	case uint:
+		if uint64(x) > math.MaxInt64 {
+			return math.MaxInt64
+		}
 		return int64(x)
 	case string:
 		var n int64

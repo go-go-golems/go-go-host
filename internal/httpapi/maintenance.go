@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -55,8 +56,7 @@ func handleExportSiteDB(core *control.Core) http.HandlerFunc {
 			writeDownloadError(w, err)
 			return
 		}
-		w.Header().Set("Content-Disposition", `attachment; filename="`+r.PathValue("site_id")+`.sqlite"`)
-		http.ServeFile(w, r, path)
+		serveDownloadFile(w, r, path, r.PathValue("site_id")+`.sqlite`)
 	}
 }
 
@@ -73,8 +73,7 @@ func handleExportDeploymentBundle(core *control.Core) http.HandlerFunc {
 			return
 		}
 		name := dep.ID + filepath.Ext(path)
-		w.Header().Set("Content-Disposition", `attachment; filename="`+name+`"`)
-		http.ServeFile(w, r, path)
+		serveDownloadFile(w, r, path, name)
 	}
 }
 
@@ -164,4 +163,21 @@ func writeDownloadError(w http.ResponseWriter, err error) {
 		return
 	}
 	writeError(w, http.StatusNotFound, err.Error())
+}
+
+func serveDownloadFile(w http.ResponseWriter, r *http.Request, path, downloadName string) {
+	// #nosec G703 -- callers obtain path from MaintenanceService after authorization and data-dir containment checks.
+	f, err := os.Open(path)
+	if err != nil {
+		writeDownloadError(w, err)
+		return
+	}
+	defer func() { _ = f.Close() }()
+	stat, err := f.Stat()
+	if err != nil {
+		writeDownloadError(w, err)
+		return
+	}
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%q", filepath.Base(downloadName)))
+	http.ServeContent(w, r, stat.Name(), stat.ModTime(), f)
 }

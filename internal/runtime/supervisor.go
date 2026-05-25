@@ -112,7 +112,7 @@ func (s *Supervisor) Activate(ctx context.Context, spec Spec) error {
 	s.persistStatus(ctx, readyStatus)
 
 	if old != nil {
-		go func() { _ = old.Close(context.Background()) }()
+		go func() { _ = old.Close(ctx) }()
 	}
 	return nil
 }

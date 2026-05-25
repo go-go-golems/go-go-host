@@ -67,6 +67,7 @@ func saveCLIConfig(cfg CLIConfig) (string, error) {
 	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 		return "", fmt.Errorf("create CLI config directory: %w", err)
 	}
+	// #nosec G117 -- CLI config intentionally persists OAuth credentials with 0600 permissions.
 	data, err := yaml.Marshal(cfg)
 	if err != nil {
 		return "", fmt.Errorf("marshal CLI config: %w", err)
