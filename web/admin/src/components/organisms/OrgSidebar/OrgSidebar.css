@@ -1,0 +1,36 @@
+.org-sidebar {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.org-sidebar button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  text-align: left;
+  font-family: var(--hc-font-family);
+  border: 2px solid transparent;
+  background: transparent;
+  color: var(--hc-color-fg);
+  padding: 0.4rem 0.5rem;
+  cursor: pointer;
+}
+
+.org-sidebar button::before {
+  content: '▸';
+  opacity: 0;
+}
+
+.org-sidebar button[data-active='true'],
+.org-sidebar button:hover {
+  border-color: var(--hc-color-border);
+  background: var(--hc-color-fg);
+  color: var(--hc-color-bg);
+}
+
+.org-sidebar button[data-active='true']::before,
+.org-sidebar button:hover::before {
+  opacity: 1;
+}

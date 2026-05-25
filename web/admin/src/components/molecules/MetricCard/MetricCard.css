@@ -1,0 +1,30 @@
+.metric-card {
+  display: grid;
+  gap: 0.25rem;
+  border: 2px solid var(--hc-color-border, #111);
+  background: var(--hc-color-bg, #fff);
+  padding: 0.75rem;
+  min-width: 10rem;
+  box-shadow: 2px 2px 0 var(--hc-color-border, #111);
+}
+
+.metric-card span,
+.metric-card small {
+  color: var(--hc-color-muted, #555);
+}
+
+.metric-card strong {
+  display: inline-flex;
+  width: fit-content;
+  border: 1px solid var(--hc-color-border, #111);
+  padding: 0.1rem 0.35rem;
+  background: var(--hc-color-bg, #fff);
+}
+
+.metric-card[data-tone='danger'] strong {
+  background: color-mix(in srgb, #ff9b9b 30%, var(--hc-color-bg, #fff));
+}
+
+.metric-card[data-tone='success'] strong {
+  background: color-mix(in srgb, #8fd18f 30%, var(--hc-color-bg, #fff));
+}

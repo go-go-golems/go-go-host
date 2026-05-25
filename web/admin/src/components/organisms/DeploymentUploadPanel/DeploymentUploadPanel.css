@@ -1,0 +1,28 @@
+.deployment-upload-panel {
+  display: grid;
+  gap: 1rem;
+  border: 2px solid var(--hc-color-border);
+  background: var(--hc-color-bg);
+  padding: 0.85rem;
+  box-shadow: 2px 2px 0 var(--hc-color-border);
+  font-size: var(--ggh-font-sm);
+}
+
+.deployment-upload-panel h2 { margin: 0; }
+
+.deployment-upload-panel form {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.deployment-upload-panel label {
+  display: grid;
+  gap: 0.25rem;
+  font-weight: 700;
+}
+
+.deployment-upload-panel__result {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}

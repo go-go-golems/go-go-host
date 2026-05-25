@@ -1,0 +1,19 @@
+listenAddr: "127.0.0.1:8080"
+publicBaseUrl: "http://127.0.0.1:8080"
+baseDomain: "localhost"
+dataDir: "./data"
+controlDbDsn: "postgres://go_go_host:go_go_host_dev@127.0.0.1:55432/go_go_host?sslmode=disable"
+oidcIssuer: "http://127.0.0.1:18080/realms/go-go-host"
+oidcClientId: "go-go-host-dashboard"
+oidcScopes: ["openid", "profile", "email"]
+oidcRedirectPath: "/app/auth/callback"
+oidcLogoutRedirectPath: "/app"
+devAuth: false
+platformAdminOIDCRoles:
+  - "go-go-host-admin"
+platformAdminEmails:
+  - "admin@example.test"
+logLevel: "info"
+readTimeout: 15s
+writeTimeout: 30s
+shutdownTimeout: 5s

@@ -1,0 +1,46 @@
+.agent-keys-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--hc-color-bg);
+  border: 2px solid var(--hc-color-border);
+  box-shadow: 2px 2px 0 var(--hc-color-border);
+  font-size: var(--ggh-font-sm);
+}
+
+.agent-keys-table th,
+.agent-keys-table td {
+  border: 1px solid var(--hc-color-border);
+  padding: 0.5rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.agent-keys-table th {
+  background: var(--hc-color-fg);
+  color: var(--hc-color-bg);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.agent-keys-table small {
+  color: var(--hc-color-muted);
+  word-break: break-all;
+}
+
+.agent-keys-table__status {
+  border: 1px solid currentColor;
+  padding: 0.1rem 0.35rem;
+  text-transform: uppercase;
+  font-size: var(--ggh-font-xs);
+  background: var(--hc-color-bg);
+}
+
+.agent-keys-table__status--active {
+  color: #115c18;
+  background: color-mix(in srgb, #8fd18f 18%, var(--hc-color-bg));
+}
+
+.agent-keys-table__status--revoked {
+  color: #8a1111;
+  background: color-mix(in srgb, #ff9b9b 18%, var(--hc-color-bg));
+}

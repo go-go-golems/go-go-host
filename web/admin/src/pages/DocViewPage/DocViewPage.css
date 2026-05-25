@@ -1,0 +1,73 @@
+.doc-view-page {
+  display: grid;
+  gap: 1rem;
+  font-size: var(--ggh-font-sm, 13px);
+}
+
+.doc-view-page__header {
+  padding-bottom: 0.5rem;
+}
+
+.doc-view-page__breadcrumb {
+  font-size: var(--ggh-font-xs, 12px);
+  color: var(--hc-color-fg, #555);
+  margin-bottom: 0.25rem;
+}
+
+.doc-view-page__breadcrumb a {
+  color: var(--hc-color-accent, #0066cc);
+  text-decoration: none;
+}
+
+.doc-view-page__breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.doc-view-page__sep {
+  margin: 0 0.3rem;
+}
+
+.doc-view-page__header header h1 {
+  font-size: var(--ggh-font-lg, 15px);
+  margin: 0 0 0.25rem;
+}
+
+.doc-view-page__header header p {
+  margin: 0;
+  color: var(--hc-color-fg, #555);
+  font-size: var(--ggh-font-xs, 12px);
+}
+
+.doc-view-page__body {
+  overflow-x: auto;
+  min-width: 0;
+}
+
+.doc-view-page__body .markdown-renderer {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.doc-view-page__body .markdown-renderer pre {
+  max-width: 100%;
+}
+
+.doc-view-page__nav {
+  border-top: 2px solid var(--hc-color-border, #111);
+}
+
+.doc-view-page__prevnext {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.doc-view-page__navlink {
+  font-size: var(--ggh-font-sm, 13px);
+  color: var(--hc-color-accent, #0066cc);
+  text-decoration: none;
+}
+
+.doc-view-page__navlink:hover {
+  text-decoration: underline;
+}

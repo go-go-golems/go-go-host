@@ -14,6 +14,12 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 dist/
+!internal/webadmin/dist/
+!internal/webadmin/dist/**
+node_modules/
+storybook-static/
+.devctl/
+data/
 
 # misc files and directories
 .env

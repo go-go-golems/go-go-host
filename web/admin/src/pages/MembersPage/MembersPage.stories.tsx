@@ -1,0 +1,11 @@
+import type { Meta, StoryObj } from '@storybook/react';
+import { http, HttpResponse } from 'msw';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MembersPage } from './MembersPage';
+import { fixtures } from '../../services/msw/fixtures';
+const Wrapped = () => <MemoryRouter initialEntries={['/app/orgs/org_123/members']}><Routes><Route path="/app/orgs/:orgId/members" element={<MembersPage />} /></Routes></MemoryRouter>;
+const meta = { title: 'Pages/MembersPage', component: Wrapped } satisfies Meta<typeof Wrapped>;
+export default meta; type Story = StoryObj<typeof meta>;
+export const CurrentMembership: Story = {};
+export const RoleVariants: Story = { parameters: { msw: { handlers: [http.get('/api/v1/me', () => HttpResponse.json({ ...fixtures.me, memberships: [{ orgId: 'org_123', orgSlug: 'owner', orgName: 'Owner Org', role: 'org_owner' }, { orgId: 'org_456', orgSlug: 'dev', orgName: 'Dev Org', role: 'org_developer' }, { orgId: 'org_789', orgSlug: 'view', orgName: 'View Org', role: 'org_viewer' }] }))] } } };
+export const Empty: Story = { parameters: { msw: { handlers: [http.get('/api/v1/me', () => HttpResponse.json({ ...fixtures.me, memberships: [] }))] } } };

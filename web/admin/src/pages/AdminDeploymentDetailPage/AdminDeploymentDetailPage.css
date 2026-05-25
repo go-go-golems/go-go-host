@@ -1,0 +1,7 @@
+.admin-deployment-detail-page { display: grid; gap: 1rem; }
+.admin-deployment-detail-page__header { display: flex; align-items: start; justify-content: space-between; gap: 1rem; }
+.admin-deployment-detail-page__header h1 { margin: 0.35rem 0; overflow-wrap: anywhere; }
+.admin-deployment-detail-page__header p { margin: 0; color: var(--hc-color-muted); }
+.admin-deployment-detail-page__meta dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 0.4rem 1rem; }
+.admin-deployment-detail-page__meta dt { font-weight: 700; }
+.admin-deployment-detail-page code { font-family: var(--hc-font-family); overflow-wrap: anywhere; }

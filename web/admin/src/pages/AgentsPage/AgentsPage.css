@@ -1,0 +1,101 @@
+.agents-page {
+  display: grid;
+  gap: 1rem;
+  font-size: var(--ggh-font-sm);
+}
+
+.agents-page .dashboard-panel > header:first-child {
+  display: grid !important;
+  grid-template-columns: 1fr;
+  gap: 0.35rem;
+  align-items: start;
+}
+
+.agents-page h1,
+.agents-page h2,
+.agents-page p {
+  margin: 0;
+}
+
+.agents-page__notice,
+.agents-page__create,
+.agents-page__section {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.agents-page__create form {
+  display: grid;
+  grid-template-columns: minmax(14rem, 1fr) minmax(22rem, 1.4fr) auto;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.agents-page__create label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 700;
+}
+
+.agents-page__create input {
+  width: 100%;
+  font-family: var(--hc-font-family);
+  border: 2px solid var(--hc-color-border);
+  background: var(--hc-color-bg);
+  color: var(--hc-color-fg);
+  padding: 0.35rem 0.5rem;
+  box-shadow: 1px 1px 0 var(--hc-color-border);
+  box-sizing: border-box;
+}
+
+.agents-page__danger {
+  display: grid;
+  gap: 0.35rem;
+  border: 2px solid var(--hc-color-border);
+  padding: 0.45rem 0.55rem;
+  background: color-mix(in srgb, #ffd966 24%, var(--hc-color-bg));
+}
+
+.agents-page__danger p {
+  color: var(--hc-color-muted);
+  font-size: var(--ggh-font-xs);
+}
+
+.agents-page__danger [data-part="checkbox"] {
+  width: max-content;
+  background: transparent;
+}
+
+.agents-page__danger [data-part="checkbox-mark"] {
+  background: var(--hc-color-bg);
+}
+
+.agents-page__token {
+  display: inline-block;
+  width: fit-content;
+  border: 2px solid var(--hc-color-border);
+  background: color-mix(in srgb, #ffd966 24%, var(--hc-color-bg));
+  padding: 0.35rem 0.5rem;
+}
+
+.agents-page code {
+  font-size: var(--ggh-font-code);
+  word-break: break-all;
+}
+
+.agents-page__highlight {
+  padding: 0;
+  font-weight: 700;
+}
+
+.agents-page__highlight--safe,
+.agents-page__highlight--info,
+.agents-page__highlight--danger {
+  background: transparent;
+}
+
+@media (max-width: 920px) {
+  .agents-page__create form {
+    grid-template-columns: 1fr;
+  }
+}

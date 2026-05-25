@@ -1,0 +1,6 @@
+plugins:
+  - id: go-go-host
+    path: python3
+    args:
+      - ./plugins/go-go-host-devctl.py
+    priority: 10

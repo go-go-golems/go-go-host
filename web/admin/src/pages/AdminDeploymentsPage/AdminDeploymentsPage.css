@@ -1,0 +1,2 @@
+.admin-deployments-page > header { display: flex; align-items: start; justify-content: space-between; gap: 1rem; }
+.admin-deployments-page select { font: inherit; border: 1px solid var(--hc-color-border); background: var(--hc-color-bg); color: var(--hc-color-fg); padding: 0.2rem 0.35rem; }

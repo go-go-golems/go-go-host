@@ -1,0 +1,35 @@
+.json-editor {
+  min-height: 8rem;
+  border: 2px solid var(--hc-color-border);
+  background: var(--hc-color-bg);
+  box-shadow: 2px 2px 0 var(--hc-color-border);
+  font-size: var(--ggh-font-code, 11px);
+}
+
+.json-editor .cm-editor {
+  min-height: 8rem;
+  background: var(--hc-color-bg);
+  color: var(--hc-color-fg);
+  outline: none;
+  font-size: var(--ggh-font-code, 11px);
+}
+
+.json-editor .cm-focused {
+  outline: 2px solid var(--hc-color-accent, var(--hc-color-border));
+  outline-offset: 2px;
+}
+
+.json-editor .cm-gutters {
+  background: color-mix(in srgb, var(--hc-color-desktop-bg) 45%, var(--hc-color-bg));
+  color: var(--hc-color-muted);
+  border-right: 2px solid var(--hc-color-border);
+}
+
+.json-editor .cm-activeLine,
+.json-editor .cm-activeLineGutter {
+  background: color-mix(in srgb, var(--hc-color-desktop-bg) 30%, transparent);
+}
+
+.json-editor .cm-content {
+  caret-color: var(--hc-color-border);
+}

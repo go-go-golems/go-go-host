@@ -1,0 +1,16 @@
+.empty-state {
+  border: 2px dashed var(--hc-color-border, #111);
+  border-radius: 0;
+  padding: 1rem;
+  text-align: center;
+  color: var(--hc-color-muted, #555);
+  background: var(--hc-color-bg, #fff);
+}
+
+.empty-state h2 {
+  color: var(--hc-color-fg, #111);
+  margin-top: 0;
+  font-size: 14px;
+}
+
+.empty-state__action { margin-top: 0.75rem; }

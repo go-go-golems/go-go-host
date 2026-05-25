@@ -1,0 +1,4 @@
+.members-table { width: 100%; border-collapse: collapse; background: var(--hc-color-bg); border: 1px solid var(--hc-color-border); }
+.members-table th, .members-table td { border: 1px solid var(--hc-color-border); padding: 0.45rem; text-align: left; }
+.members-table th { background: var(--hc-color-fg); color: var(--hc-color-bg); }
+.members-table small { color: var(--hc-color-muted); }

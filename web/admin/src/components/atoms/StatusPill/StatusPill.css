@@ -1,0 +1,32 @@
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--hc-color-border, #111);
+  border-radius: 0;
+  padding: 0.1rem 0.4rem;
+  font-size: var(--ggh-font-xs, 10px);
+  font-weight: 700;
+  text-transform: capitalize;
+  color: var(--hc-color-fg, #111);
+  background: var(--hc-color-bg, #fff);
+}
+
+.status-pill[data-tone='success'] {
+  background: color-mix(in srgb, #8fd18f 30%, var(--hc-color-bg, #fff));
+}
+
+.status-pill[data-tone='danger'] {
+  background: color-mix(in srgb, #ff9b9b 30%, var(--hc-color-bg, #fff));
+}
+
+.status-pill[data-tone='warning'] {
+  background: color-mix(in srgb, #ffd966 34%, var(--hc-color-bg, #fff));
+}
+
+.status-pill[data-tone='info'] {
+  background: color-mix(in srgb, #8fb7d1 30%, var(--hc-color-bg, #fff));
+}
+
+.status-pill[data-tone='neutral'] {
+  background: color-mix(in srgb, var(--hc-color-desktop-bg, #ddd) 45%, var(--hc-color-bg, #fff));
+}

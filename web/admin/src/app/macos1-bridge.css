@@ -1,0 +1,254 @@
+/* Temporary dashboard bridge: keep only app-specific legacy class mappings here.
+   Theme tokens come from @go-go-golems/os-core. */
+[data-widget="hypercard"].theme-macos1 {
+  --hc-color-desktop-bg: #fff;
+  min-height: 100vh;
+  background: #fff;
+  color: var(--hc-color-fg);
+  --ggh-font-xs: 10px;
+  --ggh-font-sm: 11px;
+  --ggh-font-md: 12px;
+  --ggh-font-lg: 16px;
+  --ggh-font-code: 11px;
+  font-family: var(--hc-font-family);
+  font-size: var(--ggh-font-sm);
+  /* Override OS desktop shell overflow: hidden — the dashboard
+     is a scrollable document, not a fixed-viewport desktop. */
+  overflow: visible !important;
+  height: auto !important;
+}
+
+/* The icon-layer (desktop background) must also allow scroll. */
+[data-widget="hypercard"].theme-macos1 [data-part="windowing-icon-layer"] {
+  overflow: visible !important;
+  position: relative !important;
+  inset: auto !important;
+  height: auto !important;
+}
+
+/* The window-layer must also flow naturally. */
+[data-widget="hypercard"].theme-macos1 [data-part="windowing-window-layer"] {
+  position: relative !important;
+  inset: auto !important;
+  pointer-events: auto !important;
+}
+
+/* Windows inside the dashboard should flow in document order, not be absolutely positioned. */
+[data-widget="hypercard"].theme-macos1 [data-part="windowing-window"] {
+  position: relative !important;
+  overflow: visible !important;
+  height: auto !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
+}
+
+[data-widget="hypercard"].theme-macos1 .dashboard-shell {
+  background: #fff;
+  color: var(--hc-color-fg);
+  font-family: var(--hc-font-family);
+}
+
+[data-widget="hypercard"].theme-macos1 .dashboard-topbar,
+[data-widget="hypercard"].theme-macos1 .site-card,
+[data-widget="hypercard"].theme-macos1 .empty-state,
+[data-widget="hypercard"].theme-macos1 .code-block {
+  background: var(--hc-color-bg);
+  color: var(--hc-color-fg);
+  border: 2px solid var(--hc-color-border);
+  border-radius: var(--hc-window-border-radius, var(--hc-border-radius));
+  box-shadow: var(--hc-window-shadow);
+}
+
+[data-widget="hypercard"].theme-macos1 .dashboard-panel {
+  position: relative;
+  display: grid;
+  grid-auto-rows: max-content;
+  align-content: start;
+  gap: 1rem;
+  min-height: 0;
+  padding: 2.35rem 1rem 1rem;
+  background: var(--hc-window-body-bg, var(--hc-color-bg));
+  color: var(--hc-color-fg);
+  border: 2px solid var(--hc-color-border);
+  border-radius: var(--hc-window-border-radius, var(--hc-border-radius));
+  box-shadow: var(--hc-window-shadow);
+  overflow: visible;
+}
+
+[data-widget="hypercard"].theme-macos1 .dashboard-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1.45rem;
+  border-bottom: 2px solid var(--hc-color-border);
+  background: var(--hc-window-title-focused-bg, var(--hc-color-bg));
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--hc-window-title-stripe-fg, var(--hc-color-border)) 0,
+    var(--hc-window-title-stripe-fg, var(--hc-color-border)) 1px,
+    var(--hc-window-title-stripe-bg, var(--hc-color-bg)) 1px,
+    var(--hc-window-title-stripe-bg, var(--hc-color-bg)) 2px
+  );
+}
+
+[data-widget="hypercard"].theme-macos1 .dashboard-panel::after {
+  content: 'go-go-host';
+  position: absolute;
+  top: 0.18rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0 0.5rem;
+  background: var(--hc-window-title-focused-bg, var(--hc-color-bg));
+  font-size: 11px;
+  font-weight: 700;
+}
+
+[data-widget="hypercard"].theme-macos1 .dashboard-panel > header:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--hc-color-border);
+}
+
+[data-widget="hypercard"].theme-macos1 .dashboard-panel > header:first-child > div,
+[data-widget="hypercard"].theme-macos1 .dashboard-panel > header:first-child > label,
+[data-widget="hypercard"].theme-macos1 .dashboard-panel > header:first-child > form {
+  min-width: 0;
+}
+
+[data-widget="hypercard"].theme-macos1 .dashboard-panel > header:first-child p {
+  margin: 0.35rem 0 0;
+  color: var(--hc-color-muted);
+}
+
+[data-widget="hypercard"].theme-macos1 .dashboard-panel h1,
+[data-widget="hypercard"].theme-macos1 .dashboard-panel h2,
+[data-widget="hypercard"].theme-macos1 .dashboard-panel h3 {
+  margin-top: 0;
+}
+
+[data-widget="hypercard"].theme-macos1 .dashboard-panel h1 { font-size: var(--ggh-font-lg); }
+[data-widget="hypercard"].theme-macos1 .dashboard-panel h2 { font-size: 14px; }
+[data-widget="hypercard"].theme-macos1 .dashboard-panel h3 { font-size: var(--ggh-font-md); }
+
+[data-widget="hypercard"].theme-macos1 .dashboard-panel p {
+  max-width: 64ch;
+}
+
+[data-widget="hypercard"].theme-macos1 table {
+  font-size: 11px;
+}
+
+[data-widget="hypercard"].theme-macos1 th {
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+[data-widget="hypercard"].theme-macos1 button,
+[data-widget="hypercard"].theme-macos1 select,
+[data-widget="hypercard"].theme-macos1 input,
+[data-widget="hypercard"].theme-macos1 textarea {
+  font-family: var(--hc-font-family);
+  font-size: var(--ggh-font-sm);
+}
+
+[data-widget="hypercard"].theme-macos1 input:not([type="checkbox"]),
+[data-widget="hypercard"].theme-macos1 select,
+[data-widget="hypercard"].theme-macos1 textarea {
+  border: 2px solid var(--hc-color-border);
+  background: var(--hc-color-bg);
+  color: var(--hc-color-fg);
+  padding: 0.35rem 0.5rem;
+  box-shadow: 1px 1px 0 var(--hc-color-border);
+}
+
+[data-widget="hypercard"].theme-macos1 a {
+  color: var(--hc-color-fg);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+}
+
+[data-widget="hypercard"].theme-macos1 .admin-inventory-page,
+[data-widget="hypercard"].theme-macos1 .audit-page,
+[data-widget="hypercard"].theme-macos1 .deployment-detail-page,
+[data-widget="hypercard"].theme-macos1 .deployments-page,
+[data-widget="hypercard"].theme-macos1 .members-page,
+[data-widget="hypercard"].theme-macos1 .runtime-page,
+[data-widget="hypercard"].theme-macos1 .site-overview-page,
+[data-widget="hypercard"].theme-macos1 .usage-page,
+[data-widget="hypercard"].theme-macos1 .create-site-page,
+[data-widget="hypercard"].theme-macos1 .no-orgs-page {
+  font-size: var(--ggh-font-sm);
+}
+
+[data-widget="hypercard"].theme-macos1 .admin-inventory-page table,
+[data-widget="hypercard"].theme-macos1 .members-table,
+[data-widget="hypercard"].theme-macos1 .admin-runtime-table,
+[data-widget="hypercard"].theme-macos1 .audit-timeline pre,
+[data-widget="hypercard"].theme-macos1 .deployment-timeline,
+[data-widget="hypercard"].theme-macos1 .quota-panel,
+[data-widget="hypercard"].theme-macos1 .runtime-status-panel,
+[data-widget="hypercard"].theme-macos1 .validation-report-panel,
+[data-widget="hypercard"].theme-macos1 .deployment-upload-panel {
+  border-width: 2px;
+  box-shadow: 2px 2px 0 var(--hc-color-border);
+}
+
+[data-widget="hypercard"].theme-macos1 .admin-inventory-page table,
+[data-widget="hypercard"].theme-macos1 .members-table,
+[data-widget="hypercard"].theme-macos1 .admin-runtime-table {
+  border-collapse: collapse;
+  border: 2px solid var(--hc-color-border);
+  background: var(--hc-color-bg);
+}
+
+[data-widget="hypercard"].theme-macos1 .admin-inventory-page th,
+[data-widget="hypercard"].theme-macos1 .members-table th,
+[data-widget="hypercard"].theme-macos1 .admin-runtime-table th {
+  background: var(--hc-color-fg);
+  color: var(--hc-color-bg);
+}
+
+[data-widget="hypercard"].theme-macos1 .admin-inventory-page td,
+[data-widget="hypercard"].theme-macos1 .admin-inventory-page th,
+[data-widget="hypercard"].theme-macos1 .members-table td,
+[data-widget="hypercard"].theme-macos1 .members-table th,
+[data-widget="hypercard"].theme-macos1 .admin-runtime-table td,
+[data-widget="hypercard"].theme-macos1 .admin-runtime-table th {
+  border: 1px solid var(--hc-color-border);
+  padding: 0.5rem;
+  vertical-align: top;
+}
+
+[data-widget="hypercard"].theme-macos1 .muted,
+[data-widget="hypercard"].theme-macos1 .site-card p,
+[data-widget="hypercard"].theme-macos1 .empty-state,
+[data-widget="hypercard"].theme-macos1 .error-callout p {
+  color: var(--hc-color-muted);
+}
+
+[data-widget="hypercard"].theme-macos1 .status-pill,
+[data-widget="hypercard"].theme-macos1 .role-badge {
+  border: 1px solid var(--hc-color-border);
+  border-radius: 0;
+  color: var(--hc-color-fg);
+  background: var(--hc-color-bg);
+  text-transform: none;
+}
+
+[data-widget="hypercard"].theme-macos1 .runtime-status-dot {
+  border-radius: 0;
+  box-shadow: none;
+  outline: 1px solid var(--hc-color-border);
+}
+
+[data-widget="hypercard"].theme-macos1 .copy-button {
+  font-family: var(--hc-font-family);
+}
+
+/* Doc view body panel: contain markdown content, don't let it overflow */
+[data-widget="hypercard"].theme-macos1 .doc-view-page__body.dashboard-panel {
+  overflow: hidden;
+}

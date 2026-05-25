@@ -1,0 +1,120 @@
+/* ──────────────────────────────────────────────────────────────
+   highlight-os1.css — OS1-themed syntax highlighting
+
+   Light background, neutral base, color accents only on token
+   categories (keywords, strings, types). Matches the dashboard
+   rule: color accents on structured surfaces, not inline prose.
+
+   Covers the highlight.js class names produced by rehype-highlight.
+   ────────────────────────────────────────────────────────────── */
+
+.markdown-renderer pre code.hljs {
+  background: transparent;
+  color: var(--hc-color-fg, #111);
+}
+
+/* ── Comments / meta ─────────────────────────────────────── */
+
+.markdown-renderer .hljs-comment,
+.markdown-renderer .hljs-quote {
+  color: #6a737d;
+  font-style: italic;
+}
+
+/* ── Keywords / control ────────────────────────────────────── */
+
+.markdown-renderer .hljs-keyword,
+.markdown-renderer .hljs-selector-tag,
+.markdown-renderer .hljs-section,
+.markdown-renderer .hljs-built_in {
+  color: #b028;       /* dark teal — accent but not shouting */
+  font-weight: 600;
+}
+
+/* ── Strings ───────────────────────────────────────────────── */
+
+.markdown-renderer .hljs-string,
+.markdown-renderer .hljs-addition,
+.markdown-renderer .hljs-template-tag,
+.markdown-renderer .hljs-template-variable {
+  color: #047;        /* deep blue — safe/primary accent */
+}
+
+/* ── Numbers / literals ────────────────────────────────────── */
+
+.markdown-renderer .hljs-number,
+.markdown-renderer .hljs-literal {
+  color: #931;        /* muted red-brown */
+}
+
+/* ── Types / class names ───────────────────────────────────── */
+
+.markdown-renderer .hljs-type,
+.markdown-renderer .hljs-class .hljs-title,
+.markdown-renderer .hljs-title.class_ {
+  color: #530;        /* warm brown */
+}
+
+/* ── Functions / methods ────────────────────────────────────── */
+
+.markdown-renderer .hljs-title,
+.markdown-renderer .hljs-title.function_ {
+  color: #247;        /* blue-teal */
+}
+
+/* ── Variables / properties ─────────────────────────────────── */
+
+.markdown-renderer .hljs-variable,
+.markdown-renderer .hljs-property,
+.markdown-renderer .hljs-attr {
+  color: #333;
+}
+
+/* ── Operators / punctuation ────────────────────────────────── */
+
+.markdown-renderer .hljs-symbol,
+.markdown-renderer .hljs-bullet,
+.markdown-renderer .hljs-meta .hljs-keyword,
+.markdown-renderer .hljs-selector-class,
+.markdown-renderer .hljs-selector-attr,
+.markdown-renderer .hljs-selector-pseudo {
+  color: #555;
+}
+
+/* ── Deletion / diff markers ───────────────────────────────── */
+
+.markdown-renderer .hljs-deletion {
+  color: #931;
+  background: #fdd;
+}
+
+/* ── Emphasis inside code ───────────────────────────────────── */
+
+.markdown-renderer .hljs-emphasis {
+  font-style: italic;
+}
+
+.markdown-renderer .hljs-strong {
+  font-weight: 700;
+}
+
+/* ── Regex / subst ─────────────────────────────────────────── */
+
+.markdown-renderer .hljs-regexp,
+.markdown-renderer .hljs-subst {
+  color: #333;
+}
+
+/* ── Tags (HTML/XML) ───────────────────────────────────────── */
+
+.markdown-renderer .hljs-tag {
+  color: #b028;       /* same as keyword */
+}
+
+.markdown-renderer .hljs-name {
+  color: #530;        /* same as type */
+}
+
+.markdown-renderer .hljs-attribute {
+  color: #047;        /* same as string */
+}

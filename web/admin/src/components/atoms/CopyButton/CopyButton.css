@@ -1,0 +1,18 @@
+.copy-button {
+  border: 1px solid var(--hc-color-border, #111);
+  background: var(--hc-color-bg, #fff);
+  color: var(--hc-color-fg, #111);
+  border-radius: 0;
+  padding: 0.25rem 0.55rem;
+  cursor: pointer;
+  font-family: var(--hc-font-family);
+  font-size: var(--ggh-font-sm, 11px);
+}
+
+.copy-button[data-state='copied'] {
+  background: color-mix(in srgb, #8fd18f 30%, var(--hc-color-bg, #fff));
+}
+
+.copy-button[data-state='error'] {
+  background: color-mix(in srgb, #ff9b9b 30%, var(--hc-color-bg, #fff));
+}

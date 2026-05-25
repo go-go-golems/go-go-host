@@ -1,0 +1,3 @@
+.site-tabs { display: flex; gap: 0.25rem; border-bottom: 1px solid var(--hc-color-border); }
+.site-tabs a { color: var(--hc-color-fg); text-decoration: none; border: 1px solid var(--hc-color-border); border-bottom: 0; padding: 0.4rem 0.65rem; background: var(--hc-color-bg); }
+.site-tabs a.active { background: var(--hc-color-fg); color: var(--hc-color-bg); }

@@ -1,0 +1,53 @@
+.doc-toc {
+  font-size: var(--ggh-font-xs, 10px);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.doc-toc__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.doc-toc__item {
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.doc-toc__item--level-2 {
+  padding-left: 0;
+}
+
+.doc-toc__item--level-3 {
+  padding-left: 0.75rem;
+}
+
+.doc-toc__link {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font-family: var(--hc-font-family);
+  font-size: inherit;
+  color: var(--hc-color-fg);
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 0.15rem 0.35rem;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.doc-toc__link:hover {
+  border-color: var(--hc-color-border);
+  background: var(--hc-color-fg);
+  color: var(--hc-color-bg);
+}

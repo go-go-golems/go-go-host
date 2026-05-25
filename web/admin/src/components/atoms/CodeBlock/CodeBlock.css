@@ -1,0 +1,14 @@
+.code-block {
+  overflow: auto;
+  padding: 0.65rem;
+  background: var(--hc-color-bg, #fff);
+  border: 2px solid var(--hc-color-border, #111);
+  border-radius: 0;
+  color: var(--hc-color-fg, #111);
+  box-shadow: 2px 2px 0 var(--hc-color-border, #111);
+}
+
+.code-block code {
+  font-family: var(--hc-font-family, ui-monospace, monospace);
+  font-size: var(--ggh-font-code, 11px);
+}

@@ -1,0 +1,10 @@
+import type { Meta, StoryObj } from '@storybook/react';
+import { http, HttpResponse } from 'msw';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { SitesPage } from './SitesPage';
+const Wrapped = () => <MemoryRouter initialEntries={['/app/orgs/org_123/sites']}><Routes><Route path="/app/orgs/:orgId/sites" element={<SitesPage />} /></Routes></MemoryRouter>;
+const meta = { title: 'Pages/SitesPage', component: Wrapped } satisfies Meta<typeof Wrapped>;
+export default meta; type Story = StoryObj<typeof meta>;
+export const Populated: Story = {};
+export const Empty: Story = { parameters: { msw: { handlers: [http.get('/api/v1/orgs/:orgId/sites', () => HttpResponse.json([]))] } } };
+export const LoadError: Story = { parameters: { msw: { handlers: [http.get('/api/v1/orgs/:orgId/sites', () => HttpResponse.json({ error: 'boom' }, { status: 500 }))] } } };

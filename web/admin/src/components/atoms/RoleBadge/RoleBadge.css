@@ -1,0 +1,21 @@
+.role-badge {
+  display: inline-flex;
+  border-radius: 0;
+  border: 1px solid var(--hc-color-border, #111);
+  padding: 0.1rem 0.4rem;
+  font-size: var(--ggh-font-xs, 10px);
+  color: var(--hc-color-fg, #111);
+  background: var(--hc-color-bg, #fff);
+}
+
+.role-badge[data-role='org_owner'] {
+  background: color-mix(in srgb, #8fd18f 30%, var(--hc-color-bg, #fff));
+}
+
+.role-badge[data-role='org_developer'] {
+  background: color-mix(in srgb, #8fb7d1 30%, var(--hc-color-bg, #fff));
+}
+
+.role-badge[data-role='org_viewer'] {
+  background: color-mix(in srgb, var(--hc-color-desktop-bg, #ddd) 45%, var(--hc-color-bg, #fff));
+}

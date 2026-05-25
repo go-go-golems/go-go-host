@@ -1,0 +1,50 @@
+topics:
+    - slug: go-go-host
+      description: Topic for go-go-host work.
+    - slug: goja
+      description: Topic for goja work.
+    - slug: hosting
+      description: Topic for hosting work.
+    - slug: rtk-query
+      description: Topic for rtk-query work.
+    - slug: storybook
+      description: Topic for storybook work.
+    - slug: vm-runtime
+      description: Topic for vm-runtime work.
+    - slug: dashboard
+      description: User-facing web dashboard surfaces and workflows.
+    - slug: frontend
+      description: Frontend application code, components, routing, and browser UI.
+    - slug: platform-admin
+      description: Platform administrator APIs, route guards, operator dashboards, and cross-tenant control-plane workflows.
+    - slug: security
+      description: 'HOST-004 hardening topic: security'
+    - slug: agents
+      description: 'HOST-004 hardening topic: agents'
+    - slug: deployments
+      description: 'HOST-004 hardening topic: deployments'
+    - slug: hardening
+      description: 'HOST-004 hardening topic: hardening'
+    - slug: contributor-guidelines
+      description: Contributor guidelines, contribution workflows, and repository development conventions.
+    - slug: documentation
+      description: Project documentation, doc organization, and durable knowledge management.
+    - slug: onboarding
+      description: New contributor and intern onboarding material.
+    - slug: cli
+      description: 'HOST-011 OAuth Device Flow CLI topic: cli'
+    - slug: oauth
+      description: 'HOST-011 OAuth Device Flow CLI topic: oauth'
+    - slug: oidc
+      description: 'HOST-011 OAuth Device Flow CLI topic: oidc'
+    - slug: keycloak
+      description: 'HOST-011 OAuth Device Flow CLI topic: keycloak'
+docTypes:
+    - slug: index
+      description: Ticket index document.
+intent:
+    - slug: long-term
+      description: Long-lived reference or design document.
+status:
+    - slug: active
+      description: Active document or ticket.

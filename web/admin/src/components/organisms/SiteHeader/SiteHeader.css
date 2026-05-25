@@ -1,0 +1,4 @@
+.site-header { display: grid; grid-template-columns: max-content 1fr max-content max-content; gap: 1rem; align-items: center; }
+.site-header h1, .site-header p { margin: 0; }
+.site-header p { color: var(--hc-color-muted); }
+@media (max-width: 760px) { .site-header { grid-template-columns: 1fr; } }

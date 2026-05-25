@@ -1,0 +1,2 @@
+ALTER TABLE agent_keys
+  ADD COLUMN IF NOT EXISTS last_used_at TIMESTAMPTZ;

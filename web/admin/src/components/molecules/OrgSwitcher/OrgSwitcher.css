@@ -1,0 +1,3 @@
+.org-switcher { display: inline-flex; align-items: center; gap: 0.5rem; }
+.org-switcher select { font-family: var(--hc-font-family, inherit); border: 1px solid var(--hc-color-border, var(--os-border-subtle)); background: var(--hc-color-bg, var(--os-surface-panel)); color: var(--hc-color-fg, var(--os-text-primary)); padding: 0.25rem; }
+.org-switcher--empty { color: var(--hc-color-muted, var(--os-text-secondary)); }

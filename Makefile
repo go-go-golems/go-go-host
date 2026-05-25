@@ -1,6 +1,6 @@
-.PHONY: gifs
+.PHONY: all gifs docker-lint lint lintmax gosec govulncheck test build goreleaser tag-major tag-minor tag-patch release bump-glazed install run-dev run-host-status run-agent-status web-install web-dev web-build web-embed storybook storybook-build oidc-e2e
 
-all: gifs
+all: build
 
 VERSION=v0.1.14
 GORELEASER_ARGS ?= --skip=sign --snapshot --clean
@@ -21,7 +21,7 @@ lintmax:
 
 gosec:
 	GOWORK=off go install github.com/securego/gosec/v2/cmd/gosec@latest
-	gosec -exclude-generated -exclude=G101,G304,G301,G306 -exclude-dir=.history ./...
+	GOWORK=off gosec -exclude-generated -exclude=G101,G304,G301,G306 -exclude-dir=.history ./...
 
 govulncheck:
 	GOWORK=off go install golang.org/x/vuln/cmd/govulncheck@latest
@@ -48,14 +48,44 @@ tag-patch:
 
 release:
 	git push origin --tags
-	GOWORK=off GOPROXY=proxy.golang.org go list -m github.com/go-go-golems/XXX@$(shell svu current)
+	GOWORK=off GOPROXY=proxy.golang.org go list -m github.com/go-go-golems/go-go-host@$(shell svu current)
 
 bump-glazed:
 	GOWORK=off go get github.com/go-go-golems/glazed@latest
 	GOWORK=off go get github.com/go-go-golems/clay@latest
 	GOWORK=off go mod tidy
 
-XXX_BINARY=$(shell which XXX)
+GO_GO_HOST_BINARY=$(shell which go-go-host)
 install:
-	GOWORK=off go build -o ./dist/XXX ./cmd/XXX && \
-		cp ./dist/XXX $(XXX_BINARY)
+	GOWORK=off go build -o ./dist/go-go-host ./cmd/go-go-host && \
+		cp ./dist/go-go-host $(GO_GO_HOST_BINARY)
+
+run-dev:
+	go run ./cmd/go-go-hostd --config configs/dev.yaml
+
+run-host-status:
+	go run ./cmd/go-go-host status --api-url http://127.0.0.1:8080
+
+run-agent-status:
+	go run ./cmd/go-go-host-agent status --api-url http://127.0.0.1:8080
+
+web-install:
+	cd web/admin && pnpm install
+
+web-dev:
+	cd web/admin && pnpm dev
+
+web-build:
+	cd web/admin && pnpm build
+
+web-embed:
+	go run ./cmd/build-web
+
+storybook:
+	cd web/admin && pnpm storybook
+
+storybook-build:
+	cd web/admin && pnpm storybook:build
+
+oidc-e2e:
+	GO_GO_HOST_OIDC_E2E=1 node scripts/oidc-login-playwright.mjs

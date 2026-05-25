@@ -1,0 +1,10 @@
+import type { Meta, StoryObj } from '@storybook/react';
+import { http, HttpResponse } from 'msw';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { AdminDeploymentsPage } from './AdminDeploymentsPage';
+const Wrapped = () => <MemoryRouter initialEntries={['/admin/deployments']}><Routes><Route path="/admin/deployments" element={<AdminDeploymentsPage />} /></Routes></MemoryRouter>;
+const meta = { title: 'Admin Pages/AdminDeploymentsPage', component: Wrapped } satisfies Meta<typeof Wrapped>;
+export default meta; type Story = StoryObj<typeof meta>;
+export const Populated: Story = {};
+export const Empty: Story = { parameters: { msw: { handlers: [http.get('/api/v1/admin/deployments', () => HttpResponse.json([]))] } } };
+export const RejectedOnly: Story = { parameters: { msw: { handlers: [http.get('/api/v1/admin/deployments', () => HttpResponse.json([{ id: 'dep_bad', siteId: 'site_456', siteSlug: 'docs', primaryHost: 'docs.localhost', orgId: 'org_123', orgSlug: 'demo', orgName: 'Demo Org', version: 2, status: 'rejected', bundleRef: 'bundles/site_456/dep_bad.tar.gz', unpackedPath: '', manifestJson: '{}', validationJson: '{"valid":false}', createdByType: 'user', createdById: 'usr_123', createdAt: '2026-05-11T22:15:00Z' }]))] } } };

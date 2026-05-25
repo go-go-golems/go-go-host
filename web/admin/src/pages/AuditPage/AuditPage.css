@@ -1,0 +1,38 @@
+.audit-page {
+  display: grid;
+  gap: 1rem;
+  font-size: var(--ggh-font-sm);
+}
+
+.audit-page .dashboard-panel > header:first-child,
+.audit-page__header {
+  display: grid !important;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+.audit-page h1,
+.audit-page p {
+  margin: 0;
+}
+
+.audit-page p {
+  color: var(--hc-color-muted);
+}
+
+.audit-page__header form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)) auto auto;
+  gap: 0.5rem;
+  align-items: end;
+}
+
+.audit-page__header input {
+  min-width: 0;
+}
+
+@media (max-width: 860px) {
+  .audit-page__header form {
+    grid-template-columns: 1fr;
+  }
+}

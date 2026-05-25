@@ -1,0 +1,5 @@
+.no-orgs-page { min-height: 100vh; display: grid; place-items: center; background: var(--hc-color-desktop-bg); }
+.no-orgs-page .dashboard-panel { width: min(42rem, calc(100vw - 2rem)); display: grid; gap: 1rem; }
+.no-orgs-page__form { display: grid; gap: 0.45rem; }
+.no-orgs-page__form input { font-family: var(--hc-font-family); border: 1px solid var(--hc-color-border); background: var(--hc-color-bg); color: var(--hc-color-fg); padding: 0.4rem; }
+.no-orgs-page__form button { justify-self: end; }

@@ -1,0 +1,37 @@
+package control
+
+import (
+	"github.com/go-go-golems/go-go-host/internal/config"
+	hostruntime "github.com/go-go-golems/go-go-host/internal/runtime"
+	"github.com/go-go-golems/go-go-host/internal/store"
+)
+
+// Core is the transport-agnostic application entrypoint. It owns product
+// services and keeps HTTP/CLI code from reaching directly into persistence.
+type Core struct {
+	Config     config.Config
+	Store      *store.Store
+	Supervisor *hostruntime.Supervisor
+
+	Orgs        *OrgService
+	Sites       *SiteService
+	Deployments *DeploymentService
+	Agents      *AgentService
+	Audit       *AuditService
+	Maintenance *MaintenanceService
+}
+
+func NewCore(cfg config.Config) *Core {
+	return NewCoreWithStore(cfg, nil)
+}
+
+func NewCoreWithStore(cfg config.Config, st *store.Store) *Core {
+	c := &Core{Config: cfg, Store: st, Supervisor: hostruntime.NewSupervisor(hostruntime.WithStatusRecorder(runtimeStatusRecorder{store: st}))}
+	c.Orgs = &OrgService{store: st}
+	c.Sites = &SiteService{store: st, baseDomain: cfg.BaseDomain}
+	c.Deployments = &DeploymentService{store: st, supervisor: c.Supervisor, dataDir: cfg.DataDir}
+	c.Agents = &AgentService{store: st}
+	c.Audit = &AuditService{store: st}
+	c.Maintenance = &MaintenanceService{store: st, dataDir: cfg.DataDir}
+	return c
+}
