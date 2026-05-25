@@ -231,7 +231,9 @@ func (s *AgentService) CreateDeployRun(ctx context.Context, input CreateDeployRu
 		s.auditAgentSecurity(ctx, "agent.grant.denied", input.AgentID, agent.OrgID, "deploy grant denied")
 		return nil, ErrPermissionDenied
 	}
-	if input.Activate && !grant.CanActivate {
+	requestedAction := defaultString(input.Action, "deploy")
+	wantsActivation := input.Activate || requestedAction == "activate"
+	if wantsActivation && !grant.CanActivate {
 		s.auditAgentSecurity(ctx, "agent.grant.denied", input.AgentID, agent.OrgID, "activation grant denied")
 		return nil, ErrPermissionDenied
 	}
@@ -243,8 +245,8 @@ func (s *AgentService) CreateDeployRun(ctx context.Context, input CreateDeployRu
 	if !grant.ExpiresAt.IsZero() && grant.ExpiresAt.Before(expires) {
 		expires = grant.ExpiresAt
 	}
-	actions := []string{defaultString(input.Action, "deploy")}
-	if input.Activate {
+	actions := []string{requestedAction}
+	if input.Activate && requestedAction != "activate" {
 		actions = append(actions, "activate")
 	}
 	run, err := s.store.CreateDeployRun(ctx, store.CreateDeployRunInput{AgentID: input.AgentID, SiteID: input.SiteID, AllowedActions: actions, AllowedChannels: []string{defaultString(input.Channel, "default")}, AllowedPaths: grant.AllowedPaths, UploadTokenHash: tokenHash, ExpiresAt: expires})

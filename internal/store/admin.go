@@ -229,11 +229,8 @@ func (s *Store) ListAdminAgents(ctx context.Context, filter AdminAgentFilter) ([
 }
 
 func (s *Store) ListAdminAuditEvents(ctx context.Context, filter AuditFilter) ([]AuditEvent, error) {
-	limit := filter.Limit
-	if limit <= 0 || limit > 500 {
-		limit = 100
-	}
-	rows, err := s.q.ListAdminAuditEvents(ctx, storedb.ListAdminAuditEventsParams{OrgID: optionalText(filter.OrgID), ResourceID: optionalText(filter.ResourceID), ActorType: optionalText(filter.ActorType), ActorID: optionalText(filter.ActorID), Action: optionalText(filter.Action), Limit: int32(limit)})
+	limit := boundedListLimit(filter.Limit)
+	rows, err := s.q.ListAdminAuditEvents(ctx, storedb.ListAdminAuditEventsParams{OrgID: optionalText(filter.OrgID), ResourceID: optionalText(filter.ResourceID), ActorType: optionalText(filter.ActorType), ActorID: optionalText(filter.ActorID), Action: optionalText(filter.Action), Limit: limit})
 	if err != nil {
 		return nil, err
 	}
@@ -245,11 +242,8 @@ func (s *Store) ListAdminAuditEvents(ctx context.Context, filter AuditFilter) ([
 }
 
 func (s *Store) ListAdminDeployments(ctx context.Context, filter AdminDeploymentFilter) ([]AdminDeployment, error) {
-	limit := filter.Limit
-	if limit <= 0 || limit > 500 {
-		limit = 100
-	}
-	rows, err := s.q.ListAdminDeployments(ctx, storedb.ListAdminDeploymentsParams{OrgID: optionalText(filter.OrgID), SiteID: optionalText(filter.SiteID), Status: optionalText(filter.Status), Limit: int32(limit)})
+	limit := boundedListLimit(filter.Limit)
+	rows, err := s.q.ListAdminDeployments(ctx, storedb.ListAdminDeploymentsParams{OrgID: optionalText(filter.OrgID), SiteID: optionalText(filter.SiteID), Status: optionalText(filter.Status), Limit: limit})
 	if err != nil {
 		return nil, err
 	}

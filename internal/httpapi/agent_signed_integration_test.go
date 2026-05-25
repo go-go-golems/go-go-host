@@ -184,6 +184,40 @@ func TestAgentSignedDeployRunSecurity(t *testing.T) {
 	if badSigRec.Code != http.StatusForbidden {
 		t.Fatalf("expected bad signature denial, got %d %s", badSigRec.Code, badSigRec.Body.String())
 	}
+
+	restrictGrantBody := []byte(`{"siteId":"` + site.ID + `","canDeploy":true,"canActivate":false,"allowedChannels":["default"],"allowedBundlePaths":["go-go-host.json"]}`)
+	restrictGrantReq := httptest.NewRequest(http.MethodPost, "/api/v1/orgs/"+org.ID+"/agents/"+created.Agent.ID+"/grants", bytes.NewReader(restrictGrantBody))
+	restrictGrantReq.Header.Set("X-Go-Go-Host-User", user)
+	restrictGrantReq.Header.Set("Content-Type", "application/json")
+	restrictGrantRec := httptest.NewRecorder()
+	h.ServeHTTP(restrictGrantRec, restrictGrantReq)
+	if restrictGrantRec.Code != http.StatusOK {
+		t.Fatalf("restrict grant: %d %s", restrictGrantRec.Code, restrictGrantRec.Body.String())
+	}
+
+	actionActivateBody := []byte(`{"siteId":"` + site.ID + `","channel":"default","bundlePath":"go-go-host.json","action":"activate"}`)
+	actionActivateReq := signedAgentRequest(t, http.MethodPost, "/api/v1/agent/deploy-runs", actionActivateBody, created.Agent.ID, replacement.KeyID, newPriv, time.Now().UTC(), "nonce-action-activate")
+	actionActivateRec := httptest.NewRecorder()
+	h.ServeHTTP(actionActivateRec, actionActivateReq)
+	if actionActivateRec.Code != http.StatusForbidden {
+		t.Fatalf("expected action-based activation denial, got %d %s", actionActivateRec.Code, actionActivateRec.Body.String())
+	}
+
+	restrictedRunBody := []byte(`{"siteId":"` + site.ID + `","channel":"default","bundlePath":"go-go-host.json","action":"deploy"}`)
+	restrictedRunReq := signedAgentRequest(t, http.MethodPost, "/api/v1/agent/deploy-runs", restrictedRunBody, created.Agent.ID, replacement.KeyID, newPriv, time.Now().UTC(), "nonce-restricted-run")
+	restrictedRunRec := httptest.NewRecorder()
+	h.ServeHTTP(restrictedRunRec, restrictedRunReq)
+	if restrictedRunRec.Code != http.StatusCreated {
+		t.Fatalf("restricted signed run: %d %s", restrictedRunRec.Code, restrictedRunRec.Body.String())
+	}
+	var restrictedRun createDeployRunResponse
+	if err := json.Unmarshal(restrictedRunRec.Body.Bytes(), &restrictedRun); err != nil {
+		t.Fatal(err)
+	}
+	restrictedUploadRec := uploadAgentBundleViaAPI(t, h, restrictedRun.ID, restrictedRun.UploadToken, writeHelloBundle(t))
+	if restrictedUploadRec.Code != http.StatusBadRequest {
+		t.Fatalf("expected restricted upload rejection, got %d %s", restrictedUploadRec.Code, restrictedUploadRec.Body.String())
+	}
 }
 
 type agentUploadResponse struct {

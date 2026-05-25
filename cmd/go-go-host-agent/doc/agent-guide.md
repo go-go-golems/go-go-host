@@ -66,7 +66,7 @@ The grant is the important part. It says what the agent may do.
 | --- | --- |
 | `siteId` | The only site this grant applies to. |
 | `allowedChannels` | The deploy channels this agent may request, commonly `default`. |
-| `allowedBundlePaths` | Logical bundle path policy. `**` means all bundle paths; this does not constrain files inside the tar/zip archive. |
+| `allowedBundlePaths` | Bundle path policy enforced for both the signed deploy-run `bundlePath` and uploaded archive entries. Use `**` for unrestricted bundle contents, or include explicit patterns such as `go-go-host.json`, `scripts/**`, and `assets/**`. |
 | `canDeploy` | Allows deploy-run creation and bundle upload. |
 | `canActivate` | Allows the agent to request `--activate` and promote traffic automatically. |
 | `expiresAt` | Optional expiry for temporary automation. |

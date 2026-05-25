@@ -66,7 +66,7 @@ The manifest file is named `go-go-host.json` and must be at the archive root. It
 | `entrypoint` | No | Present for convention and future tooling. Current loading walks all `.js` files. |
 | `smokePath` | No | Path requested during dry-run validation. Defaults to `/` if empty. |
 | `capabilities` | No | Capabilities requested by the bundle. Site policy may deny them. |
-| `allowedPaths` | No | Additional archive-entry allowlist declared by the bundle manifest. This is separate from agent `allowedBundlePaths`, which authorize the logical deploy artifact path. |
+| `allowedPaths` | No | Additional archive-entry allowlist declared by the bundle manifest. Agent `allowedBundlePaths` are also enforced against uploaded archive entries, so restricted agents need patterns for required files such as `go-go-host.json`, `scripts/**`, and `assets/**`. |
 | `channel` | No | Deployment channel label, commonly `default`. |
 
 The validator rejects paths that are absolute, contain `..`, or escape the bundle. This is true for manifest paths and archive entries.

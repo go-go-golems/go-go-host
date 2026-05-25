@@ -2,7 +2,6 @@ package httpapi
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/go-go-golems/go-go-host/internal/control"
 	"github.com/go-go-golems/go-go-host/internal/store"
@@ -234,7 +233,7 @@ func handleAdminListAudit(core *control.Core) http.HandlerFunc {
 		if _, ok := requirePlatformAdmin(core, w, r); !ok {
 			return
 		}
-		limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+		limit := parseInt32QueryParam(r, "limit")
 		events, err := core.Store.ListAdminAuditEvents(r.Context(), store.AuditFilter{OrgID: r.URL.Query().Get("orgId"), ResourceID: r.URL.Query().Get("resourceId"), ActorType: r.URL.Query().Get("actorType"), ActorID: r.URL.Query().Get("actorId"), Action: r.URL.Query().Get("action"), Limit: limit})
 		if err != nil {
 			writeError(w, http.StatusInternalServerError, err.Error())
@@ -307,7 +306,7 @@ func handleAdminListDeployments(core *control.Core) http.HandlerFunc {
 		if _, ok := requirePlatformAdmin(core, w, r); !ok {
 			return
 		}
-		limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+		limit := parseInt32QueryParam(r, "limit")
 		deployments, err := core.Store.ListAdminDeployments(r.Context(), store.AdminDeploymentFilter{OrgID: r.URL.Query().Get("orgId"), SiteID: r.URL.Query().Get("siteId"), Status: r.URL.Query().Get("status"), Limit: limit})
 		if err != nil {
 			writeError(w, http.StatusInternalServerError, err.Error())

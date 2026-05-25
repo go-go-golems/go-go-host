@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -318,7 +317,7 @@ func handleListAudit(core *control.Core) http.HandlerFunc {
 			writeError(w, http.StatusUnauthorized, err.Error())
 			return
 		}
-		limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+		limit := parseInt32QueryParam(r, "limit")
 		events, err := core.Audit.List(r.Context(), p.User.ID, store.AuditFilter{OrgID: r.PathValue("org_id"), ResourceID: r.URL.Query().Get("resource_id"), ActorType: r.URL.Query().Get("actor_type"), ActorID: r.URL.Query().Get("actor_id"), Action: r.URL.Query().Get("action"), Limit: limit})
 		if err != nil {
 			writeDeploymentError(w, err)
