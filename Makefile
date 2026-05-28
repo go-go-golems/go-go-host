@@ -89,3 +89,11 @@ storybook-build:
 
 oidc-e2e:
 	GO_GO_HOST_OIDC_E2E=1 node scripts/oidc-login-playwright.mjs
+
+.PHONY: logcopter-generate
+logcopter-generate:
+	GOWORK=off go generate ./...
+
+.PHONY: logcopter-check
+logcopter-check:
+	GOWORK=off go tool logcopter-gen -area-prefix go-go-golems.go-go-host -strip-prefix github.com/go-go-golems/go-go-host -check ./cmd/... ./internal/... ./pkg/...

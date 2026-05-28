@@ -1,0 +1,3 @@
+package gogohost
+
+//go:generate go tool logcopter-gen -area-prefix go-go-golems.go-go-host -strip-prefix github.com/go-go-golems/go-go-host ./cmd/... ./internal/... ./pkg/...
