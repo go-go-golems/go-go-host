@@ -15,7 +15,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -96,7 +95,7 @@ func runDagger(ctx context.Context, repoRoot string) error {
 	if err := copyDistToEmbed(repoRoot, tmpDir); err != nil {
 		return err
 	}
-	log.Printf("Successfully exported web/admin dist to internal/webadmin/dist (via Dagger)")
+	log.Info().Msg("successfully exported web/admin dist to internal/webadmin/dist via Dagger")
 	return nil
 }
 
@@ -111,7 +110,7 @@ func runLocal(repoRoot string) error {
 	if err := copyDistToEmbed(repoRoot, filepath.Join(webDir, "dist")); err != nil {
 		return err
 	}
-	log.Printf("Successfully exported web/admin dist to internal/webadmin/dist (local pnpm)")
+	log.Info().Msg("successfully exported web/admin dist to internal/webadmin/dist via local pnpm")
 	return nil
 }
 

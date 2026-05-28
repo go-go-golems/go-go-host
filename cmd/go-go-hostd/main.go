@@ -14,7 +14,6 @@ import (
 	"github.com/go-go-golems/go-go-host/internal/httpapi"
 	"github.com/go-go-golems/go-go-host/internal/store"
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )
 
