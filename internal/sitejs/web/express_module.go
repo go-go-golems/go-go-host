@@ -6,7 +6,7 @@ import (
 
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/require"
-	"github.com/go-go-golems/go-go-goja/engine"
+	"github.com/go-go-golems/go-go-goja/pkg/engine"
 )
 
 type ExpressRegistrar struct{ host *Host }
@@ -14,7 +14,7 @@ type ExpressRegistrar struct{ host *Host }
 func NewExpressRegistrar(host *Host) *ExpressRegistrar { return &ExpressRegistrar{host: host} }
 func (r *ExpressRegistrar) ID() string                 { return "express-http" }
 
-func (r *ExpressRegistrar) RegisterRuntimeModules(ctx *engine.RuntimeModuleContext, reg *require.Registry) error {
+func (r *ExpressRegistrar) RegisterRuntimeModule(ctx *engine.RuntimeModuleRegistrationContext, reg *require.Registry) error {
 	if r.host == nil {
 		return fmt.Errorf("express registrar requires host")
 	}

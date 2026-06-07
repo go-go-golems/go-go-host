@@ -25,7 +25,7 @@ type Host struct {
 	registry *Registry
 	dev      bool
 	renderer Renderer
-	owner    runtimeowner.Runner
+	owner    runtimeowner.RuntimeOwner
 	sessions *SessionManager
 	static   []StaticMount
 }
@@ -34,7 +34,7 @@ func NewHost(opts HostOptions) *Host {
 	return &Host{registry: NewRegistry(), dev: opts.Dev, renderer: opts.Renderer, sessions: NewSessionManager(opts.Sessions)}
 }
 
-func (h *Host) SetRuntime(owner runtimeowner.Runner) { h.owner = owner }
+func (h *Host) SetRuntime(owner runtimeowner.RuntimeOwner) { h.owner = owner }
 func (h *Host) Register(method, pattern string, handler goja.Callable) {
 	h.registry.Add(method, pattern, handler)
 }
