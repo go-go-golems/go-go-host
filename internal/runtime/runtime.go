@@ -14,8 +14,8 @@ import (
 	"time"
 
 	"github.com/dop251/goja"
-	"github.com/go-go-golems/go-go-goja/engine"
 	databasemod "github.com/go-go-golems/go-go-goja/modules/database"
+	"github.com/go-go-golems/go-go-goja/pkg/engine"
 	"github.com/go-go-golems/go-go-host/internal/sitejs/dbguard"
 	"github.com/go-go-golems/go-go-host/internal/sitejs/uidsl"
 	"github.com/go-go-golems/go-go-host/internal/sitejs/web"
@@ -83,21 +83,21 @@ func NewSiteRuntime(ctx context.Context, spec Spec) (*SiteRuntime, error) {
 	databaseModule := databasemod.New(databasemod.WithPreconfiguredDB(meteredDB), databasemod.WithConfigureEnabled(false))
 	dbAliasModule := databasemod.New(databasemod.WithName("db"), databasemod.WithPreconfiguredDB(meteredDB), databasemod.WithConfigureEnabled(false))
 
-	builder := engine.NewBuilder().WithModules(
-		engine.NativeModuleSpec{ModuleID: "database:app", ModuleName: databaseModule.Name(), Loader: databaseModule.Loader},
-		engine.NativeModuleSpec{ModuleID: "database:db-alias", ModuleName: dbAliasModule.Name(), Loader: dbAliasModule.Loader},
+	builder := engine.NewRuntimeFactoryBuilder().WithModules(
+		engine.NativeModuleRegistrar{ModuleName: databaseModule.Name(), Loader: databaseModule.Loader},
+		engine.NativeModuleRegistrar{ModuleName: dbAliasModule.Name(), Loader: dbAliasModule.Loader},
 	)
 	middleware := []string{"path"}
 	if spec.Capabilities.Timers {
 		middleware = append(middleware, "time", "timer")
 	}
-	builder = builder.UseModuleMiddleware(engine.MiddlewareOnly(middleware...)).WithRuntimeModuleRegistrars(web.NewExpressRegistrar(host), uidsl.NewRegistrar(), dbguard.NewRegistrar(guard))
+	builder = builder.UseModuleMiddleware(engine.MiddlewareOnly(middleware...)).WithModules(web.NewExpressRegistrar(host), uidsl.NewRegistrar(), dbguard.NewRegistrar(guard))
 	factory, err := builder.Build()
 	if err != nil {
 		_ = db.Close()
 		return nil, fmt.Errorf("build site runtime factory: %w", err)
 	}
-	rt, err := factory.NewRuntime(ctx)
+	rt, err := factory.NewRuntime(engine.WithStartupContext(ctx), engine.WithLifetimeContext(ctx))
 	if err != nil {
 		_ = db.Close()
 		return nil, fmt.Errorf("create site runtime: %w", err)
