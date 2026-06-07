@@ -97,7 +97,7 @@ func NewSiteRuntime(ctx context.Context, spec Spec) (*SiteRuntime, error) {
 		_ = db.Close()
 		return nil, fmt.Errorf("build site runtime factory: %w", err)
 	}
-	rt, err := factory.NewRuntime(engine.WithStartupContext(ctx), engine.WithLifetimeContext(ctx))
+	rt, err := factory.NewRuntime(engine.WithStartupContext(ctx), engine.WithLifetimeContext(context.Background()))
 	if err != nil {
 		_ = db.Close()
 		return nil, fmt.Errorf("create site runtime: %w", err)
